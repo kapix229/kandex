@@ -1,0 +1,257 @@
+{
+  "1bdad18db2535b80b6e11fadb87cc2b6c365d2a738100009": {
+    "schoolSymbol": "",
+    "securityToken": "",
+    "expiresAt": 1788641844792,
+    "account": {
+      "userName": "Kacper Smok",
+      "userLogin": "html-import",
+      "studentId": 1
+    },
+    "student": {
+      "pupil": {
+        "firstName": "Kacper",
+        "surname": "Smok",
+        "id": 1
+      }
+    },
+    "imported": {
+      "students": [
+        {
+          "id": 1,
+          "fullName": "Kacper Smok",
+          "className": "Eksport HTML",
+          "schoolName": "Dziennik elektroniczny"
+        }
+      ],
+      "events": [
+        {
+          "id": "import-event-2026-09-13T22:00:00.000Z-Historia kartkówka",
+          "title": "Historia kartkówka",
+          "description": "Historia kartkówka 14.09.2026",
+          "type": "event",
+          "subject": "Historia kartkówka",
+          "date": "2026-09-13T22:00:00.000Z",
+          "dueDate": "2026-09-13T22:00:00.000Z",
+          "completed": false,
+          "priority": "normal"
+        },
+        {
+          "id": "import-event-2026-12-08T23:00:00.000Z-Matematyka sprawdzian",
+          "title": "Matematyka sprawdzian",
+          "description": "Matematyka sprawdzian 12.09.2026",
+          "type": "test",
+          "subject": "Matematyka sprawdzian",
+          "date": "2026-12-08T23:00:00.000Z",
+          "dueDate": "2026-12-08T23:00:00.000Z",
+          "completed": false,
+          "priority": "high"
+        }
+      ],
+      "summaries": [
+        {
+          "subject": "Matematyka",
+          "average": 5,
+          "count": 1,
+          "grades": [
+            {
+              "id": "import-grade-Matematyka-1788613044788-0",
+              "subject": "Matematyka",
+              "title": "Ocena",
+              "value": 5,
+              "weight": 1,
+              "teacher": "—",
+              "date": "2026-12-08T23:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "subject": "Polski",
+          "average": 4.25,
+          "count": 1,
+          "grades": [
+            {
+              "id": "import-grade-Polski-1788613044789-0",
+              "subject": "Polski",
+              "title": "Ocena",
+              "value": 4.25,
+              "weight": 1,
+              "teacher": "—",
+              "date": "2026-09-12T22:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "1bc89ce9cf06c3dd785eadb3caaf3b73eeb400929ef97113": {
+    "schoolSymbol": "",
+    "securityToken": "",
+    "expiresAt": 1788642067155,
+    "account": {
+      "userName": "Kacper Smok",
+      "userLogin": "html-import",
+      "studentId": 1
+    },
+    "student": {
+      "pupil": {
+        "firstName": "Kacper",
+        "surname": "Smok",
+        "id": 1
+      }
+    },
+    "imported": {
+      "students": [
+        {
+          "id": 1,
+          "fullName": "Kacper Smok",
+          "className": "Eksport HTML",
+          "schoolName": "Dziennik elektroniczny"
+        }
+      ],
+      "events": [
+        {
+          "id": "import-event-2026-09-13T22:00:00.000Z-Historia kartkówka",
+          "title": "Historia kartkówka",
+          "description": "Historia kartkówka 14.09.2026",
+          "type": "event",
+          "subject": "Historia kartkówka",
+          "date": "2026-09-13T22:00:00.000Z",
+          "dueDate": "2026-09-13T22:00:00.000Z",
+          "completed": false,
+          "priority": "normal"
+        },
+        {
+          "id": "import-event-2026-12-08T23:00:00.000Z-Matematyka sprawdzian",
+          "title": "Matematyka sprawdzian",
+          "description": "Matematyka sprawdzian 12.09.2026",
+          "type": "test",
+          "subject": "Matematyka sprawdzian",
+          "date": "2026-12-08T23:00:00.000Z",
+          "dueDate": "2026-12-08T23:00:00.000Z",
+          "completed": false,
+          "priority": "high"
+        }
+      ],
+      "summaries": [
+        {
+          "subject": "Matematyka",
+          "average": 5,
+          "count": 1,
+          "grades": [
+            {
+              "id": "import-grade-Matematyka-1788613267151-0",
+              "subject": "Matematyka",
+              "title": "Ocena",
+              "value": 5,
+              "weight": 1,
+              "teacher": "—",
+              "date": "2026-12-08T23:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "subject": "Polski",
+          "average": 4.25,
+          "count": 1,
+          "grades": [
+            {
+              "id": "import-grade-Polski-1788613267151-0",
+              "subject": "Polski",
+              "title": "Ocena",
+              "value": 4.25,
+              "weight": 1,
+              "teacher": "—",
+              "date": "2026-09-12T22:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "181c3e8826e45da4d7ff1bbc8a4c69aec7746e0a5b5bc9bf": {
+    "schoolSymbol": "",
+    "securityToken": "",
+    "expiresAt": 1788642124469,
+    "account": {
+      "userName": "Kacper Smok",
+      "userLogin": "html-import",
+      "studentId": 1
+    },
+    "student": {
+      "pupil": {
+        "firstName": "Kacper",
+        "surname": "Smok",
+        "id": 1
+      }
+    },
+    "imported": {
+      "students": [
+        {
+          "id": 1,
+          "fullName": "Kacper Smok",
+          "className": "Eksport HTML",
+          "schoolName": "Dziennik elektroniczny"
+        }
+      ],
+      "events": [
+        {
+          "id": "import-event-2026-09-13T22:00:00.000Z-Historia kartkówka",
+          "title": "Historia kartkówka",
+          "description": "Historia kartkówka 14.09.2026",
+          "type": "event",
+          "subject": "Historia kartkówka",
+          "date": "2026-09-13T22:00:00.000Z",
+          "dueDate": "2026-09-13T22:00:00.000Z",
+          "completed": false,
+          "priority": "normal"
+        },
+        {
+          "id": "import-event-2026-12-08T23:00:00.000Z-Matematyka sprawdzian",
+          "title": "Matematyka sprawdzian",
+          "description": "Matematyka sprawdzian 12.09.2026",
+          "type": "test",
+          "subject": "Matematyka sprawdzian",
+          "date": "2026-12-08T23:00:00.000Z",
+          "dueDate": "2026-12-08T23:00:00.000Z",
+          "completed": false,
+          "priority": "high"
+        }
+      ],
+      "summaries": [
+        {
+          "subject": "Matematyka",
+          "average": 5,
+          "count": 1,
+          "grades": [
+            {
+              "id": "import-grade-Matematyka-1788613324466-0",
+              "subject": "Matematyka",
+              "title": "Ocena",
+              "value": 5,
+              "weight": 1,
+              "teacher": "—",
+              "date": "2026-12-08T23:00:00.000Z"
+            }
+          ]
+        },
+        {
+          "subject": "Polski",
+          "average": 4.25,
+          "count": 1,
+          "grades": [
+            {
+              "id": "import-grade-Polski-1788613324466-0",
+              "subject": "Polski",
+              "title": "Ocena",
+              "value": 4.25,
+              "weight": 1,
+              "teacher": "—",
+              "date": "2026-09-12T22:00:00.000Z"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
