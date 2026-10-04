@@ -6,3 +6,7 @@ out/
 .env.*.local
 
 tsconfig.tsbuildinfo
+
+cookie.txt
+.tmp/
+.data/
