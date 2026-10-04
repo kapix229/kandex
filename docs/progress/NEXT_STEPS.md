@@ -1,18 +1,18 @@
 # Następne kroki
 
-Lista powinna być aktualizowana po każdym większym etapie.
-
 ## Priorytet 1
-- Ustalić i opisać docelowy zakres funkcji Kandex.
-- Przejrzeć obecny frontend i ustalić kolejność zmian UI/UX.
-- Zweryfikować aktualny stan logowania i importu Vulcan.
+- Uruchomić lokalny smoke test wszystkich stron.
+- Przetestować logowanie Vulcan na rzeczywistym środowisku testowym.
+- Przetestować import HTML na prawdziwym eksporcie.
+- Ustalić docelową strukturę components/ vs src/components/.
 
 ## Priorytet 2
-- Przeprowadzić audyt bezpieczeństwa.
-- Uporządkować dokumentację projektu.
-- Zweryfikować działanie kalendarza, ocen, przedmiotów i materiałów do nauki.
+- Dokończyć nowy język wizualny na kalendarzu, ocenach i pozostałych widokach.
+- Zastąpić mock AI prawdziwą integracją modelu.
+- Zaprojektować trwałe przechowywanie sesji.
+- Dodać testy API i E2E.
 
 ## Priorytet 3
-- Rozwijać funkcje asystenta AI zgodnie z rzeczywistym zakresem projektu.
-- Dodać lub rozbudować testy dla krytycznych elementów.
-- Systematycznie usuwać problemy zapisane w ISSUES.md.
+- Rozbudować dashboard o realne statystyki ucznia.
+- Dodać plan nauki, materiały i inteligentne powtórki.
+- Przygotować deployment i checklistę produkcyjną.
