@@ -120,7 +120,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
   };
 
   return (
-    <aside className="w-80 bg-gradient-to-b from-blue-50 to-white rounded-2xl border border-blue-200 overflow-hidden flex flex-col shadow-lg animate-slide-in-right">
+    <aside className="w-full h-full bg-white/75 rounded-3xl border border-slate-200/70 overflow-hidden flex flex-col shadow-sm animate-slide-in-right backdrop-blur-xl">
       {/* Header */}
       <div className="bg-slate-950 text-white px-4 py-4 flex items-center gap-3 flex-shrink-0">
         <span className="text-xl">🤖</span>
@@ -142,8 +142,8 @@ export default function AIAssistant({ context }: AIAssistantProps) {
             <div
               className={`max-w-xs px-4 py-3 rounded-lg text-sm leading-relaxed ${
                 message.role === "user"
-                  ? "bg-blue-600 text-white rounded-br-none"
-                  : "bg-white border border-blue-200 text-zinc-800 rounded-bl-none shadow-sm"
+                  ? "bg-slate-950 text-white rounded-br-none"
+                  : "bg-slate-50 border border-slate-200 text-slate-800 rounded-bl-none shadow-sm"
               }`}
             >
               <div className="whitespace-pre-wrap break-words">{message.content}</div>
@@ -184,7 +184,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
       </div>
 
       {/* Input */}
-      <div className="border-t border-blue-200 bg-white p-3 space-y-2 flex-shrink-0">
+      <div className="border-t border-slate-200 bg-white/80 p-3 space-y-2 flex-shrink-0">
         {context?.eventTitle && (
           <div className="text-xs bg-blue-50 border border-blue-200 rounded px-2 py-1 text-zinc-600">
             📚 Kontekst: {context.eventTitle}
