@@ -91,19 +91,19 @@ export default function CalendarPage() {
     <div className="space-y-6">
       <div className="animate-slide-in-down flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-800 mb-2">Kalendarz</h1>
-          <p className="text-zinc-600 text-sm">
+          <h1 className="text-3xl font-bold text-slate-950 mb-2">Kalendarz</h1>
+          <p className="text-slate-500 text-sm">
             Śledzenie zadań, sprawdzianów i ocen z Vulcana
           </p>
         </div>
         {account && (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-zinc-500">
+            <span className="text-sm text-slate-400">
               Zalogowano jako <span className="font-semibold">{account.fullName}</span>
             </span>
             <button
               onClick={handleLogout}
-              className="bg-white border border-zinc-300 text-zinc-700 px-3 py-1.5 rounded-lg text-sm hover:bg-zinc-50"
+              className="bg-white border border-zinc-300 text-slate-700 px-3 py-1.5 rounded-2xl text-sm hover:bg-slate-50"
             >
               Wyloguj
             </button>
@@ -112,7 +112,7 @@ export default function CalendarPage() {
       </div>
 
       {authError && (
-        <div className="bg-white border border-zinc-200 text-zinc-600 rounded-lg px-4 py-3 text-sm">
+        <div className="bg-white border-slate-200/70 text-slate-500 rounded-2xl px-4 py-3 text-sm">
           Dziennik jest pusty. Gdy pojawi się automatyczny import z Vulcana, wydarzenia pojawią się tutaj.
         </div>
       )}
@@ -120,11 +120,11 @@ export default function CalendarPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {loading ? (
-            <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500">
+            <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
               Dziennik jest pusty.
             </div>
           ) : events.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500">
+            <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
               Brak wydarzeń w dzienniku. Poczekaj na automatyczny import z Vulcana.
             </div>
           ) : (
@@ -140,8 +140,8 @@ export default function CalendarPage() {
 
         <div className="space-y-4">
           {selectedDate && (
-            <div className="bg-white rounded-2xl p-6 border border-zinc-200 animate-fade-in">
-              <h3 className="text-lg font-bold text-zinc-800 mb-3">
+            <div className="glass-card rounded-3xl p-6 border-slate-200/70 animate-fade-in">
+              <h3 className="text-lg font-bold text-slate-950 mb-3">
                 {selectedDate.toLocaleDateString("pl-PL", {
                   weekday: "long",
                   year: "numeric",
@@ -156,19 +156,19 @@ export default function CalendarPage() {
                     <button
                       key={event.id}
                       onClick={() => setSelectedEvent(event)}
-                      className="w-full text-left p-3 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition-colors duration-200"
+                      className="w-full text-left p-3 rounded-2xl border-slate-200/70 hover:bg-slate-50 transition-colors duration-200"
                     >
-                      <p className="font-semibold text-zinc-800 text-sm">
+                      <p className="font-semibold text-slate-950 text-sm">
                         {event.title}
                       </p>
                       {event.subject && (
-                        <p className="text-xs text-zinc-600">{event.subject}</p>
+                        <p className="text-xs text-slate-500">{event.subject}</p>
                       )}
                     </button>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-zinc-500 text-center py-4">
+                <p className="text-sm text-slate-400 text-center py-4">
                   Brak zdarzeń w tym dniu
                 </p>
               )}
