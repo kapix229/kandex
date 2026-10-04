@@ -84,10 +84,10 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
   const weekDays = ["Nie", "Pon", "Wt", "Śr", "Czw", "Pt", "Sob"];
 
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-zinc-200 animate-fade-in">
+    <div className="glass-card rounded-3xl p-6 shadow-sm border-slate-200/70 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-zinc-800">{monthName}</h2>
+        <h2 className="text-2xl font-bold text-slate-950">{monthName}</h2>
         <div className="flex gap-2">
           <button
             onClick={() =>
@@ -95,13 +95,13 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                 new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
               )
             }
-            className="p-2 rounded-lg hover:bg-zinc-100 transition-colors duration-200"
+            className="p-2 rounded-2xl hover:bg-slate-100 transition-colors duration-200"
           >
             ←
           </button>
           <button
             onClick={() => setCurrentDate(new Date())}
-            className="px-3 py-1 rounded-lg hover:bg-blue-50 text-sm font-medium text-blue-600 transition-colors duration-200"
+            className="px-3 py-1 rounded-2xl hover:bg-indigo-50 text-sm font-medium text-indigo-600 transition-colors duration-200"
           >
             Dziś
           </button>
@@ -111,7 +111,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                 new Date(currentDate.getFullYear(), currentDate.getMonth() + 1)
               )
             }
-            className="p-2 rounded-lg hover:bg-zinc-100 transition-colors duration-200"
+            className="p-2 rounded-2xl hover:bg-slate-100 transition-colors duration-200"
           >
             →
           </button>
@@ -123,7 +123,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
         {weekDays.map((day) => (
           <div
             key={day}
-            className="text-center text-xs font-semibold text-zinc-500 py-2"
+            className="text-center text-xs font-semibold text-slate-400 py-2"
           >
             {day}
           </div>
@@ -139,24 +139,24 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
               setSelectedDate(day.date);
               onDateSelect?.(day.date);
             }}
-            className={`aspect-square p-2 rounded-lg border transition-all duration-200 cursor-pointer ${
+            className={`aspect-square p-2 rounded-2xl border transition-all duration-200 cursor-pointer ${
               day.isCurrentMonth
                 ? day.isToday
-                  ? "bg-blue-100 border-blue-400 shadow-md font-bold"
+                  ? "bg-indigo-100 border-indigo-400 shadow-md font-bold"
                   : selectedDate?.toDateString() === day.date.toDateString()
-                    ? "bg-blue-50 border-blue-300 shadow-md ring-2 ring-blue-300"
-                    : "bg-white border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300"
-                : "bg-zinc-50 border-zinc-100"
+                    ? "bg-indigo-50 border-indigo-200 shadow-md ring-2 ring-blue-300"
+                    : "bg-white border-zinc-200 hover:bg-slate-50 hover:border-zinc-300"
+                : "bg-slate-50 border-zinc-100"
             }`}
           >
             <div
               className={`text-sm font-semibold mb-1 ${
                 day.isToday
-                  ? "text-blue-700"
+                  ? "text-indigo-700"
                   : selectedDate?.toDateString() === day.date.toDateString()
-                    ? "text-blue-600"
+                    ? "text-indigo-600"
                     : day.isCurrentMonth
-                      ? "text-zinc-800"
+                      ? "text-slate-950"
                       : "text-zinc-400"
               }`}
             >
@@ -170,7 +170,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                   <EventBadge key={event.id} event={event} compact />
                 ))}
                 {day.events.length > 2 && (
-                  <div className="text-xs text-zinc-500 font-medium">
+                  <div className="text-xs text-slate-400 font-medium">
                     +{day.events.length - 2}
                   </div>
                 )}
@@ -183,7 +183,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
       {/* Upcoming events preview */}
       {events.length > 0 && (
         <div className="mt-8 pt-6 border-t border-zinc-200">
-          <h3 className="text-sm font-semibold text-zinc-700 mb-3">
+          <h3 className="text-sm font-semibold text-slate-700 mb-3">
             Nadchodzące zdarzenia
           </h3>
           <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -194,18 +194,18 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
               .map((event) => (
                 <div
                   key={event.id}
-                  className="p-3 bg-zinc-50 rounded-lg border border-zinc-200 hover:bg-zinc-100 transition-colors duration-200"
+                  className="p-3 bg-slate-50 rounded-2xl border-slate-200/70 hover:bg-slate-100 transition-colors duration-200"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-zinc-800">
+                      <p className="text-sm font-medium text-slate-950">
                         {event.title}
                       </p>
                       {event.subject && (
-                        <p className="text-xs text-zinc-500">{event.subject}</p>
+                        <p className="text-xs text-slate-400">{event.subject}</p>
                       )}
                     </div>
-                    <span className="text-xs text-zinc-600 whitespace-nowrap">
+                    <span className="text-xs text-slate-500 whitespace-nowrap">
                       {dayjs(event.date).format("D MMM")}
                     </span>
                   </div>
