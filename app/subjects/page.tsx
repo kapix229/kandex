@@ -32,12 +32,12 @@ const GRADE_BG: Record<number, string> = {
 
 function gradeChipClass(value: number): string {
   const clamped = Math.min(6, Math.max(1, Math.round(value)));
-  return GRADE_BG[clamped] ?? "bg-zinc-50 border-zinc-200 text-zinc-700";
+  return GRADE_BG[clamped] ?? "bg-slate-50 border-zinc-200 text-slate-700";
 }
 
 function gradeDotClass(value: number): string {
   const clamped = Math.min(6, Math.max(1, value));
-  return GRADE_COLORS[clamped] ?? "bg-zinc-500";
+  return GRADE_COLORS[clamped] ?? "bg-slate-500";
 }
 
 export default function SubjectsPage() {
@@ -116,19 +116,19 @@ export default function SubjectsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-zinc-800 mb-2">Oceny</h1>
-          <p className="text-zinc-600 text-sm">
+          <h1 className="text-3xl font-bold text-slate-950 mb-2">Oceny</h1>
+          <p className="text-slate-500 text-sm">
             Dziennik ocen zsynchronizowany z Twoim kontem Vulcan
           </p>
         </div>
         {account && (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-zinc-500">
+            <span className="text-sm text-slate-400">
               Zalogowano jako <span className="font-semibold">{account.fullName}</span>
             </span>
             <button
               onClick={handleLogout}
-              className="bg-white border border-zinc-300 text-zinc-700 px-3 py-1.5 rounded-lg text-sm hover:bg-zinc-50"
+              className="bg-white border border-zinc-300 text-slate-700 px-3 py-1.5 rounded-2xl text-sm hover:bg-slate-50"
             >
               Wyloguj
             </button>
@@ -137,38 +137,38 @@ export default function SubjectsPage() {
       </div>
 
       {error && (
-        <div className="bg-white border border-zinc-200 text-zinc-600 rounded-lg px-4 py-3 text-sm">
+        <div className="bg-white border-slate-200/70 text-slate-500 rounded-2xl px-4 py-3 text-sm">
           Dziennik jest pusty. Gdy pojawi się automatyczny import z Vulcana, oceny pojawią się tutaj.
         </div>
       )}
 
       {loading ? (
-        <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500">
+        <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
           Dziennik jest pusty.
         </div>
       ) : summaries.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500">
+        <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
           Brak ocen do wyświetlenia. Dziennik oczekuje na automatyczny import.
         </div>
       ) : (
         <>
           {/* Overall stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white rounded-2xl border border-zinc-200 p-5">
-              <p className="text-sm text-zinc-500 mb-1">Średnia ogólna</p>
-              <p className="text-3xl font-extrabold text-zinc-800">
+            <div className="glass-card rounded-3xl border-slate-200/70 p-5">
+              <p className="text-sm text-slate-400 mb-1">Średnia ogólna</p>
+              <p className="text-3xl font-extrabold text-slate-950">
                 {overallAverage.toFixed(2)}
               </p>
             </div>
-            <div className="bg-white rounded-2xl border border-zinc-200 p-5">
-              <p className="text-sm text-zinc-500 mb-1">Przedmioty</p>
-              <p className="text-3xl font-extrabold text-zinc-800">
+            <div className="glass-card rounded-3xl border-slate-200/70 p-5">
+              <p className="text-sm text-slate-400 mb-1">Przedmioty</p>
+              <p className="text-3xl font-extrabold text-slate-950">
                 {summaries.length}
               </p>
             </div>
-            <div className="bg-white rounded-2xl border border-zinc-200 p-5">
-              <p className="text-sm text-zinc-500 mb-1">Wszystkie oceny</p>
-              <p className="text-3xl font-extrabold text-zinc-800">
+            <div className="glass-card rounded-3xl border-slate-200/70 p-5">
+              <p className="text-sm text-slate-400 mb-1">Wszystkie oceny</p>
+              <p className="text-3xl font-extrabold text-slate-950">
                 {totalGrades}
               </p>
             </div>
@@ -185,25 +185,25 @@ export default function SubjectsPage() {
                     onClick={() => setSelectedSubject(s.subject)}
                     className={`w-full text-left rounded-xl border p-4 transition-all ${
                       isActive
-                        ? "bg-blue-50 border-blue-300 shadow-sm"
-                        : "bg-white border-zinc-200 hover:bg-zinc-50"
+                        ? "bg-indigo-50 border-indigo-200 shadow-sm"
+                        : "bg-white border-zinc-200 hover:bg-slate-50"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <p
                           className={`font-semibold ${
-                            isActive ? "text-blue-900" : "text-zinc-800"
+                            isActive ? "text-blue-900" : "text-slate-950"
                           }`}
                         >
                           {s.subject}
                         </p>
-                        <p className="text-xs text-zinc-500 mt-0.5">
+                        <p className="text-xs text-slate-400 mt-0.5">
                           {s.count} {s.count === 1 ? "ocena" : "ocen"}
                         </p>
                       </div>
                       <div
-                        className={`px-3 py-1 rounded-lg text-lg font-bold ${gradeChipClass(
+                        className={`px-3 py-1 rounded-2xl text-lg font-bold ${gradeChipClass(
                           s.average
                         )}`}
                       >
@@ -218,13 +218,13 @@ export default function SubjectsPage() {
             {/* Grades list for selected subject */}
             <div className="lg:col-span-2">
               {activeSummary ? (
-                <div className="bg-white rounded-2xl border border-zinc-200 p-6">
+                <div className="glass-card rounded-3xl border-slate-200/70 p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-zinc-800">
+                    <h2 className="text-xl font-bold text-slate-950">
                       {activeSummary.subject}
                     </h2>
                     <div
-                      className={`px-4 py-2 rounded-lg text-2xl font-bold ${gradeChipClass(
+                      className={`px-4 py-2 rounded-2xl text-2xl font-bold ${gradeChipClass(
                         activeSummary.average
                       )}`}
                     >
@@ -232,7 +232,7 @@ export default function SubjectsPage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-zinc-500 mb-4">
+                  <p className="text-sm text-slate-400 mb-4">
                     {activeSummary.count}{" "}
                     {activeSummary.count === 1 ? "ocena" : "ocen"} • Nauczyciel:{" "}
                     {activeSummary.grades[0]?.teacher ?? "—"}
@@ -241,7 +241,7 @@ export default function SubjectsPage() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead>
-                        <tr className="text-left text-zinc-500 border-b border-zinc-200">
+                        <tr className="text-left text-slate-400 border-b border-zinc-200">
                           <th className="py-2 pr-2 font-medium">Ocena</th>
                           <th className="py-2 pr-2 font-medium">Tytuł</th>
                           <th className="py-2 pr-2 font-medium">Waga</th>
@@ -256,22 +256,22 @@ export default function SubjectsPage() {
                           >
                             <td className="py-2 pr-2">
                               <span
-                                className={`inline-flex items-center justify-center w-9 h-9 rounded-lg text-white font-bold ${gradeDotClass(
+                                className={`inline-flex items-center justify-center w-9 h-9 rounded-2xl text-white font-bold ${gradeDotClass(
                                   g.value
                                 )}`}
                               >
                                 {g.value}
                               </span>
                             </td>
-                            <td className="py-2 pr-2 text-zinc-800">
+                            <td className="py-2 pr-2 text-slate-950">
                               {g.title}
                               {g.comment && (
-                                <p className="text-xs text-zinc-500 mt-0.5">
+                                <p className="text-xs text-slate-400 mt-0.5">
                                   {g.comment}
                                 </p>
                               )}
                             </td>
-                            <td className="py-2 pr-2 text-zinc-600">
+                            <td className="py-2 pr-2 text-slate-500">
                               {g.weight}
                               {g.weight === 3
                                 ? " (sprawdzian)"
@@ -279,7 +279,7 @@ export default function SubjectsPage() {
                                 ? " (kartkówka)"
                                 : " (aktywność)"}
                             </td>
-                            <td className="py-2 pr-2 text-zinc-600">
+                            <td className="py-2 pr-2 text-slate-500">
                               {g.date.toLocaleDateString("pl-PL", {
                                 day: "2-digit",
                                 month: "short",
@@ -293,7 +293,7 @@ export default function SubjectsPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-2xl border border-zinc-200 p-12 text-center text-zinc-500">
+                <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
                   Wybierz przedmiot z listy, aby zobaczyć oceny.
                 </div>
               )}
