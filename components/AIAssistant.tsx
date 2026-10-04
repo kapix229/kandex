@@ -122,7 +122,7 @@ export default function AIAssistant({ context }: AIAssistantProps) {
   return (
     <aside className="w-80 bg-gradient-to-b from-blue-50 to-white rounded-2xl border border-blue-200 overflow-hidden flex flex-col shadow-lg animate-slide-in-right">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-3 flex items-center gap-2 flex-shrink-0">
+      <div className="bg-slate-950 text-white px-4 py-4 flex items-center gap-3 flex-shrink-0">
         <span className="text-xl">🤖</span>
         <div>
           <h3 className="font-bold text-sm">AI Asystent Nauki</h3>
@@ -198,14 +198,14 @@ export default function AIAssistant({ context }: AIAssistantProps) {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Zadaj pytanie... (Shift+Enter dla nowej linii)"
-            className="flex-1 px-3 py-2 border border-zinc-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+            className="flex-1 px-3 py-2 border border-slate-200 bg-slate-50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
             rows={2}
             disabled={loading}
           />
           <button
             onClick={handleSendMessage}
             disabled={loading || !input.trim()}
-            className="bg-blue-600 text-white px-3 py-2 rounded-lg font-medium transition-all duration-200 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md"
+            className="bg-slate-950 text-white px-3 py-2 rounded-xl font-medium transition-all duration-200 hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-md"
             title="Wyślij (Enter)"
           >
             ➤
