@@ -1,15 +1,17 @@
-# Znane problemy i rzeczy do sprawdzenia
+# Znane problemy
 
-## Aktywne
+## Wysoki priorytet
+- Sesje Vulcana są przechowywane w pamięci procesu i znikają po restarcie serwera.
+- Integracja AI jest obecnie mockiem opartym na słowach kluczowych.
+- Logowanie Vulcana ma pozostałości kilku przepływów i wymaga uporządkowania.
+- Import HTML używa heurystycznego parsowania i wymaga testów na rzeczywistym eksporcie.
 
-### Dokumentacja README
-Główny README.md wymaga uporządkowania i dostosowania do rzeczywistego stanu Kandex.
+## Średni priorytet
+- Istnieją dwa miejsca na komponenty: components/ i src/components/.
+- Brakuje testów end-to-end.
+- Kalendarz, oceny i ustawienia wymagają dalszego ujednolicenia z nowym designem.
 
-### Bezpieczeństwo
-Należy kontynuować audyt obsługi sesji Vulcan, importu danych i pliku cookie.txt.
-
-### Testy
-Przy większych zmianach należy uruchamiać dostępne sprawdzenia: lint, typecheck i build, jeśli środowisko pozwala.
-
-## Zasada
-Po rozwiązaniu problemu oznacz go jako rozwiązany wraz z datą i krótkim opisem. Nie usuwaj historii problemu.
+## Bezpieczeństwo
+- cookie.txt został usunięty z repozytorium.
+- cookie.txt, .tmp/ i .data/ są ignorowane przez Git.
+- Przed produkcją potrzebny jest pełny audyt cookies, sesji i endpointów API.
