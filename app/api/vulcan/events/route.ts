@@ -28,7 +28,7 @@ export async function GET() {
             surname: nameParts.slice(1).join(" ") || "",
             id: student.id,
           },
-        },
+        } as unknown as Student,
         imported: { students: data.students, events: data.events as VulcanCalendarEvent[], summaries: data.summaries },
       });
       cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
