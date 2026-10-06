@@ -20,3 +20,10 @@ Umożliwić wznowienie długotrwałej pracy nad Kandex w nowym czacie bez polega
 - Ustawienia i sidebar prowadzą do połączenia EduVULCAN.
 - Istniejące endpointy ocen i kalendarza korzystają po zalogowaniu z danych z SDK VULCAN.
 - Dodano `npm run typecheck` oraz workflow GitHub Actions do typecheck/lint/build.
+
+
+## 2026-10-06 — przebudowa architektury
+- Dodano onboarding z wyborem dziennika.
+- Dodano warstwę znormalizowanych danych i adaptery.
+- Dodano automatyczny import po połączeniu EduVULCAN.
+- Dodano widoki Zadania/Nauka i nową nawigację.
