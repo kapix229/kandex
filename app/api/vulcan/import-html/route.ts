@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
-import { createSession, getSession, setSession, type VulcanAccount, type VulcanCalendarEvent } from "@/services/vulcan";
+import { createSession, getSession, setSession, type VulcanCalendarEvent } from "@/services/vulcan";
+import type { Account, Student } from "vulcan-api-js";
 import { consumeLatestHtmlTemporaryImport, parseHtmlExport, saveHtmlTemporaryImport } from "@/services/html-import";
 
 export const dynamic = "force-dynamic";
