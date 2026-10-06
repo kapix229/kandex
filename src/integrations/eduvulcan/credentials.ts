@@ -49,6 +49,53 @@ function solveCaptchaProofOfWork(challenge: string, difficulty: number, rounds: 
   return nonces.join(";");
 }
 
+function describeLoginForm(html: string): string {
+  const page = load(html);
+  const form = page("form").filter((_, el) => {
+    const action = page(el).attr("action") ?? "";
+    return /logowanie/i.test(action) || page(el).find("input[name='Alias'], input[name='UserName']").length > 0;
+  }).first();
+
+  if (!form.length) return "Diagnostyka formularza: nie znaleziono formularza logowania.";
+
+  const fields = form.find("input, select, textarea").map((_, el) => {
+    const node = page(el);
+    return {
+      name: node.attr("name") ?? "",
+      type: node.attr("type") ?? el.tagName.toLowerCase(),
+      required: node.is("[required]"),
+      hasValue: Boolean(node.attr("value")),
+    };
+  }).get();
+
+  const captcha = form.find(".captcha-wrapper").first();
+
+  return [
+    `Pola formularza: ${fields.map((field) => `${field.name || "(brak name)"}[${field.type}] required=${field.required} value=${field.hasValue}`).join(", ")}`,
+    `CAPTCHA wrapper=${captcha.length > 0} challenge=${Boolean(captcha.attr("data-challenge"))} difficulty=${Boolean(captcha.attr("data-difficulty"))} rounds=${Boolean(captcha.attr("data-rounds"))}`,
+  ].join(" | ");
+}
+
+function extractValidationMessages(html: string): string[] {
+  const page = load(html);
+  const selectors = [
+    ".validation-summary-errors li",
+    ".validation-summary-errors",
+    ".field-validation-error",
+    ".message-snackbar-content",
+    "[data-valmsg-for]",
+  ];
+
+  return [...new Set(
+    selectors.flatMap((selector) =>
+      page(selector)
+        .map((_, el) => page(el).text().replace(/\s+/g, " ").trim())
+        .get()
+        .filter(Boolean),
+    ),
+  )].slice(0, 10);
+}
+
 async function readShowCaptcha(username: string, cookie: string) {
   const response = await fetch(`${EDUVULCAN_BASE}/Account/QueryUserInfo`, {
     method: "POST",
@@ -116,19 +163,26 @@ export async function loginWithCredentials(
 
     cookie = mergeCookies(cookie, loginPage);
     const html = await loginPage.text();
-    const csrfToken = load(html)("input[name='__RequestVerificationToken']").attr("value");
+    const page = load(html);
+    const csrfToken = page("input[name='__RequestVerificationToken']").attr("value");
 
     if (!csrfToken) {
-      throw new Error("Nie znaleziono tokenu CSRF na stronie logowania EduVULCAN.");
+      throw new Error("Nie znaleziono tokenu CSRF na stronie logowania EduVULCAN. " + describeLoginForm(html));
     }
 
     let captchaResponse = "";
-    const captcha = load(html)(".captcha-wrapper").first();
+    const captcha = page(".captcha-wrapper").first();
     const challenge = captcha.attr("data-challenge") ?? "";
     const difficultyRaw = captcha.attr("data-difficulty") ?? "";
     const roundsRaw = captcha.attr("data-rounds") ?? "";
     const hasCaptchaChallenge = Boolean(challenge && difficultyRaw && roundsRaw);
+
     if (userInfo.showCaptcha || hasCaptchaChallenge) {
+      if (!hasCaptchaChallenge) {
+        throw new Error(
+          `EduVULCAN wymaga CAPTCHA, ale strona nie zawiera challenge. ${describeLoginForm(html)}`,
+        );
+      }
       const difficulty = Number(difficultyRaw);
       const rounds = Number(roundsRaw);
       captchaResponse = solveCaptchaProofOfWork(challenge, difficulty, rounds);
@@ -156,17 +210,22 @@ export async function loginWithCredentials(
 
     if (loginResponse.status < 300 || loginResponse.status >= 400 || !location) {
       const body = await loginResponse.text();
-      const page = load(body);
-      const validationMessage = page(
-        ".validation-summary-errors, .field-validation-error, .message-snackbar-content",
-      )
-        .first()
-        .text()
-        .trim();
+      const validationMessages = extractValidationMessages(body);
+      const safeRequiredFields = load(body)("input[required], select[required], textarea[required]")
+        .map((_, el) => load(body)(el).attr("name") ?? "")
+        .get()
+        .filter(Boolean);
+
+      const diagnostic = [
+        `HTTP=${loginResponse.status}`,
+        `Location=${Boolean(location)}`,
+        `odpowiedz=${body.length} znakow`,
+        `komunikaty=${validationMessages.join(" || ") || "brak"}`,
+        `requiredFields=${safeRequiredFields.join(", ") || "brak"}`,
+      ].join(" | ");
 
       throw new Error(
-        validationMessage ||
-          "EduVULCAN nie potwierdził logowania. Sprawdź login/hasło oraz weryfikację antybotową.",
+        `${validationMessages[0] || "EduVULCAN nie potwierdził logowania."} [${diagnostic}]`,
       );
     }
 
