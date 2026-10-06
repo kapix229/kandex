@@ -33,8 +33,8 @@ export async function POST(request: Request) {
     const nameParts = fullName.split(/\s+/).filter(Boolean);
 
     setSession(sessionId, {
-      account: { userName: fullName, userLogin: "html-import", studentId: student.id } as VulcanAccount,
-      student: { pupil: { firstName: nameParts[0] || "Uczeń", surname: nameParts.slice(1).join(" "), id: student.id },
+      account: { userName: fullName, userLogin: "html-import", studentId: student.id } as unknown as Account,
+      student: { pupil: { firstName: nameParts[0] || "Uczeń", surname: nameParts.slice(1).join(" "), id: student.id } } as unknown as Student,
       imported: { students: data.students, events: data.events as VulcanCalendarEvent[], summaries: data.summaries },
     });
 
