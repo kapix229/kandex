@@ -87,7 +87,8 @@ function normalizeSubjectName(raw: string): string {
 }
 
 function parseGradeSummaries($: ReturnType<typeof load>): ImportedHtmlData["summaries"] {
-  const buckets = new Map<string, { subject: string; items: any[] }>();
+  type ImportedGrade = ImportedHtmlData["summaries"][number]["grades"][number];
+  const buckets = new Map<string, { subject: string; items: ImportedGrade[] }>();
 
   const rows = $("tr, li, .row, .grade-row, .grade-item").toArray();
 
