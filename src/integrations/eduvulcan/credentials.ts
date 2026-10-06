@@ -188,6 +188,29 @@ export async function loginWithCredentials(
       captchaResponse = solveCaptchaProofOfWork(challenge, difficulty, rounds);
     }
 
+    // Zachowujemy wszystkie pola formularza, bo aktualny EduVULCAN może
+    // wymagać dodatkowych hidden inputs poza loginem, hasłem, CAPTCHA i CSRF.
+    const form = page("form").filter((_, el) => {
+      const action = page(el).attr("action") ?? "";
+      return /logowanie/i.test(action) || page(el).find("input[name='Alias']").length > 0;
+    }).first();
+
+    const formData = new URLSearchParams();
+    form.find("input[name], select[name], textarea[name]").each((_, el) => {
+      const node = page(el);
+      const name = node.attr("name");
+      if (!name) return;
+      const type = (node.attr("type") ?? "").toLowerCase();
+      if (type === "submit" || type === "button" || type === "reset" || type === "file") return;
+      if ((type === "checkbox" || type === "radio") && !node.is(":checked")) return;
+      formData.append(name, node.attr("value") ?? "");
+    });
+
+    formData.set("Alias", username);
+    formData.set("Password", password);
+    formData.set("captcha-response", captchaResponse);
+    formData.set("__RequestVerificationToken", csrfToken);
+
     const loginResponse = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
       method: "POST",
       headers: {
@@ -196,12 +219,7 @@ export async function loginWithCredentials(
         "User-Agent": USER_AGENT,
         Cookie: cookie,
       },
-      body: new URLSearchParams({
-        Alias: username,
-        Password: password,
-        "captcha-response": captchaResponse,
-        __RequestVerificationToken: csrfToken,
-      }),
+      body: formData,
       redirect: "manual",
     });
 
