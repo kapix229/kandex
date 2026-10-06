@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
 const navItems = [
   { href: "/", label: "Przegląd", icon: "◉" },
@@ -12,6 +13,7 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { account } = useVulcanSession();
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
@@ -35,9 +37,17 @@ export default function Sidebar() {
           );
         })}
       </nav>
-      <div className="mt-auto rounded-xl border border-[var(--border)] bg-white/70 p-4">
-        <p className="text-xs font-bold text-[var(--text)]">Skup się na nauce...</p>
-        <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">Kalendarz, oceny i materiały w jednym miejscu.</p>
+      <div className="mt-auto space-y-3">
+        <Link href={account ? "/settings" : "/login"} className="block rounded-xl border border-[var(--border)] bg-white/80 p-4 transition hover:bg-white">
+          <p className="text-xs font-bold text-[var(--text)]">{account ? "EduVULCAN połączony" : "Połącz EduVULCAN"}</p>
+          <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
+            {account ? account.fullName : "Import ocen i planu lekcji"}
+          </p>
+        </Link>
+        <div className="rounded-xl border border-[var(--border)] bg-white/70 p-4">
+          <p className="text-xs font-bold text-[var(--text)]">Skup się na nauce...</p>
+          <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">Kalendarz, oceny i materiały w jednym miejscu.</p>
+        </div>
       </div>
     </aside>
   );
