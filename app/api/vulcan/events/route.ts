@@ -29,7 +29,7 @@ export async function GET() {
           },
         } as any,
         imported: { students: data.students, events: data.events, summaries: data.summaries },
-      } as any);;
+      } as any);
       cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
       return Response.json({ success: true, events: data.events });
     }
@@ -48,7 +48,7 @@ export async function GET() {
         account: { userName: student.fullName, userLogin: "html-import", studentId: student.id } as any,
         student: { pupil: { firstName: nameParts[0] || "Uczeń", surname: nameParts.slice(1).join(" ") || "", id: student.id } } as any,
         imported: { students: data.students, events: data.events, summaries: data.summaries },
-      } as any);;
+      } as any);
       cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
       return Response.json({ success: true, events: data.events });
     }
