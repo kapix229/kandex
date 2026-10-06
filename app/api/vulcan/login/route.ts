@@ -36,8 +36,6 @@ export async function POST(request: Request) {
     pendingToken?: unknown;
     pin?: unknown;
     studentId?: unknown;
-    email?: unknown;
-    password?: unknown;
   };
 
   try {
@@ -49,46 +47,78 @@ export async function POST(request: Request) {
     );
   }
 
-  const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-  const password = typeof body.password === "string" ? body.password.trim() : "";
-  const pendingToken = typeof body.pendingToken === "string" ? body.pendingToken : undefined;
+  const pendingToken =
+    typeof body.pendingToken === "string" ? body.pendingToken.trim() : "";
+  const pin = typeof body.pin === "string" ? body.pin.trim() : "";
   const studentIdRaw = body.studentId;
-  const studentId = typeof studentIdRaw === "string" || typeof studentIdRaw === "number"
-    ? Number(studentIdRaw)
-    : NaN;
+  const studentId =
+    typeof studentIdRaw === "string" || typeof studentIdRaw === "number"
+      ? Number(studentIdRaw)
+      : NaN;
 
-  if (email && password) {
+  // Step 3: parent account chooses a student.
+  if (pendingToken && Number.isFinite(studentId) && !pin) {
+    const result = await loginStep3(pendingToken, studentId);
+    if (result.success && result.token) {
+      await persistSession(result.token);
+      return Response.json({
+        success: true,
+        account: result.account,
+      });
+    }
+
     return Response.json(
       {
         success: false,
-        error: "Automatyczny import HTML jest jedyną aktywną ścieżką w tej wersji. Logowanie mail/hasło nie jest aktywne, a dane dziennika ładowane są z eksportu HTML.",
+        error: result.error ?? "Nie udało się wybrać ucznia.",
       },
-      { status: 403 }
-    );
-  }
-
-  if (body.pendingToken && typeof body.pendingToken === "string" && !body.pin) {
-    // fallback for old multi-step student selection flow; kept for compatibility
-    const result = await loginStep3(body.pendingToken, Number(studentId) || 0);
-    if (result.success && result.token) {
-      await persistSession(result.token);
-      return Response.json({ success: true, account: result.account });
-    }
-    return Response.json(
-      { success: false, error: result.error ?? "Nie udało się wybrać ucznia." },
       { status: 401 }
     );
   }
 
+  // Step 2: register the device with the 4-digit PIN.
+  if (pendingToken && pin) {
+    const result = await loginStep2(pendingToken, pin);
+
+    if (result.success && result.token) {
+      await persistSession(result.token);
+      return Response.json({
+        success: true,
+        account: result.account,
+      });
+    }
+
+    if (result.requiresStudentSelection && result.pendingToken) {
+      return Response.json({
+        success: false,
+        requiresStudentSelection: true,
+        pendingToken: result.pendingToken,
+        students: result.students ?? [],
+      });
+    }
+
+    return Response.json(
+      {
+        success: false,
+        error: result.error ?? "Nie udało się zakończyć logowania.",
+      },
+      { status: 401 }
+    );
+  }
+
+  // Step 1: validate the mobile-access security token and school symbol.
   const securityTokenRaw = body.securityToken ?? body.schoolToken;
-  const securityToken = typeof securityTokenRaw === "string" ? securityTokenRaw.trim() : "";
-  const schoolSymbol = typeof body.schoolSymbol === "string" ? body.schoolSymbol.trim() : "";
+  const securityToken =
+    typeof securityTokenRaw === "string" ? securityTokenRaw.trim() : "";
+  const schoolSymbol =
+    typeof body.schoolSymbol === "string" ? body.schoolSymbol.trim() : "";
 
   if (!securityToken || !schoolSymbol) {
     return Response.json(
       {
         success: false,
-        error: "Użyj loginu i hasła lub podaj poprawne dane logowania do dziennika.",
+        error:
+          "Podaj token bezpieczeństwa oraz symbol szkoły z sekcji „Dostęp mobilny” w dzienniku.",
       },
       { status: 400 }
     );
@@ -99,6 +129,7 @@ export async function POST(request: Request) {
     return Response.json({
       success: true,
       pendingToken: step1.pendingToken,
+      nextStep: "pin",
     });
   }
 
@@ -107,7 +138,6 @@ export async function POST(request: Request) {
     { status: 401 }
   );
 }
-
 /**
  * DELETE /api/vulcan/login
  * Clears the stored session cookie and removes the in-memory session.
