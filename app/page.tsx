@@ -66,7 +66,7 @@ export default function HomePage() {
                     Połącz EduVULCAN →
                   </Link>
                   <p className="mt-3 text-center text-[11px] leading-5 text-[var(--text-muted)]">
-                    Kandex nie przechowuje hasła. Używany jest mechanizm tokenu bezpieczeństwa i PIN-u dostępu mobilnego.
+                    Logujesz się standardowo loginem i hasłem. Kandex nie zapisuje tych danych w przeglądarce.
                   </p>
                 </div>
               )}
