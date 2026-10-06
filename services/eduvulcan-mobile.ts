@@ -84,7 +84,7 @@ export async function connectWithMobileApiAp(
   account?: { fullName?: string; studentId?: number },
 ) {
   const ap = parseApiAp(apiApHtml);
-  const keypair = (await new Keypair()) as MobileKeypair;
+  const keypair = (await new Keypair()) as unknown as MobileKeypair;
 
   const registration = new VulcanJwtRegister(keypair, apiApHtml, false);
   const registered = await registration.init();
