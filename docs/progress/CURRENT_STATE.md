@@ -82,3 +82,13 @@ Integracja Vulcan znajduje się głównie w app/api/vulcan/, services/vulcan.ts,
 - Dodano `POST /api/journal/login` przyjmujący provider + login + hasło.
 - UI `/login` został przełączony na login + hasło.
 - EduVULCAN adapter nie wykonuje nieoficjalnego logowania/scrapowania; dopóki brak oficjalnego API, zwraca jawny stan niedostępności.
+
+## 2026-10-06 — realny adapter mobilnego API EduVULCAN
+- Dodano zależność `hebece` 0.2.4 jako nieoficjalnego klienta mobilnego API obsługującego konta eduVULCAN.
+- Dodano `services/eduvulcan-mobile.ts`: rejestracja JWT, generowanie lokalnego klucza urządzenia, wybór ucznia oraz pobieranie ocen, lekcji i zadań.
+- Dodano `POST /api/journal/mobile-connect` do zestawienia sesji z JWT mobilnego API.
+- Dodano `POST /api/journal/mobile-import` oraz obsługę sesji mobilnej w `/api/journal/import`.
+- Sesja mobilna jest trzymana po stronie serwera w `.data/eduvulcan-mobile-sessions.json`; do przeglądarki trafia wyłącznie httpOnly identyfikator sesji.
+- `/login` dostał sekcję `TEST` pozwalającą wkleić JWT i od razu wykonać import.
+- Nie implementujemy automatycznego wpisywania zwykłego loginu i hasła do portalu EduVULCAN.
+- Przed lokalnym testem trzeba wykonać `npm install`/`npm ci`; nie udało się jeszcze uruchomić typecheck/lint/build, ponieważ w tej sesji nie ma podłączonego urządzenia Remote Desktop.
