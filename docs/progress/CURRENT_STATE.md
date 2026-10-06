@@ -75,3 +75,10 @@ Integracja Vulcan znajduje się głównie w app/api/vulcan/, services/vulcan.ts,
 - Sidebar: Dashboard, Plan lekcji, Oceny, Zadania, Nauka, Ustawienia.
 - Nie przechowujemy haseł ani tokenów w localStorage/repo.
 - Nadal potrzebny jest lokalny smoke test i realny test importu na koncie użytkownika.
+
+## 2026-10-06 — adapter login/hasło
+- Provider-neutral `JournalAdapter` przyjmuje teraz `JournalCredentials` (`username`, `password`) i udostępnia `login()`.
+- Dodano `src/integrations/eduvulcan/credentials.ts` jako kontrakt adaptera login/hasło.
+- Dodano `POST /api/journal/login` przyjmujący provider + login + hasło.
+- UI `/login` został przełączony na login + hasło.
+- EduVULCAN adapter nie wykonuje nieoficjalnego logowania/scrapowania; dopóki brak oficjalnego API, zwraca jawny stan niedostępności.
