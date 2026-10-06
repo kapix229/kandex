@@ -57,7 +57,7 @@ async function readShowCaptcha(username: string, cookie: string) {
       "User-Agent": USER_AGENT,
       ...(cookie ? { Cookie: cookie } : {}),
     },
-    body: new URLSearchParams({ alias: username }),
+    body: new URLSearchParams({ UserName: username }),
     redirect: "manual",
   });
 
@@ -133,7 +133,7 @@ export async function loginWithCredentials(
         Cookie: cookie,
       },
       body: new URLSearchParams({
-        Alias: username,
+        UserName: username,
         Password: password,
         "captcha-response": captchaResponse,
         __RequestVerificationToken: csrfToken,
