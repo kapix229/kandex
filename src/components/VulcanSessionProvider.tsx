@@ -47,33 +47,9 @@ export function VulcanSessionProvider({
     account: initialAccount,
   });
 
-  const syncFromCookie = useCallback(() => {
-    if (typeof document === "undefined") return;
-    const cookie = document.cookie
-      .split(";")
-      .map((entry) => entry.trim())
-      .find((entry) => entry.startsWith("vulcan_token="));
-    if (!cookie) {
-      setState((prev) => (prev.loggedIn ? { loggedIn: false, account: null } : prev));
-      return;
-    }
-    const value = decodeURIComponent(cookie.slice("vulcan_token=".length));
-    if (!value) {
-      setState({ loggedIn: false, account: null });
-      return;
-    }
-    if (!initialAccount) {
-      setState((prev) => (
-        prev.loggedIn ? prev : { loggedIn: true, account: null }
-      ));
-    }
-  }, [initialAccount]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      syncFromCookie();
-    }
-  }, [syncFromCookie]);
+  // The session cookie is httpOnly by design, so it must never be
+  // read through document.cookie. The server resolves it in the root layout
+  // and passes the initial state here; login/logout then update this context.
 
   const setSession = useCallback(
     (next: { loggedIn: boolean; account: VulcanAccount | null }) => {
