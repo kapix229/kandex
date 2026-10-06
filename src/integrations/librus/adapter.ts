@@ -1,8 +1,8 @@
-import type { JournalAdapter, JournalConnectionResult } from "@/src/integrations/types";
+import type { JournalAdapter, JournalConnectionResult, JournalCredentials } from "@/src/integrations/types";
 
 export const librusAdapter: JournalAdapter = {
   provider: "librus",
-  async login(): Promise<JournalConnectionResult> {
+  async login(_credentials: JournalCredentials): Promise<JournalConnectionResult> {
     return { success: false, error: "Integracja Librus nie jest jeszcze dostępna." };
   },
   async getSnapshot() {
