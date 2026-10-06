@@ -26,6 +26,25 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+
+  async function finishConnection(account: { fullName: string; studentId?: number }) {
+    signIn(account);
+    try {
+      const imported = await fetch("/api/journal/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: "eduvulcan" }),
+      });
+      if (!imported.ok) {
+        setError("Połączono z dziennikiem, ale import danych jeszcze się nie udał. Możesz spróbować ponownie w ustawieniach.");
+      }
+    } catch {
+      setError("Połączono z dziennikiem, ale import danych jeszcze się nie udał.");
+    }
+    router.replace("/");
+    router.refresh();
+  }
+
   async function submitCredentials(event: FormEvent) {
     event.preventDefault();
     setError("");
