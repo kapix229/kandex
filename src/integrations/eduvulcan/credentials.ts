@@ -48,6 +48,7 @@ function solveCaptchaProofOfWork(challenge: string, difficulty: number, rounds: 
   }
   return nonces.join(";");
 }
+
 async function readShowCaptcha(username: string, cookie: string) {
   const response = await fetch(`${EDUVULCAN_BASE}/Account/QueryUserInfo`, {
     method: "POST",
@@ -71,7 +72,11 @@ async function readShowCaptcha(username: string, cookie: string) {
   };
 
   if (data.success === false) {
-    throw new Error(data.data?.ExtraMessage || "EduVULCAN odrzucił sprawdzenie konta.");
+    const extraMessage =
+      typeof data.data === "object" && data.data !== null
+        ? data.data.ExtraMessage
+        : undefined;
+    throw new Error(extraMessage || "EduVULCAN odrzucił sprawdzenie konta.");
   }
 
   const showCaptcha =
