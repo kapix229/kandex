@@ -53,3 +53,14 @@ Integracja Vulcan znajduje się głównie w app/api/vulcan/, services/vulcan.ts,
 - cookie.txt został usunięty z repozytorium.
 - cookie.txt, .tmp/ i .data/ są ignorowane przez Git.
 - Przed produkcją potrzebny jest pełny audyt cookies, sesji i endpointów API.
+
+
+## Stan po 2026-10-06
+- Przepływ połączenia EduVULCAN w Kandex jest zaimplementowany od strony UI i API.
+- `/login`: token bezpieczeństwa + symbol szkoły, następnie 4-cyfrowy PIN, następnie wybór ucznia dla kont wielouczniowych.
+- `/api/vulcan/login`: obsługuje wszystkie trzy kroki i zapisuje identyfikator sesji wyłącznie w httpOnly cookie.
+- `/api/vulcan/grades`: pobiera i agreguje oceny z VulcanHebe.
+- `/api/vulcan/events`: pobiera sprawdziany, zadania domowe i lekcje.
+- `src/components/VulcanSessionProvider.tsx`: korzysta z serwerowego stanu początkowego zamiast próbować odczytywać httpOnly cookie.
+- Dodano workflow `.github/workflows/verify.yml` oraz skrypt `npm run typecheck`.
+- Do pełnego potwierdzenia gotowości brakuje realnego logowania na koncie testowym i lokalnego smoke testu; oba wymagają środowiska z dostępem do przeglądarki/uruchomionej aplikacji.
