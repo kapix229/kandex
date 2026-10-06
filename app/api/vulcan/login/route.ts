@@ -157,7 +157,7 @@ async function persistSession(token: string) {
   const cookieStore = await cookies();
   cookieStore.set("vulcan_token", token, {
     httpOnly: true,
-    secure: false,
+    secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 8,
