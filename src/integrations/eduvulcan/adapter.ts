@@ -1,10 +1,14 @@
 import { cookies } from "next/headers";
 import { fetchVulcanEvents, fetchVulcanGrades, getSession } from "@/services/vulcan";
 import type { JournalSnapshot } from "@/src/types/journal";
-import type { JournalAdapter } from "@/src/integrations/types";
+import type { JournalAdapter, JournalCredentials, JournalConnectionResult } from "@/src/integrations/types";
+import { loginWithCredentials } from "./credentials";
 
 export const eduvulcanAdapter: JournalAdapter = {
   provider: "eduvulcan",
+  async login(credentials: JournalCredentials): Promise<JournalConnectionResult> {
+    return loginWithCredentials(credentials);
+  },
   async getSnapshot(): Promise<JournalSnapshot> {
     const token = (await cookies()).get("vulcan_token")?.value;
     if (!token) throw new Error("Brak aktywnej sesji EduVULCAN.");
