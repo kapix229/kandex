@@ -14,11 +14,50 @@ type MobileKeypair = {
   certificate: string;
 };
 
+type MobileStudent = {
+  PupilId: number;
+  FirstName: string;
+  LastName: string;
+  Pupil?: {
+    ClassDisplay?: string;
+    ConstituentUnit?: { Name?: string };
+    Unit?: { Name?: string };
+  };
+};
+
+type MobileGrade = {
+  Id: string | number;
+  Value: string | number;
+  Column?: {
+    Subject?: { Id?: string | number; Name?: string };
+    Weight?: string | number;
+    Name?: string;
+  };
+  DateCreated?: { Timestamp?: number };
+  Creator?: { DisplayName?: string };
+};
+
+type MobileLesson = {
+  Id: string | number;
+  Subject?: { Name?: string };
+  TeacherPrimary?: { DisplayName?: string };
+  Room?: { Code?: string };
+  Date?: { Timestamp?: number; Date?: string };
+  TimeSlot?: { End?: string };
+};
+
+type MobileHomework = {
+  Id: string | number;
+  Content?: string;
+  Subject?: { Name?: string };
+  Deadline?: { Timestamp?: number };
+};
+
 type MobileSession = {
   id: string;
   keypair: MobileKeypair;
   restUrl: string;
-  student: any;
+  student: MobileStudent;
   account: { fullName: string; studentId?: number };
   createdAt: string;
 };
@@ -103,7 +142,7 @@ export async function connectWithMobileApiAp(
   const requestedStudent = account?.studentId;
   await api.selectStudent(requestedStudent ?? students[0].PupilId);
 
-  const selected = api.selectedStudent;
+  const selected = api.selectedStudent as MobileStudent;
   const fullName =
     account?.fullName?.trim() ||
     (ap.GivenName || ap.Surname
@@ -183,7 +222,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const homeworkRows = homework.Envelope ?? [];
 
   const subjectMap = new Map<string, { id: string; name: string; values: number[]; count: number }>();
-  const normalizedGrades = gradeRows.flatMap((grade: any) => {
+  const normalizedGrades = gradeRows.flatMap((grade: MobileGrade) => {
     const subject = grade.Column?.Subject?.Name ?? "Inne";
     const value = Number(grade.Value);
     if (!Number.isFinite(value)) return [];
@@ -221,7 +260,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
       gradeCount: subject.count,
     })),
     grades: normalizedGrades,
-    schedule: lessonRows.map((lesson: any) => ({
+    schedule: lessonRows.map((lesson: MobileLesson) => ({
       id: String(lesson.Id),
       subject: lesson.Subject?.Name ?? "Lekcja",
       teacher: lesson.TeacherPrimary?.DisplayName,
@@ -231,7 +270,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
         ? new Date(`${lesson.Date?.Date ?? ""}T${lesson.TimeSlot.End}`).toISOString()
         : undefined,
     })),
-    assignments: homeworkRows.map((item: any) => ({
+    assignments: homeworkRows.map((item: MobileHomework) => ({
       id: String(item.Id),
       title: item.Content ?? "Zadanie",
       subject: item.Subject?.Name,
