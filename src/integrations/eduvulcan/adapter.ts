@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { fetchVulcanEvents, fetchVulcanGrades, getSession } from "@/services/vulcan";
+import { fetchMobileSnapshot } from "@/services/eduvulcan-mobile";
 import type { JournalSnapshot } from "@/src/types/journal";
 import type { JournalAdapter, JournalCredentials, JournalConnectionResult } from "@/src/integrations/types";
 import { loginWithCredentials } from "./credentials";
@@ -10,17 +11,17 @@ export const eduvulcanAdapter: JournalAdapter = {
     return loginWithCredentials(credentials);
   },
   async getSnapshot(): Promise<JournalSnapshot> {
-    const token = (await cookies()).get("vulcan_token")?.value;
+    const cookieStore = await cookies();
+    const mobileSession = cookieStore.get("eduvulcan_mobile_session")?.value;
+    if (mobileSession) return fetchMobileSnapshot(mobileSession);
+
+    const token = cookieStore.get("vulcan_token")?.value;
     if (!token) throw new Error("Brak aktywnej sesji EduVULCAN.");
 
     const session = getSession(token);
     if (!session?.account) throw new Error("Sesja EduVULCAN wygasła.");
 
-    const [summaries, events] = await Promise.all([
-      fetchVulcanGrades(token),
-      fetchVulcanEvents(token),
-    ]);
-
+    const [summaries, events] = await Promise.all([fetchVulcanGrades(token), fetchVulcanEvents(token)]);
     const student = session.student?.pupil
       ? {
           id: String(session.student.pupil.id),
@@ -34,40 +35,10 @@ export const eduvulcanAdapter: JournalAdapter = {
       provider: "eduvulcan",
       importedAt: new Date().toISOString(),
       student,
-      subjects: summaries.map((s) => ({
-        id: s.subject.toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi, "-"),
-        name: s.subject,
-        average: s.average,
-        gradeCount: s.count,
-      })),
-      grades: summaries.flatMap((s) =>
-        s.grades.map((g) => ({
-          id: String(g.id),
-          subject: s.subject,
-          value: g.value,
-          date: new Date(g.date).toISOString(),
-          weight: g.weight,
-          teacher: g.teacher,
-          title: g.title,
-        }))
-      ),
-      schedule: events
-        .filter((e) => e.type === "lesson")
-        .map((e) => ({
-          id: String(e.id),
-          subject: e.subject ?? e.title,
-          startsAt: new Date(e.date).toISOString(),
-          endsAt: e.dueDate ? new Date(e.dueDate).toISOString() : undefined,
-        })),
-      assignments: events
-        .filter((e) => e.type === "homework" || e.type === "test" || e.type === "exam")
-        .map((e) => ({
-          id: String(e.id),
-          title: e.title,
-          subject: e.subject,
-          dueDate: e.dueDate ? new Date(e.dueDate).toISOString() : new Date(e.date).toISOString(),
-          completed: false,
-        })),
+      subjects: summaries.map((s) => ({ id: s.subject.toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi, "-"), name: s.subject, average: s.average, gradeCount: s.count })),
+      grades: summaries.flatMap((s) => s.grades.map((g) => ({ id: String(g.id), subject: s.subject, value: g.value, date: new Date(g.date).toISOString(), weight: g.weight, teacher: g.teacher, title: g.title }))),
+      schedule: events.filter((e) => e.type === "lesson").map((e) => ({ id: String(e.id), subject: e.subject ?? e.title, startsAt: new Date(e.date).toISOString(), endsAt: e.dueDate ? new Date(e.dueDate).toISOString() : undefined })),
+      assignments: events.filter((e) => e.type === "homework" || e.type === "test" || e.type === "exam").map((e) => ({ id: String(e.id), title: e.title, subject: e.subject, dueDate: e.dueDate ? new Date(e.dueDate).toISOString() : new Date(e.date).toISOString(), completed: false })),
     };
   },
 };
