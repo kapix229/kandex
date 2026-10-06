@@ -41,7 +41,7 @@ type MobileLesson = {
   Id: string | number;
   Subject?: { Name?: string };
   TeacherPrimary?: { DisplayName?: string };
-  Room?: { Code?: string };
+  Room?: { Code?: string } | null;
   Date?: { Timestamp?: number; Date?: string };
   TimeSlot?: { End?: string };
 };
