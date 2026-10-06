@@ -113,11 +113,14 @@ export async function loginWithCredentials(
     }
 
     let captchaResponse = "";
-    if (userInfo.showCaptcha) {
-      const captcha = load(html)(".captcha-wrapper").first();
-      const challenge = captcha.attr("data-challenge") ?? "";
-      const difficulty = Number(captcha.attr("data-difficulty") ?? "");
-      const rounds = Number(captcha.attr("data-rounds") ?? "");
+    const captcha = load(html)(".captcha-wrapper").first();
+    const challenge = captcha.attr("data-challenge") ?? "";
+    const difficultyRaw = captcha.attr("data-difficulty") ?? "";
+    const roundsRaw = captcha.attr("data-rounds") ?? "";
+    const hasCaptchaChallenge = Boolean(challenge && difficultyRaw && roundsRaw);
+    if (userInfo.showCaptcha || hasCaptchaChallenge) {
+      const difficulty = Number(difficultyRaw);
+      const rounds = Number(roundsRaw);
       captchaResponse = solveCaptchaProofOfWork(challenge, difficulty, rounds);
     }
 
