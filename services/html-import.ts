@@ -39,8 +39,6 @@ export type ImportedHtmlData = {
   }>;
 };
 
-const GRADE_PATTERN = /(\b[1-6](?:[,+-])?\b|\b[1-6]\s*(?:[,+-])?\s*(?:\+|\-)\b)/i;
-
 function normalizeText(value: string): string {
   return value.replace(/\s+/g, " ").replace(/\u00A0/g, " ").trim();
 }
