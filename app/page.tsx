@@ -31,6 +31,21 @@ export default function DashboardClient() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_290px]">
         <div className="space-y-5">
+          {!account && (
+            <section className="rounded-2xl border border-[var(--accent)]/20 bg-[var(--accent-soft)] p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-extrabold text-[var(--text)]">Połącz swój dziennik</p>
+                  <p className="mt-1 max-w-xl text-xs leading-5 text-[var(--text-muted)]">
+                    Zaloguj EduVULCAN, a Kandex automatycznie pobierze oceny, zadania, sprawdziany i plan lekcji.
+                  </p>
+                </div>
+                <Link href="/login" className="shrink-0 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-center text-xs font-bold text-white">
+                  Połącz EduVULCAN →
+                </Link>
+              </div>
+            </section>
+          )}
           <section className="grid gap-4 md:grid-cols-3">
             {quickLinks.map((item) => (
               <Link key={item.title} href={item.href} className="workspace-card group rounded-2xl p-5 transition-all hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(52,55,48,0.10)]">
