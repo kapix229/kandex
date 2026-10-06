@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { createSession, getSession, setSession } from "@/services/vulcan";
+import { createSession, getSession, setSession, type VulcanAccount, type VulcanCalendarEvent } from "@/services/vulcan";
 import { consumeLatestHtmlTemporaryImport, parseHtmlExport, saveHtmlTemporaryImport } from "@/services/html-import";
 
 export const dynamic = "force-dynamic";
@@ -32,10 +32,10 @@ export async function POST(request: Request) {
     const nameParts = fullName.split(/\s+/).filter(Boolean);
 
     setSession(sessionId, {
-      account: { userName: fullName, userLogin: "html-import", studentId: student.id } as any,
-      student: { pupil: { firstName: nameParts[0] || "Uczeń", surname: nameParts.slice(1).join(" "), id: student.id } } as any,
-      imported: { students: data.students, events: data.events, summaries: data.summaries },
-    } as any);
+      account: { userName: fullName, userLogin: "html-import", studentId: student.id } as VulcanAccount,
+      student: { pupil: { firstName: nameParts[0] || "Uczeń", surname: nameParts.slice(1).join(" "), id: student.id },
+      imported: { students: data.students, events: data.events as VulcanCalendarEvent[], summaries: data.summaries },
+    });
 
     cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
     saveHtmlTemporaryImport(html);
