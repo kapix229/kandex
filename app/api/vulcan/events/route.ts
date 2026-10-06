@@ -50,7 +50,7 @@ export async function GET() {
           userName: student.fullName,
           userLogin: "html-import",
           studentId: student.id,
-        } as VulcanAccount,
+        } as unknown as Account,
         student: {
           pupil: {
             firstName: nameParts[0] || "Uczeń",
