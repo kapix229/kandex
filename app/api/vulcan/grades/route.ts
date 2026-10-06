@@ -17,8 +17,8 @@ export async function GET() {
       const student = data.students[0] ?? { id: 1, fullName: "Uczeń z eksportu HTML", className: "Eksport HTML", schoolName: "Dziennik" };
       const nameParts = student.fullName.split(/\s+/).filter(Boolean);
       setSession(sessionId, {
-        account: { userName: student.fullName, userLogin: "html-import", studentId: student.id } as VulcanAccount,
-        student: { pupil: { firstName: nameParts[0] || "Uczeń", surname: nameParts.slice(1).join(" ") || "", id: student.id },
+        account: { userName: student.fullName, userLogin: "html-import", studentId: student.id } as unknown as Account,
+        student: { pupil: { firstName: nameParts[0] || "Uczeń", surname: nameParts.slice(1).join(" ") || "", id: student.id } } as unknown as Student,
         imported: { students: data.students, events: data.events, summaries: data.summaries },
       });
       cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
