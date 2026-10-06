@@ -1,15 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f5f7fb;
-  --foreground: #0b1020;
+  --background: #f3efe7;
+  --foreground: #30332f;
   --surface: #ffffff;
-  --surface-soft: #f8fafc;
-  --muted: #71819a;
-  --border: #e6eaf1;
-  --primary: #5138ee;
-  --primary-soft: #eef0ff;
-  --success: #00a56a;
+  --surface-muted: #f1f1ed;
+  --text: #30332f;
+  --text-muted: #777a73;
+  --border: #e2e0d9;
+  --accent: #315844;
+  --accent-soft: #e7eee9;
+  --success: #3f7654;
+  --warning: #c98a45;
 }
 
 * { box-sizing: border-box; }
@@ -23,21 +25,14 @@ body {
   letter-spacing: -0.01em;
 }
 button, a, textarea, input { -webkit-tap-highlight-color: transparent; }
-::selection { background: rgba(81, 56, 238, 0.16); }
+::selection { background: rgba(49, 88, 68, 0.16); }
 
-.app-shell {
-  background: var(--background);
-}
-
-.glass-card {
+.app-shell { background: var(--background); }
+.workspace-card, .glass-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 14px 34px rgba(22, 32, 54, 0.045);
+  box-shadow: 0 10px 28px rgba(52, 55, 48, 0.055);
 }
-
-.kandex-primary { color: var(--primary); }
-.kandex-primary-bg { background: var(--primary); }
-.kandex-muted { color: var(--muted); }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
