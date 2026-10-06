@@ -181,10 +181,12 @@ function persistSessionStore(): void {
   ensureSessionStore();
   const serializable = Object.fromEntries(
     Array.from(sessions.entries()).map(([key, value]) => {
-      const { keystore: _keystore, hebe: _hebe, ...rest } = value as CachedSession & {
+      const rest = { ...value } as Omit<CachedSession, "keystore" | "hebe"> & {
         keystore?: unknown;
         hebe?: unknown;
       };
+      delete rest.keystore;
+      delete rest.hebe;
       return [key, rest];
     })
   );
