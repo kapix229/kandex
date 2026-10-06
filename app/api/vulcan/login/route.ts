@@ -4,9 +4,6 @@ import {
   loginStep2,
   loginStep3,
   deleteSession,
-  createSession,
-  getSession,
-  setSession,
 } from "@/services/vulcan";
 
 export const dynamic = "force-dynamic";
