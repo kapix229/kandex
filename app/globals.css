@@ -1,10 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f4f7fb;
-  --foreground: #172033;
-  --surface: rgba(255, 255, 255, 0.82);
-  --border: rgba(148, 163, 184, 0.22);
+  --background: #f5f7fb;
+  --foreground: #0b1020;
+  --surface: #ffffff;
+  --surface-soft: #f8fafc;
+  --muted: #71819a;
+  --border: #e6eaf1;
+  --primary: #5138ee;
+  --primary-soft: #eef0ff;
+  --success: #00a56a;
 }
 
 * { box-sizing: border-box; }
@@ -12,25 +17,28 @@ html { min-height: 100%; }
 body {
   min-height: 100%;
   margin: 0;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(99, 91, 255, 0.10), transparent 28rem),
-    radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.08), transparent 24rem),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -0.01em;
 }
 button, a, textarea, input { -webkit-tap-highlight-color: transparent; }
-::selection { background: rgba(99, 91, 255, 0.18); }
+::selection { background: rgba(81, 56, 238, 0.16); }
+
 .app-shell {
-  background: rgba(244, 247, 251, 0.72);
-  backdrop-filter: blur(24px);
+  background: var(--background);
 }
+
 .glass-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.06);
-  backdrop-filter: blur(18px);
+  box-shadow: 0 14px 34px rgba(22, 32, 54, 0.045);
 }
+
+.kandex-primary { color: var(--primary); }
+.kandex-primary-bg { background: var(--primary); }
+.kandex-muted { color: var(--muted); }
+
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
@@ -46,6 +54,7 @@ button, a, textarea, input { -webkit-tap-highlight-color: transparent; }
 .animate-fade-in { animation: fadeIn 0.35s ease-out both; }
 .animate-slide-in-left { animation: slideInLeft 0.35s ease-out both; }
 .animate-slide-in-right { animation: slideInRight 0.35s ease-out both; }
+
 @media (max-width: 1023px) {
   .app-shell { display: block !important; }
 }
