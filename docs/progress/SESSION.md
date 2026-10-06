@@ -51,3 +51,15 @@
 - Dokończyć rzeczywisty test zalogowanej sesji EduVULCAN: „Dostęp do dziennika” -> „Kacper Smok (PZS nr 1)” -> dziennik.
 - Następnie wykorzystać wyniki do dopracowania Kandexowego przepływu logowania/importu.
 - Uruchomić lokalny smoke test C:\kandex, jeśli dostęp do lokalnego środowiska będzie możliwy.
+
+
+## 2026-10-06 — przygotowanie logowania i importu do użycia
+- Zidentyfikowano krytyczny błąd: endpoint POST logowania nie wywoływał `loginStep2` po otrzymaniu PIN-u, więc właściwe logowanie nie mogło się zakończyć.
+- Naprawiono kolejność kroków i obsługę wyboru ucznia.
+- Dodano `app/login/page.tsx` z interfejsem token/symbol/PIN/wybór ucznia.
+- Naprawiono `VulcanSessionProvider`, który wcześniej próbował czytać httpOnly cookie przez `document.cookie` i po zamontowaniu klienta mógł zerować poprawną sesję.
+- Dodano przejście do połączenia EduVULCAN w ustawieniach i sidebarze.
+- Oceny, zadania, sprawdziany i lekcje są już spięte z istniejącymi endpointami `/api/vulcan/grades` i `/api/vulcan/events`.
+- Dodano automatyczną weryfikację repo: typecheck + lint + build.
+- Nie wykonano lokalnego smoke testu, ponieważ Desktop Commander nie ma obecnie podłączonego urządzenia.
+- Nie wykonano prawdziwego logowania na koncie użytkownika; narzędzie browser nie ma obecnie profilu z potwierdzoną sesją eduVULCAN.
