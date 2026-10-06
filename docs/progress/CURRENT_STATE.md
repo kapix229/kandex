@@ -64,3 +64,14 @@ Integracja Vulcan znajduje się głównie w app/api/vulcan/, services/vulcan.ts,
 - `src/components/VulcanSessionProvider.tsx`: korzysta z serwerowego stanu początkowego zamiast próbować odczytywać httpOnly cookie.
 - Dodano workflow `.github/workflows/verify.yml` oraz skrypt `npm run typecheck`.
 - Do pełnego potwierdzenia gotowości brakuje realnego logowania na koncie testowym i lokalnego smoke testu; oba wymagają środowiska z dostępem do przeglądarki/uruchomionej aplikacji.
+
+
+## Architektura dzienników — 2026-10-06
+- Przebudowano wejście aplikacji na: Welcome → wybór dziennika → połączenie → uwierzytelnianie → import → dashboard.
+- Dodano provider-neutralne modele w `src/types/journal.ts` oraz adaptery w `src/integrations/`.
+- EduVULCAN jest działającym providerem przez istniejący mechanizm token bezpieczeństwa + symbol szkoły + PIN + wybór ucznia.
+- Dodano `POST /api/journal/import` i automatyczny import po udanym połączeniu.
+- Librus ma wydzielony adapter, ale integracja jest oznaczona jako niedostępna do czasu bezpiecznej implementacji.
+- Sidebar: Dashboard, Plan lekcji, Oceny, Zadania, Nauka, Ustawienia.
+- Nie przechowujemy haseł ani tokenów w localStorage/repo.
+- Nadal potrzebny jest lokalny smoke test i realny test importu na koncie użytkownika.
