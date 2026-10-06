@@ -20,7 +20,17 @@ export async function POST(request: Request) {
     }
 
     const result = await getJournalAdapter(provider).login({ username, password });
-    return Response.json(result, { status: result.success ? 200 : 501 });
+
+    if (!result.success || !result.sessionId) {
+      return Response.json(result, { status: result.success ? 200 : 401 });
+    }
+
+    const response = Response.json(result, { status: 200 });
+    response.headers.append(
+      "Set-Cookie",
+      `eduvulcan_mobile_session=${encodeURIComponent(result.sessionId)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+    );
+    return response;
   } catch (error) {
     return Response.json(
       { success: false, error: error instanceof Error ? error.message : "Logowanie nie powiodło się." },
