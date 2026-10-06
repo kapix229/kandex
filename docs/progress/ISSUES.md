@@ -20,3 +20,10 @@
 - **Zweryfikować SDK na aktualnym eduVULCAN:** repo korzysta z `vulcan-api-js` 3.5.4, a zmiany platformy eduVULCAN mogą powodować różnice między szkołami. Potrzebny jest realny test na koncie/szkole użytkownika.
 - **Lokalny smoke test:** nie wykonany z powodu braku podłączonego Desktop Commander.
 - **Sesje:** aktualnie sesja aplikacji jest przechowywana w pamięci procesu; restart serwera wymaga ponownego połączenia. Nie należy utrwalać tokenów/kluczy w plaintext.
+
+
+## 2026-10-06 — po przebudowie
+- Brak lokalnego smoke testu całego flow.
+- Brak realnego testu importu na koncie użytkownika.
+- Sesja nadal jest przechowywana w pamięci procesu.
+- Librus pozostaje nieaktywny.
