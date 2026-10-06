@@ -22,3 +22,10 @@
 2. Wykonać jedno realne logowanie EduVULCAN na koncie testowym i sprawdzić, czy `vulcan-api-js` 3.5.4 nadal obsługuje konkretną szkołę po zmianach EduVULCAN.
 3. Sprawdzić rzeczywiste oceny, zadania, sprawdziany i lekcje na tym koncie.
 4. Jeśli konkretna szkoła nie działa przez `vulcan-api-js`, rozważyć wymianę warstwy SDK na bibliotekę zgodną z aktualnym eduVULCAN zamiast obchodzenia logowania przez hasło.
+
+
+## 2026-10-06
+1. Uruchomić typecheck/lint/build lokalnie.
+2. Przetestować Welcome → EduVULCAN → token → PIN → import → Dashboard.
+3. Sprawdzić realne oceny, plan i zadania.
+4. Dokończyć Librus oraz trwałe przechowywanie sesji.
