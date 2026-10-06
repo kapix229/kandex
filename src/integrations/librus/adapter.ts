@@ -2,7 +2,8 @@ import type { JournalAdapter, JournalConnectionResult, JournalCredentials } from
 
 export const librusAdapter: JournalAdapter = {
   provider: "librus",
-  async login(_credentials: JournalCredentials): Promise<JournalConnectionResult> {
+  async login(credentials: JournalCredentials): Promise<JournalConnectionResult> {
+    void credentials;
     return { success: false, error: "Integracja Librus nie jest jeszcze dostępna." };
   },
   async getSnapshot() {
