@@ -67,15 +67,20 @@ async function readShowCaptcha(username: string, cookie: string) {
 
   const data = (await response.json()) as {
     success?: boolean;
-    data?: { ShowCaptcha?: boolean; ExtraMessage?: string | null };
+    data?: boolean | { ShowCaptcha?: boolean; ExtraMessage?: string | null };
   };
 
   if (data.success === false) {
     throw new Error(data.data?.ExtraMessage || "EduVULCAN odrzucił sprawdzenie konta.");
   }
 
+  const showCaptcha =
+    typeof data.data === "boolean"
+      ? data.data
+      : Boolean(data.data?.ShowCaptcha);
+
   return {
-    showCaptcha: Boolean(data.data?.ShowCaptcha),
+    showCaptcha,
     cookie: mergeCookies(cookie, response),
   };
 }
@@ -146,11 +151,17 @@ export async function loginWithCredentials(
 
     if (loginResponse.status < 300 || loginResponse.status >= 400 || !location) {
       const body = await loginResponse.text();
-      const botChallenge = /captcha|robot|robak/i.test(body);
+      const page = load(body);
+      const validationMessage = page(
+        ".validation-summary-errors, .field-validation-error, .message-snackbar-content",
+      )
+        .first()
+        .text()
+        .trim();
+
       throw new Error(
-        botChallenge
-          ? "EduVULCAN odrzucił logowanie przez ochronę antybotową. Kandex nie omija tej ochrony."
-          : "Nieprawidłowy login lub hasło EduVULCAN.",
+        validationMessage ||
+          "EduVULCAN nie potwierdził logowania. Sprawdź login/hasło oraz weryfikację antybotową.",
       );
     }
 
