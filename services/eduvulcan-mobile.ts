@@ -106,9 +106,9 @@ export async function connectWithMobileApiAp(
   const selected = api.selectedStudent;
   const fullName =
     account?.fullName?.trim() ||
-    ap.GivenName && ap.Surname
+    (ap.GivenName || ap.Surname
       ? `${ap.GivenName ?? ""} ${ap.Surname ?? ""}`.trim()
-      : `${selected.FirstName} ${selected.LastName}`.trim();
+      : `${selected.FirstName} ${selected.LastName}`.trim());
 
   const session: MobileSession = {
     id: randomUUID(),
