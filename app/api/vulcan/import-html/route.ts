@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       account: { userName: fullName, userLogin: "html-import", studentId: student.id } as any,
       student: { pupil: { firstName: nameParts[0] || "Uczeń", surname: nameParts.slice(1).join(" "), id: student.id } } as any,
       imported: { students: data.students, events: data.events, summaries: data.summaries },
-    } as any);;
+    } as any);
 
     cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
     saveHtmlTemporaryImport(html);
