@@ -63,3 +63,11 @@
 - Dodano automatyczną weryfikację repo: typecheck + lint + build.
 - Nie wykonano lokalnego smoke testu, ponieważ Desktop Commander nie ma obecnie podłączonego urządzenia.
 - Nie wykonano prawdziwego logowania na koncie użytkownika; narzędzie browser nie ma obecnie profilu z potwierdzoną sesją eduVULCAN.
+
+
+## 2026-10-06 — przebudowa aplikacji
+- Dodano onboarding z wyborem EduVULCAN/Librus.
+- Dodano znormalizowany model `JournalSnapshot` oraz adaptery providerów.
+- Po poprawnym połączeniu EduVULCAN `/login` uruchamia automatyczny import przed przejściem do dashboardu.
+- Shell z sidebarem jest renderowany dopiero dla aktywnej sesji.
+- Dodano `/assignments`, `/study` oraz aliasy `/dashboard/*`.
