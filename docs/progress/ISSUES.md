@@ -15,3 +15,8 @@
 - cookie.txt został usunięty z repozytorium.
 - cookie.txt, .tmp/ i .data/ są ignorowane przez Git.
 - Przed produkcją potrzebny jest pełny audyt cookies, sesji i endpointów API.
+
+## Stan po 2026-10-06
+- **Zweryfikować SDK na aktualnym eduVULCAN:** repo korzysta z `vulcan-api-js` 3.5.4, a zmiany platformy eduVULCAN mogą powodować różnice między szkołami. Potrzebny jest realny test na koncie/szkole użytkownika.
+- **Lokalny smoke test:** nie wykonany z powodu braku podłączonego Desktop Commander.
+- **Sesje:** aktualnie sesja aplikacji jest przechowywana w pamięci procesu; restart serwera wymaga ponownego połączenia. Nie należy utrwalać tokenów/kluczy w plaintext.
