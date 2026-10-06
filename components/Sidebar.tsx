@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
 const navItems = [
-  { href: "/", label: "Przegląd", icon: "◉" },
-  { href: "/calendar", label: "Kalendarz", icon: "▣" },
+  { href: "/", label: "Dashboard", icon: "◉" },
+  { href: "/calendar", label: "Plan lekcji", icon: "▣" },
   { href: "/subjects", label: "Oceny", icon: "✓" },
+  { href: "/assignments", label: "Zadania", icon: "⌁" },
+  { href: "/study", label: "Nauka", icon: "✦" },
   { href: "/settings", label: "Ustawienia", icon: "⚙" },
 ];
 
@@ -25,7 +27,7 @@ export default function Sidebar() {
           <span className="block text-[11px] font-medium text-[var(--text-muted)]">study workspace</span>
         </span>
       </Link>
-      <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">Nawigacja</p>
+      <p className="mb-3 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">Aplikacja</p>
       <nav className="space-y-1.5">
         {navItems.map((item) => {
           const active = isActive(item.href);
@@ -38,11 +40,9 @@ export default function Sidebar() {
         })}
       </nav>
       <div className="mt-auto space-y-3">
-        <Link href={account ? "/settings" : "/login"} className="block rounded-xl border border-[var(--border)] bg-white/80 p-4 transition hover:bg-white">
-          <p className="text-xs font-bold text-[var(--text)]">{account ? "EduVULCAN połączony" : "Połącz EduVULCAN"}</p>
-          <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">
-            {account ? account.fullName : "Import ocen i planu lekcji"}
-          </p>
+        <Link href="/settings" className="block rounded-xl border border-[var(--border)] bg-white/80 p-4 transition hover:bg-white">
+          <p className="text-xs font-bold text-[var(--text)]">EduVULCAN połączony</p>
+          <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{account?.fullName ?? "Aktywna sesja"}</p>
         </Link>
         <div className="rounded-xl border border-[var(--border)] bg-white/70 p-4">
           <p className="text-xs font-bold text-[var(--text)]">Skup się na nauce...</p>
