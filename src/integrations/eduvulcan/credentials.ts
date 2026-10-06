@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { load } from "cheerio";
 import type { JournalCredentials, JournalConnectionResult } from "@/src/integrations/types";
 import { connectWithMobileApiAp } from "@/services/eduvulcan-mobile";
@@ -30,6 +31,23 @@ function mergeCookies(current: string, response: Response): string {
   return [...jar.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
 }
 
+function solveCaptchaProofOfWork(challenge: string, difficulty: number, rounds: number): string {
+  if (!challenge) throw new Error("EduVULCAN nie zwrócił wyzwania CAPTCHA.");
+  if (!Number.isInteger(rounds) || rounds < 0) throw new Error("EduVULCAN zwrócił nieprawidłową liczbę rund CAPTCHA.");
+  if (!Number.isInteger(difficulty) || difficulty < 0 || difficulty > 0xffffffff) throw new Error("EduVULCAN zwrócił nieprawidłowy poziom trudności CAPTCHA.");
+  const nonces: number[] = [];
+  let prefix = Buffer.from(challenge, "ascii");
+  for (let round = 0; round < rounds; round += 1) {
+    let found = false;
+    for (let nonce = 1; nonce <= 1_000_000_000; nonce += 1) {
+      const input = Buffer.concat([prefix, Buffer.from(String(nonce), "ascii")]);
+      const digest = createHash("sha256").update(input).digest();
+      if (digest.readUInt32BE(0) < difficulty) { nonces.push(nonce); prefix = input; found = true; break; }
+    }
+    if (!found) throw new Error("Nie udało się rozwiązać wyzwania CAPTCHA EduVULCAN w limicie prób.");
+  }
+  return nonces.join(";");
+}
 async function readShowCaptcha(username: string, cookie: string) {
   const response = await fetch(`${EDUVULCAN_BASE}/Account/QueryUserInfo`, {
     method: "POST",
@@ -94,12 +112,13 @@ export async function loginWithCredentials(
       throw new Error("Nie znaleziono tokenu CSRF na stronie logowania EduVULCAN.");
     }
 
+    let captchaResponse = "";
     if (userInfo.showCaptcha) {
-      return {
-        success: false,
-        error:
-          "EduVULCAN wymaga CAPTCHA dla tego logowania. Kandex nie obchodzi CAPTCHA automatycznie. Zaloguj się najpierw normalnie na eduvulcan.pl i spróbuj ponownie później.",
-      };
+      const captcha = load(html)(".captcha-wrapper").first();
+      const challenge = captcha.attr("data-challenge") ?? "";
+      const difficulty = Number(captcha.attr("data-difficulty") ?? "");
+      const rounds = Number(captcha.attr("data-rounds") ?? "");
+      captchaResponse = solveCaptchaProofOfWork(challenge, difficulty, rounds);
     }
 
     const loginResponse = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
@@ -113,7 +132,7 @@ export async function loginWithCredentials(
       body: new URLSearchParams({
         Alias: username,
         Password: password,
-        "captcha-response": "",
+        "captcha-response": captchaResponse,
         __RequestVerificationToken: csrfToken,
       }),
       redirect: "manual",
