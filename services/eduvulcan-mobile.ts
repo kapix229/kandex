@@ -189,7 +189,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
     if (!Number.isFinite(value)) return [];
 
     const key = String(grade.Column?.Subject?.Id ?? subject);
-    const current = subjectMap.get(key) ?? { id: key, name: subject, values: [], count: 0 };
+    const current = subjectMap.get(key) ?? { id: key, name: subject, values: [] as number[], count: 0 };
     current.values.push(value);
     current.count += 1;
     subjectMap.set(key, current);
