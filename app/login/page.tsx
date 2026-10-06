@@ -16,34 +16,10 @@ export default function LoginPage() {
   const router = useRouter();
   const { signIn } = useVulcanSession();
 
-  const [step, setStep] = useState<"credentials" | "pin" | "student">("credentials");
-  const [securityToken, setSecurityToken] = useState("");
-  const [schoolSymbol, setSchoolSymbol] = useState("");
-  const [pendingToken, setPendingToken] = useState("");
-  const [pin, setPin] = useState("");
-  const [students, setStudents] = useState<Student[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-
-  async function finishConnection(account: { fullName: string; studentId?: number }) {
-    signIn(account);
-    try {
-      const imported = await fetch("/api/journal/import", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: "eduvulcan" }),
-      });
-      if (!imported.ok) {
-        setError("Połączono z dziennikiem, ale import danych jeszcze się nie udał. Możesz spróbować ponownie w ustawieniach.");
-      }
-    } catch {
-      setError("Połączono z dziennikiem, ale import danych jeszcze się nie udał.");
-    }
-    router.replace("/");
-    router.refresh();
-  }
 
   async function submitCredentials(event: FormEvent) {
     event.preventDefault();
@@ -51,93 +27,31 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/vulcan/login", {
+      const response = await fetch("/api/journal/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ securityToken, schoolSymbol }),
+        body: JSON.stringify({ provider: "eduvulcan", username, password }),
       });
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        setError(data.error ?? "Nie udało się zweryfikować danych.");
+        setError(data.error ?? "Nie udało się zalogować.");
         return;
       }
 
-      setPendingToken(data.pendingToken);
-      setStep("pin");
-    } catch {
-      setError("Nie udało się połączyć z serwerem Kandex.");
-    } finally {
-      setLoading(false);
-    }
-  }
+      if (data.account) signIn(data.account);
 
-  async function submitPin(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-
-    if (!/^\d{4}$/.test(pin)) {
-      setError("PIN musi mieć dokładnie 4 cyfry.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch("/api/vulcan/login", {
+      const imported = await fetch("/api/journal/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pendingToken, pin }),
+        body: JSON.stringify({ provider: "eduvulcan" }),
       });
-      const data = await response.json();
 
-      if (data.requiresStudentSelection) {
-        setStudents(Array.isArray(data.students) ? data.students : []);
-        setStep("student");
+      if (!imported.ok) {
+        setError("Zalogowano, ale import danych nie powiódł się.");
         return;
       }
 
-      if (!response.ok || !data.success) {
-        setError(data.error ?? "Nie udało się zakończyć logowania.");
-        return;
-      }
-
-      signIn(data.account);
-      router.replace("/");
-      router.refresh();
-    } catch {
-      setError("Nie udało się połączyć z serwerem Kandex.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function submitStudent(event: FormEvent) {
-    event.preventDefault();
-    setError("");
-
-    if (!selectedStudent) {
-      setError("Wybierz ucznia.");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch("/api/vulcan/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pendingToken,
-          studentId: Number(selectedStudent),
-        }),
-      });
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        setError(data.error ?? "Nie udało się wybrać ucznia.");
-        return;
-      }
-
-      signIn(data.account);
       router.replace("/");
       router.refresh();
     } catch {
