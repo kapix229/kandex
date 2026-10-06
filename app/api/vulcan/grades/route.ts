@@ -39,7 +39,7 @@ export async function GET() {
           events: data.events,
           summaries: data.summaries,
         },
-      } as any);
+      });
       cookieStore.set("vulcan_token", sessionId, {
         httpOnly: true,
         secure: false,
