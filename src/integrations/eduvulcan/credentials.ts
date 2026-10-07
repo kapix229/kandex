@@ -38,6 +38,37 @@ function mergeCookies(current: string, response: Response): string {
   return [...jar.entries()].map(([name, value]) => `${name}=${value}`).join("; ");
 }
 
+
+async function followLoginRedirects(
+  response: Response,
+  cookie: string,
+): Promise<{ response: Response; cookie: string }> {
+  let currentResponse = response;
+  let currentCookie = cookie;
+
+  for (let redirectCount = 0; redirectCount < 5; redirectCount += 1) {
+    const status = currentResponse.status;
+    if (status < 300 || status >= 400) return { response: currentResponse, cookie: currentCookie };
+
+    const location = currentResponse.headers.get("location");
+    if (!location) return { response: currentResponse, cookie: currentCookie };
+
+    currentCookie = mergeCookies(currentCookie, currentResponse);
+    const nextUrl = new URL(location, EDUVULCAN_BASE).toString();
+
+    currentResponse = await fetch(nextUrl, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": USER_AGENT,
+        ...(currentCookie ? { Cookie: currentCookie } : {}),
+      },
+      redirect: "manual",
+    });
+  }
+
+  throw new Error("EduVULCAN wykonał zbyt wiele przekierowań podczas logowania.");
+}
+
 function solveCaptchaProofOfWork(challenge: string, difficulty: number, rounds: number): string {
   if (!challenge) throw new Error("EduVULCAN nie zwrócił wyzwania CAPTCHA.");
   if (!Number.isInteger(rounds) || rounds < 0) throw new Error("EduVULCAN zwrócił nieprawidłową liczbę rund CAPTCHA.");
@@ -234,14 +265,18 @@ export async function loginWithCredentials(
     const location = loginResponse.headers.get("location");
     const loginBody = await loginResponse.text();
 
-    // Aktualny EduVULCAN nie musi zwracać Location po poprawnym uwierzytelnieniu.
-    // Źródłowe implementacje weryfikują sesję dopiero przez /api/ap.
+    // EduVULCAN po poprawnym POST może zwrócić 302. Przeglądarka automatycznie
+    // przechodzi dalej i zachowuje cookies z każdego kroku przekierowania.
+    // Node fetch nie ma własnego cookie store, więc robimy to jawnie.
     if (loginResponse.status >= 400) {
       const validationMessages = extractValidationMessages(loginBody);
       throw new Error(
         `${validationMessages[0] || "EduVULCAN odrzucił żądanie logowania."} [HTTP=${loginResponse.status} | Location=${Boolean(location)} | odpowiedz=${loginBody.length} znakow]`,
       );
     }
+
+    const followedLogin = await followLoginRedirects(loginResponse, cookie);
+    cookie = followedLogin.cookie;
 
     const apiApResponse = await fetch(`${EDUVULCAN_BASE}/api/ap`, {
       headers: {
