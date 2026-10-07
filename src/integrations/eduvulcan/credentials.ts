@@ -287,11 +287,11 @@ export async function loginWithCredentials(
     const followedLogin = await followLoginRedirects(loginResponse, cookie);
     cookie = followedLogin.cookie;
 
-    let apiApResponse = await fetch(\`\${EDUVULCAN_BASE}/api/ap\`, {
+    let apiApResponse = await fetch(`${EDUVULCAN_BASE}/api/ap`, {
       headers: {
         Accept: "text/html,application/xhtml+xml",
         "User-Agent": USER_AGENT,
-        Referer: \`\${EDUVULCAN_BASE}/logowanie\`,
+        Referer: `${EDUVULCAN_BASE}/logowanie`,
         Cookie: cookie,
       },
       redirect: "manual",
@@ -304,13 +304,13 @@ export async function loginWithCredentials(
 
       cookie = mergeCookies(cookie, apiApResponse);
       const nextUrl = new URL(location, EDUVULCAN_BASE);
-      apiApRedirectChain.push(\`HTTP=\${apiApResponse.status} -> \${nextUrl.pathname}\`);
+      apiApRedirectChain.push(`HTTP=${apiApResponse.status} -> ${nextUrl.pathname}`);
 
       apiApResponse = await fetch(nextUrl.toString(), {
         headers: {
           Accept: "text/html,application/xhtml+xml",
           "User-Agent": USER_AGENT,
-          Referer: \`\${EDUVULCAN_BASE}/api/ap\`,
+          Referer: `${EDUVULCAN_BASE}/api/ap`,
           Cookie: cookie,
         },
         redirect: "manual",
