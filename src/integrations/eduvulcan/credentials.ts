@@ -53,7 +53,7 @@ function describeLoginForm(html: string): string {
   const page = load(html);
   const form = page("form").filter((_, el) => {
     const action = page(el).attr("action") ?? "";
-    return /logowanie/i.test(action) || page(el).find("input[name='Alias'], input[name='UserName']").length > 0;
+    return /logowanie/i.test(action) || page(el).find("input[name='UserName'], input[name='Alias']").length > 0;
   }).first();
 
   if (!form.length) return "Diagnostyka formularza: nie znaleziono formularza logowania.";
@@ -105,7 +105,7 @@ async function readShowCaptcha(username: string, cookie: string) {
       "User-Agent": USER_AGENT,
       ...(cookie ? { Cookie: cookie } : {}),
     },
-    body: new URLSearchParams({ Alias: username }),
+    body: new URLSearchParams({ UserName: username }),
     redirect: "manual",
   });
 
@@ -192,7 +192,7 @@ export async function loginWithCredentials(
     // wymagać dodatkowych hidden inputs poza loginem, hasłem, CAPTCHA i CSRF.
     const form = page("form").filter((_, el) => {
       const action = page(el).attr("action") ?? "";
-      return /logowanie/i.test(action) || page(el).find("input[name='Alias']").length > 0;
+      return /logowanie/i.test(action) || page(el).find("input[name='UserName'], input[name='Alias']").length > 0;
     }).first();
 
     const formData = new URLSearchParams();
@@ -206,7 +206,7 @@ export async function loginWithCredentials(
       formData.append(name, node.attr("value") ?? "");
     });
 
-    formData.set("Alias", username);
+    formData.set("UserName", username);
     formData.set("Password", password);
     formData.set("captcha-response", captchaResponse);
     formData.set("__RequestVerificationToken", csrfToken);
