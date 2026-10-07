@@ -42,31 +42,40 @@ function mergeCookies(current: string, response: Response): string {
 async function followLoginRedirects(
   response: Response,
   cookie: string,
-): Promise<{ response: Response; cookie: string }> {
+): Promise<{ response: Response; cookie: string; chain: string[] }> {
   let currentResponse = response;
   let currentCookie = cookie;
+  const chain: string[] = [];
 
   for (let redirectCount = 0; redirectCount < 5; redirectCount += 1) {
     const status = currentResponse.status;
-    if (status < 300 || status >= 400) return { response: currentResponse, cookie: currentCookie };
+    if (status < 300 || status >= 400) {
+      chain.push(`HTTP=${status}`);
+      return { response: currentResponse, cookie: currentCookie, chain };
+    }
 
     const location = currentResponse.headers.get("location");
-    if (!location) return { response: currentResponse, cookie: currentCookie };
+    if (!location) {
+      chain.push(`HTTP=${status} Location=false`);
+      return { response: currentResponse, cookie: currentCookie, chain };
+    }
 
     currentCookie = mergeCookies(currentCookie, currentResponse);
-    const nextUrl = new URL(location, EDUVULCAN_BASE).toString();
+    const nextUrl = new URL(location, EDUVULCAN_BASE);
+    chain.push(`HTTP=${status} -> ${nextUrl.pathname}`);
 
-    currentResponse = await fetch(nextUrl, {
+    currentResponse = await fetch(nextUrl.toString(), {
       headers: {
         Accept: "text/html,application/xhtml+xml",
         "User-Agent": USER_AGENT,
+        Referer: `${EDUVULCAN_BASE}/logowanie`,
         ...(currentCookie ? { Cookie: currentCookie } : {}),
       },
       redirect: "manual",
     });
   }
 
-  throw new Error("EduVULCAN wykonał zbyt wiele przekierowań podczas logowania.");
+  throw new Error(`EduVULCAN wykonał zbyt wiele przekierowań podczas logowania. [${chain.join(" | ")}]`);
 }
 
 function solveCaptchaProofOfWork(challenge: string, difficulty: number, rounds: number): string {
@@ -282,6 +291,7 @@ export async function loginWithCredentials(
       headers: {
         Accept: "text/html,application/xhtml+xml",
         "User-Agent": USER_AGENT,
+        Referer: `${EDUVULCAN_BASE}/logowanie`,
         Cookie: cookie,
       },
       redirect: "manual",
@@ -296,7 +306,7 @@ export async function loginWithCredentials(
         "[/api/ap HTTP=" + apiApResponse.status +
         " | Location=" + Boolean(apiApResponse.headers.get("location")) +
         " | odpowiedz=" + apiApHtml.length +
-        " znakow | ap=" + Boolean(apiApInput) + "]",
+        " znakow | ap=" + Boolean(apiApInput) + " | redirectChain=" + followedLogin.chain.join(" -> ") + "]",
       );
     }
 
@@ -305,7 +315,7 @@ export async function loginWithCredentials(
         "EduVULCAN nie zwrócił danych mobilnego API (/api/ap). " +
         "[HTTP=" + apiApResponse.status +
         " | Location=" + Boolean(apiApResponse.headers.get("location")) +
-        " | odpowiedz=" + apiApHtml.length + " znakow]",
+        " | odpowiedz=" + apiApHtml.length + " znakow | redirectChain=" + followedLogin.chain.join(" -> ") + "]",
       );
     }
 
