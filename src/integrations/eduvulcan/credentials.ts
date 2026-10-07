@@ -11,7 +11,14 @@ function getSetCookies(response: Response): string[] {
   if (typeof headers.getSetCookie === "function") return headers.getSetCookie();
 
   const combined = response.headers.get("set-cookie");
-  return combined ? [combined] : [];
+  if (!combined) return [];
+
+  // Older Node fetch implementations may expose multiple Set-Cookie values
+  // as one comma-separated header. Do not split commas inside Expires=... .
+  return combined
+    .split(/,(?=\s*[^=;,\s]+=[^=;,]*(?:;|$))/)
+    .map((cookie) => cookie.trim())
+    .filter(Boolean);
 }
 
 function mergeCookies(current: string, response: Response): string {
@@ -245,15 +252,26 @@ export async function loginWithCredentials(
       redirect: "manual",
     });
 
-    if (apiApResponse.status < 200 || apiApResponse.status >= 300) {
-      throw new Error("Logowanie się udało, ale EduVULCAN nie udostępnił danych mobilnego API.");
-    }
-
     const apiApHtml = await apiApResponse.text();
     const apiApInput = load(apiApHtml)("input[id='ap']").attr("value");
 
+    if (apiApResponse.status < 200 || apiApResponse.status >= 300) {
+      throw new Error(
+        "Logowanie się udało, ale EduVULCAN nie udostępnił danych mobilnego API. " +
+        "[/api/ap HTTP=" + apiApResponse.status +
+        " | Location=" + Boolean(apiApResponse.headers.get("location")) +
+        " | odpowiedz=" + apiApHtml.length +
+        " znakow | ap=" + Boolean(apiApInput) + "]",
+      );
+    }
+
     if (!apiApInput) {
-      throw new Error("EduVULCAN nie zwrócił danych mobilnego API (/api/ap).");
+      throw new Error(
+        "EduVULCAN nie zwrócił danych mobilnego API (/api/ap). " +
+        "[HTTP=" + apiApResponse.status +
+        " | Location=" + Boolean(apiApResponse.headers.get("location")) +
+        " | odpowiedz=" + apiApHtml.length + " znakow]",
+      );
     }
 
     const apiAp = JSON.parse(apiApInput) as {
