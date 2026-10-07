@@ -225,25 +225,14 @@ export async function loginWithCredentials(
 
     cookie = mergeCookies(cookie, loginResponse);
     const location = loginResponse.headers.get("location");
+    const loginBody = await loginResponse.text();
 
-    if (loginResponse.status < 300 || loginResponse.status >= 400 || !location) {
-      const body = await loginResponse.text();
-      const validationMessages = extractValidationMessages(body);
-      const safeRequiredFields = load(body)("input[required], select[required], textarea[required]")
-        .map((_, el) => load(body)(el).attr("name") ?? "")
-        .get()
-        .filter(Boolean);
-
-      const diagnostic = [
-        `HTTP=${loginResponse.status}`,
-        `Location=${Boolean(location)}`,
-        `odpowiedz=${body.length} znakow`,
-        `komunikaty=${validationMessages.join(" || ") || "brak"}`,
-        `requiredFields=${safeRequiredFields.join(", ") || "brak"}`,
-      ].join(" | ");
-
+    // Aktualny EduVULCAN nie musi zwracać Location po poprawnym uwierzytelnieniu.
+    // Źródłowe implementacje weryfikują sesję dopiero przez /api/ap.
+    if (loginResponse.status >= 400) {
+      const validationMessages = extractValidationMessages(loginBody);
       throw new Error(
-        `${validationMessages[0] || "EduVULCAN nie potwierdził logowania."} [${diagnostic}]`,
+        `${validationMessages[0] || "EduVULCAN odrzucił żądanie logowania."} [HTTP=${loginResponse.status} | Location=${Boolean(location)} | odpowiedz=${loginBody.length} znakow]`,
       );
     }
 
