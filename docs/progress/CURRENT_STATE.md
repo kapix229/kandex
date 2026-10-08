@@ -92,3 +92,16 @@ Integracja Vulcan znajduje się głównie w app/api/vulcan/, services/vulcan.ts,
 - `/login` dostał sekcję `TEST` pozwalającą wkleić JWT i od razu wykonać import.
 - Nie implementujemy automatycznego wpisywania zwykłego loginu i hasła do portalu EduVULCAN.
 - Przed lokalnym testem trzeba wykonać `npm install`/`npm ci`; nie udało się jeszcze uruchomić typecheck/lint/build, ponieważ w tej sesji nie ma podłączonego urządzenia Remote Desktop.
+
+## 2026-10-08 — strukturalne API EduVULCAN
+- Zastosowano nową specyfikację modularnego API EduVULCAN.
+- Dodano znormalizowane typy w `src/types/journals.ts`: Student, Grade, Attendance, Lesson, Subject oraz wspólne kody błędów API.
+- Dodano warstwę `services/eduvulcan-api.ts`, która korzysta z istniejącej sesji mobilnej i adaptera `hebece`, zamiast tworzyć fikcyjne endpointy po stronie eduvulcan.pl.
+- Dodano endpointy: `POST /api/eduvulcan/login`, `GET /api/eduvulcan/session`, `GET /api/eduvulcan/student`, `GET /api/eduvulcan/grades`, `GET /api/eduvulcan/attendance`, `GET /api/eduvulcan/timetable`, `GET /api/eduvulcan/subjects`.
+- Dodano normalizację ocen, ucznia, planu i przedmiotów do modeli Kandex.
+- Rozszerzono `services/eduvulcan-mobile.ts` o pobieranie i normalizację frekwencji przez `api.getAttendance()`.
+- Dodano `.env.example` z konfiguracją `EDUVULCAN_BASE_URL` i miejscem na sekret sesji; prawdziwe sekrety nie trafiają do repozytorium.
+- Uporządkowano `package-lock.json` zgodnie z zależnościami wymaganymi przez `hebece`/mobilne API.
+- GitHub Actions zweryfikował: `npm ci`, typecheck, lint i build — wszystkie zakończone sukcesem.
+- Ostatnia zweryfikowana gałąź `main`: commit `3a5cd0bdeeb9c09603a6529836bf2801b4b7182f`.
+- Następny etap: rzeczywisty test logowania i odczytu danych EduVULCAN na lokalnym środowisku użytkownika.
