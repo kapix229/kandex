@@ -71,3 +71,19 @@
 - Po poprawnym połączeniu EduVULCAN `/login` uruchamia automatyczny import przed przejściem do dashboardu.
 - Shell z sidebarem jest renderowany dopiero dla aktywnej sesji.
 - Dodano `/assignments`, `/study` oraz aliasy `/dashboard/*`.
+
+## 2026-10-08 — ostatnia sesja
+### Wykonano
+- Zastosowano specyfikację modularnego API EduVULCAN w repozytorium Kandex.
+- Dodano `src/types/journals.ts` oraz `services/eduvulcan-api.ts`.
+- Dodano endpointy login, session, student, grades, attendance, timetable i subjects pod `/api/eduvulcan/*`.
+- Rozszerzono istniejący adapter mobilny o frekwencję.
+- Zsynchronizowano `package-lock.json` i poprawiono błąd typów w normalizacji ocen.
+- GitHub Actions potwierdził sukces instalacji, typecheck, lint i build.
+
+### Punkt wznowienia
+Następna praca ma rozpocząć się od lokalnego testu rzeczywistego logowania EduVULCAN i sprawdzenia wszystkich nowych endpointów na sesji użytkownika. Sam sukces CI nie oznacza jeszcze poprawnego pobierania danych z dziennika.
+
+### Zasady
+- Nie przechowywać haseł, cookies ani innych sekretów w repozytorium, logach ani dokumentacji.
+- Dla testów EduVULCAN używać wyłącznie domeny `eduvulcan.pl`.
