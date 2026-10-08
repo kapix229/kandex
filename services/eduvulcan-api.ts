@@ -1,0 +1,86 @@
+import { getMobileSession, fetchMobileSnapshot } from "@/services/eduvulcan-mobile";
+import type {
+  AttendanceData,
+  Grade,
+  Lesson,
+  Student,
+  Subject,
+} from "@/src/types/journals";
+
+export const EDUVULCAN_SESSION_COOKIE = "eduvulcan_mobile_session";
+
+type Snapshot = Awaited<ReturnType<typeof fetchMobileSnapshot>>;
+
+function normalizeStudent(student: Snapshot["student"]): Student {
+  return {
+    id: student?.id ?? "",
+    name: student?.fullName?.split(" ")[0] ?? "",
+    surname: student?.fullName?.split(" ").slice(1).join(" ") ?? "",
+    class: student?.className ?? "",
+    school: student?.schoolName ?? "",
+  };
+}
+
+function requireSession(sessionId: string | undefined) {
+  if (!sessionId) throw new Error("SESSION_EXPIRED");
+  return getMobileSession(sessionId).then((session) => {
+    if (!session) throw new Error("SESSION_EXPIRED");
+    return session;
+  });
+}
+
+export async function getEduVulcanSnapshot(sessionId: string | undefined) {
+  await requireSession(sessionId);
+  return fetchMobileSnapshot(sessionId!);
+}
+
+export async function getEduVulcanStudent(sessionId: string | undefined): Promise<Student> {
+  const snapshot = await getEduVulcanSnapshot(sessionId);
+  return normalizeStudent(snapshot.student);
+}
+
+export async function getEduVulcanGrades(sessionId: string | undefined): Promise<Grade[]> {
+  const snapshot = await getEduVulcanSnapshot(sessionId);
+  return snapshot.grades.map((grade) => ({
+    id: grade.id,
+    subjectId: snapshot.subjects.find((subject) => subject.name === grade.subject)?.id ?? grade.subject,
+    subjectName: grade.subject,
+    value: String(grade.value),
+    type: grade.title ?? grade.type ?? "ocena",
+    date: grade.date,
+    weight: Number(grade.weight || 1),
+  }));
+}
+
+export async function getEduVulcanAttendance(sessionId: string | undefined): Promise<AttendanceData> {
+  // The current mobile adapter does not expose attendance as a separate endpoint.
+  // Keep the public API stable and return an explicit empty dataset until the
+  // underlying hebece adapter exposes attendance records.
+  await requireSession(sessionId);
+  return {
+    summary: { present: 0, absent: 0, late: 0, excused: 0 },
+    entries: [],
+  };
+}
+
+export async function getEduVulcanTimetable(sessionId: string | undefined): Promise<Lesson[]> {
+  const snapshot = await getEduVulcanSnapshot(sessionId);
+  return snapshot.schedule.map((lesson) => ({
+    date: lesson.startsAt.slice(0, 10),
+    lessonNumber: 0,
+    start: lesson.startsAt.slice(11, 16),
+    end: lesson.endsAt?.slice(11, 16) ?? "",
+    subject: lesson.subject,
+    teacher: lesson.teacher ?? "",
+    room: lesson.room ?? "",
+  }));
+}
+
+export async function getEduVulcanSubjects(sessionId: string | undefined): Promise<Subject[]> {
+  const snapshot = await getEduVulcanSnapshot(sessionId);
+  return snapshot.subjects.map((subject) => ({
+    id: subject.id,
+    name: subject.name,
+    teacher: "",
+  }));
+}
