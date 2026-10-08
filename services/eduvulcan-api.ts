@@ -53,13 +53,16 @@ export async function getEduVulcanGrades(sessionId: string | undefined): Promise
 }
 
 export async function getEduVulcanAttendance(sessionId: string | undefined): Promise<AttendanceData> {
-  // The current mobile adapter does not expose attendance as a separate endpoint.
-  // Keep the public API stable and return an explicit empty dataset until the
-  // underlying hebece adapter exposes attendance records.
-  await requireSession(sessionId);
+  const snapshot = await getEduVulcanSnapshot(sessionId);
+  const entries = snapshot.attendance ?? [];
   return {
-    summary: { present: 0, absent: 0, late: 0, excused: 0 },
-    entries: [],
+    summary: {
+      present: entries.filter((entry) => entry.status === "present").length,
+      absent: entries.filter((entry) => entry.status === "absent").length,
+      late: entries.filter((entry) => entry.status === "late").length,
+      excused: entries.filter((entry) => entry.status === "excused").length,
+    },
+    entries,
   };
 }
 
