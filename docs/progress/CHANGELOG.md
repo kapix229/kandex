@@ -27,3 +27,12 @@ Umożliwić wznowienie długotrwałej pracy nad Kandex w nowym czacie bez polega
 - Dodano warstwę znormalizowanych danych i adaptery.
 - Dodano automatyczny import po połączeniu EduVULCAN.
 - Dodano widoki Zadania/Nauka i nową nawigację.
+
+## 2026-10-08 — strukturalne API EduVULCAN
+- Wdrożono modularną warstwę API dla EduVULCAN.
+- Dodano endpointy login/session/student/grades/attendance/timetable/subjects pod `/api/eduvulcan/*`.
+- Dodano wspólne typy i normalizację danych w `src/types/journals.ts` oraz `services/eduvulcan-api.ts`.
+- Rozszerzono mobilny adapter o frekwencję przez `hebece`.
+- Zsynchronizowano lockfile z zależnościami projektu.
+- CI: npm ci, typecheck, lint i build zakończone sukcesem.
+- Do wykonania pozostaje realny test logowania i danych na lokalnej instancji.
