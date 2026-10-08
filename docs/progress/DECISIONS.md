@@ -16,3 +16,13 @@ Dziennik jest dostawcą danych, a nie rdzeniem aplikacji. Frontend korzysta z w�
 
 ## 2026-10-06 — EduVULCAN
 Pozostajemy przy oficjalnym mechanizmie dostępu mobilnego token + PIN zamiast automatyzowania zwykłego loginu i hasła do portalu.
+
+## 2026-10-08 — API provider-neutralne dla EduVULCAN
+### Decyzja
+Nowe endpointy Kandex mają korzystać z istniejącego mobilnego adaptera EduVULCAN i wspólnej warstwy normalizacji, zamiast udawać istnienie publicznych endpointów `eduvulcan.pl/api/grades`, `/attendance` itd.
+
+### Powód
+Aktualny projekt ma już działający mechanizm sesji mobilnej i bibliotekę `hebece`. Rozdzielenie route handlerów od warstwy usługowej pozwala później dodać Librus bez uzależniania UI od formatu EduVULCAN.
+
+### Konsekwencja
+Frontend korzysta z własnych modeli Student/Grade/Attendance/Lesson/Subject, a szczegóły adaptera EduVULCAN pozostają po stronie serwera.
