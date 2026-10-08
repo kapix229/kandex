@@ -46,7 +46,7 @@ export async function getEduVulcanGrades(sessionId: string | undefined): Promise
     subjectId: snapshot.subjects.find((subject) => subject.name === grade.subject)?.id ?? grade.subject,
     subjectName: grade.subject,
     value: String(grade.value),
-    type: grade.title ?? grade.type ?? "ocena",
+    type: grade.title ?? "ocena",
     date: grade.date,
     weight: Number(grade.weight || 1),
   }));
