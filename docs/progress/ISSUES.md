@@ -27,3 +27,10 @@
 - Brak realnego testu importu na koncie użytkownika.
 - Sesja nadal jest przechowywana w pamięci procesu.
 - Librus pozostaje nieaktywny.
+
+## 2026-10-08 — po wdrożeniu API
+- Nowe API przechodzi CI: npm ci, typecheck, lint i build.
+- Nie wykonano jeszcze rzeczywistego testu endpointów na zalogowanym koncie EduVULCAN.
+- Frekwencja jest już pobierana przez `hebece.getAttendance()`, ale należy zweryfikować mapowanie statusów na prawdziwych danych szkoły.
+- Sesja mobilna nadal pozostaje po stronie serwera i wymaga dalszego audytu trwałości oraz bezpieczeństwa przed produkcją.
+- Nie należy traktować sukcesu CI jako potwierdzenia poprawnego logowania do rzeczywistego konta EduVULCAN.
