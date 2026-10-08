@@ -53,6 +53,22 @@ type MobileHomework = {
   Deadline?: { Timestamp?: number };
 };
 
+type MobileAttendance = {
+  Id: string | number;
+  LessonId?: string | number;
+  Day?: { Timestamp?: number; Date?: string };
+  LessonNumber?: number;
+  Subject?: { Name?: string };
+  PresenceType?: {
+    Name?: string;
+    Presence?: boolean;
+    Absence?: boolean;
+    Late?: boolean;
+    AbsenceJustified?: boolean;
+    Removed?: boolean;
+  };
+};
+
 type MobileSession = {
   id: string;
   keypair: MobileKeypair;
@@ -211,15 +227,17 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const to = new Date(today);
   to.setDate(today.getDate() + 35);
 
-  const [grades, lessons, homework] = await Promise.all([
+  const [grades, lessons, homework, attendance] = await Promise.all([
     api.getGrades(),
     api.getLessons(from, to),
     api.getHomework(from, to),
+    api.getAttendance(from, to),
   ]);
 
   const gradeRows = grades.Envelope ?? [];
   const lessonRows = lessons.Envelope ?? [];
   const homeworkRows = homework.Envelope ?? [];
+  const attendanceRows = attendance.Envelope ?? [];
 
   const subjectMap = new Map<string, { id: string; name: string; values: number[]; count: number }>();
   const normalizedGrades = gradeRows.flatMap((grade: MobileGrade) => {
@@ -279,5 +297,23 @@ export async function fetchMobileSnapshot(sessionId: string) {
         : undefined,
       completed: false,
     })),
+    attendance: attendanceRows.map((item: MobileAttendance) => {
+      const presence = item.PresenceType;
+      let status: "present" | "absent" | "late" | "excused" | "unknown" = "unknown";
+      if (presence?.AbsenceJustified) status = "excused";
+      else if (presence?.Late) status = "late";
+      else if (presence?.Absence) status = "absent";
+      else if (presence?.Presence) status = "present";
+
+      return {
+        date:
+          item.Day?.Timestamp !== undefined
+            ? new Date(item.Day.Timestamp).toISOString().slice(0, 10)
+            : item.Day?.Date ?? "",
+        lesson: Number(item.LessonNumber ?? 0),
+        subject: item.Subject?.Name ?? "Lekcja",
+        status,
+      };
+    }),
   };
 }
