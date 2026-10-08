@@ -29,3 +29,11 @@
 2. Przetestować Welcome → EduVULCAN → token → PIN → import → Dashboard.
 3. Sprawdzić realne oceny, plan i zadania.
 4. Dokończyć Librus oraz trwałe przechowywanie sesji.
+
+## Aktualizacja 2026-10-08
+1. Uruchomić lokalnie Kandex i wykonać rzeczywisty login przez `POST /api/eduvulcan/login`.
+2. Sprawdzić `/api/eduvulcan/session` po zalogowaniu.
+3. Sprawdzić kolejno student, grades, attendance, timetable i subjects.
+4. Porównać zwrócone dane z rzeczywistym dziennikiem EduVULCAN.
+5. Jeżeli któryś model danych różni się od rzeczywistego API, poprawić wyłącznie odpowiednią warstwę normalizacji.
+6. Dopiero po udanym smoke teście podłączać nowe endpointy do UI Kandex.
