@@ -17,8 +17,19 @@ export default function HomePage() {
   }, []);
 
   function selectProvider(nextProvider: "eduvulcan" | "librus") {
+    console.info("[Kandex provider] Home click:", nextProvider);
+    try {
+      window.localStorage.setItem("kandex-journal-provider", nextProvider);
+      console.info(
+        "[Kandex provider] Home stored value:",
+        window.localStorage.getItem("kandex-journal-provider"),
+        "| origin:",
+        window.location.origin,
+      );
+    } catch (error) {
+      console.error("[Kandex provider] Home localStorage write failed:", error);
+    }
     setProvider(nextProvider);
-    window.localStorage.setItem("kandex-journal-provider", nextProvider);
   }
 
   if (!account) {
