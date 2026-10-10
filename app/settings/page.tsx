@@ -16,8 +16,19 @@ export default function SettingsPage() {
   }, []);
 
   function selectProvider(nextProvider: "eduvulcan" | "librus") {
+    console.info("[Kandex provider] Click:", nextProvider);
+    try {
+      window.localStorage.setItem("kandex-journal-provider", nextProvider);
+      console.info(
+        "[Kandex provider] Stored value:",
+        window.localStorage.getItem("kandex-journal-provider"),
+        "| origin:",
+        window.location.origin,
+      );
+    } catch (error) {
+      console.error("[Kandex provider] localStorage write failed:", error);
+    }
     setProvider(nextProvider);
-    window.localStorage.setItem("kandex-journal-provider", nextProvider);
   }
 
   return (
