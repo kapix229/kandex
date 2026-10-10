@@ -30,7 +30,7 @@ function successResponse(result: { sessionId?: string; account?: { fullName: str
   if (result.sessionId) {
     response.cookies.set(EDUVULCAN_SESSION_COOKIE, result.sessionId, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_USE_HTTPS === "true",
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 12,
@@ -57,7 +57,12 @@ export async function POST(req: Request) {
       const login = await completeEduVulcanCaptchaLogin(body.loginId, body.captchaResponse);
       if (!login.success || !login.sessionId) {
         const error = mapLoginError(login.error ?? "Logowanie EduVULCAN nie powiodło się.");
-        return NextResponse.json({ success: false, error }, { status: error.code === "INVALID_CREDENTIALS" ? 401 : 502 });
+        const status = error.code === "INVALID_CREDENTIALS" ? 401 : 502;
+        console.warn("[eduvulcan-login] CAPTCHA completion failed", {
+          code: error.code,
+          status,
+        });
+        return NextResponse.json({ success: false, error }, { status });
       }
       return successResponse(login);
     }
@@ -78,10 +83,24 @@ export async function POST(req: Request) {
     );
     if (!result.success || !result.sessionId) {
       const error = mapLoginError(result.error ?? "Logowanie EduVULCAN nie powiodło się.");
-      return NextResponse.json({ success: false, error }, { status: error.code === "INVALID_CREDENTIALS" ? 401 : 502 });
+      const status = error.code === "INVALID_CREDENTIALS" ? 401 : 502;
+      // Log only classification and status: never log credentials, cookies, CAPTCHA
+      // answers, or the upstream response body.
+      console.warn("[eduvulcan-login] credentials login failed", {
+        code: error.code,
+        status,
+      });
+      return NextResponse.json({ success: false, error }, { status });
     }
     return successResponse(result);
-  } catch {
-    return NextResponse.json({ success: false, error: { code: "INVALID_REQUEST", message: "Nieprawidłowe żądanie." } }, { status: 400 });
+  } catch (error) {
+    // Do not log error messages because upstream HTML may contain private data.
+    console.error("[eduvulcan-login] unexpected server error", {
+      errorType: error instanceof Error ? error.name : "UnknownError",
+    });
+    return NextResponse.json(
+      { success: false, error: { code: "LOGIN_FAILED", message: "Wewnętrzny błąd podczas logowania. Sprawdź logi serwera." } },
+      { status: 500 },
+    );
   }
 }
