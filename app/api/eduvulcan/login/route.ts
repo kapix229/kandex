@@ -11,7 +11,7 @@ function mapLoginError(message: string) {
   if (/captcha/.test(normalized)) return { code: "CAPTCHA_FAILED" as const, message };
   if (/hasło|login|credentials|uwierzyteln/.test(normalized)) return { code: "INVALID_CREDENTIALS" as const, message };
   if (/mobilnego api|mobile api|rest api/.test(normalized)) return { code: "MOBILE_API_UNAVAILABLE" as const, message };
-  if (/niedostęp|unavailable|timeout/.test(normalized)) return { code: "EDUVULCAN_UNAVAILABLE" as const, message };
+  if (/niedostęp|unavailable|timeout|fetch_failed|nie mógł połączyć/.test(normalized)) return { code: "EDUVULCAN_UNAVAILABLE" as const, message };
   return { code: "LOGIN_FAILED" as const, message };
 }
 
