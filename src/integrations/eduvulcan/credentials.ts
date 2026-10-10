@@ -6,6 +6,34 @@ import { connectWithMobileApiAp } from "@/services/eduvulcan-mobile";
 const EDUVULCAN_BASE = "https://eduvulcan.pl";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36";
 
+async function fetchEduVulcan(
+  input: string | URL,
+  init?: RequestInit,
+): Promise<Response> {
+  let safeTarget = "unknown-target";
+  let stage = "request";
+  try {
+    const url = new URL(input);
+    safeTarget = `${url.host}${url.pathname}`;
+    if (url.pathname === "/logowanie" && init?.method === "POST") stage = "submit-login";
+    else if (url.pathname === "/logowanie") stage = "load-login-page";
+    else if (url.pathname === "/Account/QueryUserInfo") stage = "query-user-info";
+    else if (url.pathname === "/api/ap") stage = "mobile-api-ap";
+    else if (url.host === new URL(EDUVULCAN_BASE).host) stage = "follow-redirect";
+  } catch {
+    // Do not include raw input or request options in diagnostics.
+  }
+  try {
+    return await fetch(input, init);
+  } catch (error) {
+    const causeName =
+      error instanceof Error && error.name ? error.name : "UnknownError";
+    throw new Error(
+      `EDUVULCAN_FETCH_FAILED stage=${stage} target=${safeTarget} cause=${causeName}. Serwer Kandex nie mógł połączyć się z usługą EduVULCAN.`,
+    );
+  }
+}
+
 type ClientRequestHeaders = {
   userAgent?: string;
   acceptLanguage?: string;
@@ -77,7 +105,7 @@ async function followLoginRedirects(
     const nextUrl = new URL(location, EDUVULCAN_BASE);
     chain.push(`HTTP=${status} -> ${nextUrl.pathname}`);
 
-    currentResponse = await fetch(nextUrl.toString(), {
+    currentResponse = await fetchEduVulcan(nextUrl.toString(), {
       headers: {
         Accept: "text/html,application/xhtml+xml",
         ...portalClientHeaders(clientHeaders),
@@ -167,7 +195,7 @@ async function readShowCaptcha(
   csrfToken: string,
   clientHeaders: ClientRequestHeaders = {},
 ) {
-  const response = await fetch(`${EDUVULCAN_BASE}/Account/QueryUserInfo`, {
+  const response = await fetchEduVulcan(`${EDUVULCAN_BASE}/Account/QueryUserInfo`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
@@ -220,7 +248,7 @@ export async function loginWithCredentials(
 
   try {
     let cookie = "";
-    const loginPage = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
+    const loginPage = await fetchEduVulcan(`${EDUVULCAN_BASE}/logowanie`, {
       headers: {
         Accept: "text/html,application/xhtml+xml",
         ...portalClientHeaders(clientHeaders),
@@ -286,7 +314,7 @@ export async function loginWithCredentials(
     formData.set("captcha-response", captchaResponse);
     formData.set("__RequestVerificationToken", csrfToken);
 
-    const loginResponse = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
+    const loginResponse = await fetchEduVulcan(`${EDUVULCAN_BASE}/logowanie`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -328,7 +356,7 @@ export async function loginWithCredentials(
     const followedLogin = await followLoginRedirects(loginResponse, cookie, clientHeaders);
     cookie = followedLogin.cookie;
 
-    let apiApResponse = await fetch(`${EDUVULCAN_BASE}/api/ap`, {
+    let apiApResponse = await fetchEduVulcan(`${EDUVULCAN_BASE}/api/ap`, {
       headers: {
         Accept: "text/html,application/xhtml+xml",
         ...portalClientHeaders(clientHeaders),
@@ -347,7 +375,7 @@ export async function loginWithCredentials(
       const nextUrl = new URL(location, EDUVULCAN_BASE);
       apiApRedirectChain.push(`HTTP=${apiApResponse.status} -> ${nextUrl.pathname}`);
 
-      apiApResponse = await fetch(nextUrl.toString(), {
+      apiApResponse = await fetchEduVulcan(nextUrl.toString(), {
         headers: {
           Accept: "text/html,application/xhtml+xml",
           ...portalClientHeaders(clientHeaders),
@@ -428,7 +456,7 @@ export async function startEduVulcanCaptchaLogin(
   const username = usernameInput.trim();
   if (!username || !password) throw new Error("Podaj login i hasło.");
 
-  const loginPage = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
+  const loginPage = await fetchEduVulcan(`${EDUVULCAN_BASE}/logowanie`, {
     headers: { Accept: "text/html,application/xhtml+xml", "User-Agent": USER_AGENT },
     redirect: "manual",
   });
@@ -481,7 +509,7 @@ export async function completeEduVulcanCaptchaLogin(
       __RequestVerificationToken: pending.csrfToken,
     });
 
-    const loginResponse = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
+    const loginResponse = await fetchEduVulcan(`${EDUVULCAN_BASE}/logowanie`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -509,7 +537,7 @@ export async function completeEduVulcanCaptchaLogin(
     const followed = await followLoginRedirects(loginResponse, cookie);
     cookie = followed.cookie;
 
-    let ap = await fetch(`${EDUVULCAN_BASE}/api/ap`, {
+    let ap = await fetchEduVulcan(`${EDUVULCAN_BASE}/api/ap`, {
       headers: {
         Accept: "text/html,application/xhtml+xml",
         "User-Agent": USER_AGENT,
@@ -523,7 +551,7 @@ export async function completeEduVulcanCaptchaLogin(
       const next = ap.headers.get("location");
       if (!next) break;
       cookie = mergeCookies(cookie, ap);
-      ap = await fetch(new URL(next, EDUVULCAN_BASE).toString(), {
+      ap = await fetchEduVulcan(new URL(next, EDUVULCAN_BASE).toString(), {
         headers: {
           Accept: "text/html,application/xhtml+xml",
           "User-Agent": USER_AGENT,
