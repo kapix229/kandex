@@ -3,6 +3,10 @@ import type { JournalProvider } from "@/src/types/journal";
 
 export const dynamic = "force-dynamic";
 
+const useSecureCookies =
+  process.env.NODE_ENV === "production" ||
+  process.env.NEXT_PUBLIC_USE_HTTPS === "true";
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as {
@@ -28,7 +32,7 @@ export async function POST(request: Request) {
     const response = Response.json(result, { status: 200 });
     response.headers.append(
       "Set-Cookie",
-      `eduvulcan_mobile_session=${encodeURIComponent(result.sessionId)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+      `eduvulcan_mobile_session=${encodeURIComponent(result.sessionId)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=28800${useSecureCookies ? "; Secure" : ""}`,
     );
     return response;
   } catch (error) {

@@ -1,10 +1,22 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { load } from "cheerio";
 import type { JournalCredentials, JournalConnectionResult } from "@/src/integrations/types";
 import { connectWithMobileApiAp } from "@/services/eduvulcan-mobile";
 
 const EDUVULCAN_BASE = "https://eduvulcan.pl";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/154.0.0.0 Safari/537.36";
+
+type ClientRequestHeaders = {
+  userAgent?: string;
+  acceptLanguage?: string;
+};
+
+function portalClientHeaders(headers: ClientRequestHeaders = {}) {
+  return {
+    "User-Agent": headers.userAgent || USER_AGENT,
+    ...(headers.acceptLanguage ? { "Accept-Language": headers.acceptLanguage } : {}),
+  };
+}
 
 function getSetCookies(response: Response): string[] {
   const headers = response.headers as Headers & { getSetCookie?: () => string[] };
@@ -42,6 +54,7 @@ function mergeCookies(current: string, response: Response): string {
 async function followLoginRedirects(
   response: Response,
   cookie: string,
+  clientHeaders: ClientRequestHeaders = {},
 ): Promise<{ response: Response; cookie: string; chain: string[] }> {
   let currentResponse = response;
   let currentCookie = cookie;
@@ -67,7 +80,7 @@ async function followLoginRedirects(
     currentResponse = await fetch(nextUrl.toString(), {
       headers: {
         Accept: "text/html,application/xhtml+xml",
-        "User-Agent": USER_AGENT,
+        ...portalClientHeaders(clientHeaders),
         Referer: `${EDUVULCAN_BASE}/logowanie`,
         ...(currentCookie ? { Cookie: currentCookie } : {}),
       },
@@ -130,7 +143,12 @@ function extractValidationMessages(html: string): string[] {
     ".validation-summary-errors",
     ".field-validation-error",
     ".message-snackbar-content",
+    ".message-error",
+    ".messageInfo",
+    ".messageSection",
     "[data-valmsg-for]",
+    "#localMessage",
+    "#localMessage2",
   ];
 
   return [...new Set(
@@ -143,16 +161,27 @@ function extractValidationMessages(html: string): string[] {
   )].slice(0, 10);
 }
 
-async function readShowCaptcha(username: string, cookie: string) {
+async function readShowCaptcha(
+  username: string,
+  cookie: string,
+  csrfToken: string,
+  clientHeaders: ClientRequestHeaders = {},
+) {
   const response = await fetch(`${EDUVULCAN_BASE}/Account/QueryUserInfo`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
       Accept: "application/json",
-      "User-Agent": USER_AGENT,
+      ...portalClientHeaders(clientHeaders),
+      Origin: EDUVULCAN_BASE,
+      Referer: `${EDUVULCAN_BASE}/logowanie`,
+      "X-Requested-With": "XMLHttpRequest",
       ...(cookie ? { Cookie: cookie } : {}),
     },
-    body: new URLSearchParams({ UserName: username }),
+    body: new URLSearchParams({
+      alias: username,
+      __RequestVerificationToken: csrfToken,
+    }),
     redirect: "manual",
   });
 
@@ -165,18 +194,12 @@ async function readShowCaptcha(username: string, cookie: string) {
     data?: boolean | { ShowCaptcha?: boolean; ExtraMessage?: string | null };
   };
 
-  if (data.success === false) {
-    const extraMessage =
-      typeof data.data === "object" && data.data !== null
-        ? data.data.ExtraMessage
-        : undefined;
-    throw new Error(extraMessage || "EduVULCAN odrzucił sprawdzenie konta.");
-  }
-
   const showCaptcha =
-    typeof data.data === "boolean"
-      ? data.data
-      : Boolean(data.data?.ShowCaptcha);
+    !data.success ||
+    !data.data ||
+    (typeof data.data === "object" &&
+      data.data !== null &&
+      Boolean(data.data.ShowCaptcha));
 
   return {
     showCaptcha,
@@ -186,6 +209,7 @@ async function readShowCaptcha(username: string, cookie: string) {
 
 export async function loginWithCredentials(
   credentials: JournalCredentials,
+  clientHeaders: ClientRequestHeaders = {},
 ): Promise<JournalConnectionResult> {
   const username = credentials.username.trim();
   const password = credentials.password;
@@ -196,13 +220,10 @@ export async function loginWithCredentials(
 
   try {
     let cookie = "";
-    const userInfo = await readShowCaptcha(username, cookie);
-    cookie = userInfo.cookie;
-
     const loginPage = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
       headers: {
         Accept: "text/html,application/xhtml+xml",
-        "User-Agent": USER_AGENT,
+        ...portalClientHeaders(clientHeaders),
         ...(cookie ? { Cookie: cookie } : {}),
       },
       redirect: "manual",
@@ -216,6 +237,9 @@ export async function loginWithCredentials(
     if (!csrfToken) {
       throw new Error("Nie znaleziono tokenu CSRF na stronie logowania EduVULCAN. " + describeLoginForm(html));
     }
+
+    const userInfo = await readShowCaptcha(username, cookie, csrfToken, clientHeaders);
+    cookie = userInfo.cookie;
 
     let captchaResponse = "";
     const captcha = page(".captcha-wrapper").first();
@@ -242,6 +266,10 @@ export async function loginWithCredentials(
       return /logowanie/i.test(action) || page(el).find("input[name='UserName'], input[name='Alias']").length > 0;
     }).first();
 
+    if (!form.length) {
+      throw new Error("Nie znaleziono formularza logowania EduVULCAN. " + describeLoginForm(html));
+    }
+
     const formData = new URLSearchParams();
     form.find("input[name], select[name], textarea[name]").each((_, el) => {
       const node = page(el);
@@ -263,8 +291,10 @@ export async function loginWithCredentials(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         Accept: "text/html,application/xhtml+xml",
-        "User-Agent": USER_AGENT,
+        ...portalClientHeaders(clientHeaders),
         Cookie: cookie,
+        Origin: EDUVULCAN_BASE,
+        Referer: `${EDUVULCAN_BASE}/logowanie`,
       },
       body: formData,
       redirect: "manual",
@@ -284,13 +314,24 @@ export async function loginWithCredentials(
       );
     }
 
-    const followedLogin = await followLoginRedirects(loginResponse, cookie);
+    // A failed credential check can return HTTP 200 with the login form
+    // rendered again instead of a redirect. Do not continue to /api/ap in
+    // that case, otherwise the user gets a misleading MOBILE_API_UNAVAILABLE.
+    if (!location && load(loginBody)("#form1").length > 0) {
+      const validationMessages = extractValidationMessages(loginBody);
+      throw new Error(
+        validationMessages[0] ||
+          "EduVULCAN ponownie wyświetlił formularz, ale nie zwrócił komunikatu walidacji. Serwer nie podał przyczyny odrzucenia.",
+      );
+    }
+
+    const followedLogin = await followLoginRedirects(loginResponse, cookie, clientHeaders);
     cookie = followedLogin.cookie;
 
     let apiApResponse = await fetch(`${EDUVULCAN_BASE}/api/ap`, {
       headers: {
         Accept: "text/html,application/xhtml+xml",
-        "User-Agent": USER_AGENT,
+        ...portalClientHeaders(clientHeaders),
         Referer: `${EDUVULCAN_BASE}/logowanie`,
         Cookie: cookie,
       },
@@ -309,7 +350,7 @@ export async function loginWithCredentials(
       apiApResponse = await fetch(nextUrl.toString(), {
         headers: {
           Accept: "text/html,application/xhtml+xml",
-          "User-Agent": USER_AGENT,
+          ...portalClientHeaders(clientHeaders),
           Referer: `${EDUVULCAN_BASE}/api/ap`,
           Cookie: cookie,
         },
@@ -359,5 +400,155 @@ export async function loginWithCredentials(
       success: false,
       error: error instanceof Error ? error.message : "Logowanie EduVULCAN nie powiodło się.",
     };
+  }
+}
+
+
+export type EduVulcanCaptchaStart = {
+  loginId: string;
+  challenge: string;
+  difficulty: number;
+  rounds: number;
+};
+
+type PendingEduVulcanLogin = {
+  username: string;
+  password: string;
+  cookie: string;
+  csrfToken: string;
+  createdAt: number;
+};
+
+const pendingEduVulcanLogins = new Map<string, PendingEduVulcanLogin>();
+
+export async function startEduVulcanCaptchaLogin(
+  usernameInput: string,
+  password: string,
+): Promise<EduVulcanCaptchaStart | { captchaRequired: false }> {
+  const username = usernameInput.trim();
+  if (!username || !password) throw new Error("Podaj login i hasło.");
+
+  const loginPage = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
+    headers: { Accept: "text/html,application/xhtml+xml", "User-Agent": USER_AGENT },
+    redirect: "manual",
+  });
+  const cookie = mergeCookies("", loginPage);
+  const html = await loginPage.text();
+  const page = load(html);
+  const csrfToken = page("input[name='__RequestVerificationToken']").attr("value");
+  if (!csrfToken) throw new Error("Nie znaleziono tokenu CSRF na stronie logowania EduVULCAN.");
+
+  const userInfo = await readShowCaptcha(username, cookie, csrfToken);
+  const captcha = page(".captcha-wrapper").first();
+  const challenge = captcha.attr("data-challenge") ?? "";
+  const difficulty = Number(captcha.attr("data-difficulty") ?? "");
+  const rounds = Number(captcha.attr("data-rounds") ?? "");
+
+  if (!userInfo.showCaptcha && !challenge) return { captchaRequired: false };
+  if (!challenge || !Number.isInteger(difficulty) || !Number.isInteger(rounds)) {
+    throw new Error("EduVULCAN wymaga CAPTCHA, ale nie udało się pobrać jej parametrów.");
+  }
+
+  const loginId = randomUUID();
+  pendingEduVulcanLogins.set(loginId, {
+    username, password, cookie: userInfo.cookie, csrfToken, createdAt: Date.now(),
+  });
+
+  return { loginId, challenge, difficulty, rounds };
+}
+
+export async function completeEduVulcanCaptchaLogin(
+  loginId: string,
+  captchaResponse: string,
+): Promise<JournalConnectionResult> {
+  const pending = pendingEduVulcanLogins.get(loginId);
+  if (!pending) return { success: false, error: "Sesja CAPTCHA wygasła. Rozpocznij logowanie ponownie." };
+  pendingEduVulcanLogins.delete(loginId);
+
+  if (Date.now() - pending.createdAt > 5 * 60 * 1000) {
+    return { success: false, error: "Sesja CAPTCHA wygasła. Rozpocznij logowanie ponownie." };
+  }
+  if (!/^\d+(;\d+)*$/.test(captchaResponse)) {
+    return { success: false, error: "Nieprawidłowa odpowiedź CAPTCHA." };
+  }
+
+  try {
+    let cookie = pending.cookie;
+    const formData = new URLSearchParams({
+      UserName: pending.username,
+      Password: pending.password,
+      "captcha-response": captchaResponse,
+      __RequestVerificationToken: pending.csrfToken,
+    });
+
+    const loginResponse = await fetch(`${EDUVULCAN_BASE}/logowanie`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": USER_AGENT,
+        Cookie: cookie,
+      },
+      body: formData,
+      redirect: "manual",
+    });
+
+    cookie = mergeCookies(cookie, loginResponse);
+    const location = loginResponse.headers.get("location");
+    const body = await loginResponse.text();
+
+    if (loginResponse.status >= 400) {
+      const messages = extractValidationMessages(body);
+      throw new Error(messages[0] || `EduVULCAN odrzucił logowanie (HTTP ${loginResponse.status}).`);
+    }
+    if (!location && load(body)("#form1").length > 0) {
+      const messages = extractValidationMessages(body);
+      throw new Error(messages[0] || "Nieprawidłowy login, hasło lub CAPTCHA.");
+    }
+
+    const followed = await followLoginRedirects(loginResponse, cookie);
+    cookie = followed.cookie;
+
+    let ap = await fetch(`${EDUVULCAN_BASE}/api/ap`, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": USER_AGENT,
+        Referer: `${EDUVULCAN_BASE}/logowanie`,
+        Cookie: cookie,
+      },
+      redirect: "manual",
+    });
+
+    for (let i = 0; i < 5 && ap.status >= 300 && ap.status < 400; i++) {
+      const next = ap.headers.get("location");
+      if (!next) break;
+      cookie = mergeCookies(cookie, ap);
+      ap = await fetch(new URL(next, EDUVULCAN_BASE).toString(), {
+        headers: {
+          Accept: "text/html,application/xhtml+xml",
+          "User-Agent": USER_AGENT,
+          Referer: `${EDUVULCAN_BASE}/api/ap`,
+          Cookie: cookie,
+        },
+        redirect: "manual",
+      });
+    }
+
+    const apHtml = await ap.text();
+    const apInput = load(apHtml)("input[id='ap']").attr("value");
+    if (!ap.ok || !apInput) {
+      throw new Error(
+        `Logowanie przyjęte, ale /api/ap nie zwrócił danych mobilnego API. [HTTP=${ap.status} | ap=${Boolean(apInput)}]`,
+      );
+    }
+
+    const apData = JSON.parse(apInput) as { GivenName?: string; Surname?: string };
+    const session = await connectWithMobileApiAp(apHtml, {
+      fullName: `${apData.GivenName ?? ""} ${apData.Surname ?? ""}`.trim(),
+    });
+
+    return { success: true, sessionId: session.id, account: session.account };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : "Logowanie EduVULCAN nie powiodło się." };
   }
 }
