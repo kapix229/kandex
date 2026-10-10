@@ -10,11 +10,9 @@ async function fetchEduVulcan(
   input: string | URL,
   init?: RequestInit,
 ): Promise<Response> {
-  let safeTarget = "unknown-target";
   let stage = "request";
   try {
     const url = new URL(input);
-    safeTarget = `${url.host}${url.pathname}`;
     if (url.pathname === "/logowanie" && init?.method === "POST") stage = "submit-login";
     else if (url.pathname === "/logowanie") stage = "load-login-page";
     else if (url.pathname === "/Account/QueryUserInfo") stage = "query-user-info";
