@@ -39,7 +39,7 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-3">
-                <button onClick={() => setProvider("eduvulcan")} className={`w-full rounded-2xl border p-4 text-left transition ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
+                <button type="button" aria-pressed={provider === "eduvulcan"} onClick={() => setProvider("eduvulcan")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-[var(--text)]">EduVULCAN</p>
@@ -49,7 +49,7 @@ export default function HomePage() {
                   </div>
                 </button>
 
-                <button onClick={() => setProvider("librus")} className={`w-full rounded-2xl border p-4 text-left transition ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
+                <button type="button" aria-pressed={provider === "librus"} onClick={() => setProvider("librus")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-[var(--text)]">Librus</p>
