@@ -25,6 +25,10 @@ export const dynamic = "force-dynamic";
  * (`vulcan_token`) so subsequent requests can use it without exposing
  * it to client JS.
  */
+const useSecureCookies =
+  process.env.NODE_ENV === "production" ||
+  process.env.NEXT_PUBLIC_USE_HTTPS === "true";
+
 export async function POST(request: Request) {
   let body: {
     securityToken?: unknown;
@@ -154,7 +158,7 @@ async function persistSession(token: string) {
   const cookieStore = await cookies();
   cookieStore.set("vulcan_token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: useSecureCookies,
     sameSite: "lax",
     path: "/",
     maxAge: 60 * 60 * 8,

@@ -1,9 +1,13 @@
 import { cookies } from "next/headers";
 import { createSession, getSession, setSession, type VulcanCalendarEvent } from "@/services/vulcan";
 import type { Account, Student } from "vulcan-api-js";
-import { consumeLatestHtmlTemporaryImport, parseHtmlExport, saveHtmlTemporaryImport } from "@/services/html-import";
+import { parseHtmlExport, saveHtmlTemporaryImport } from "@/services/html-import";
 
 export const dynamic = "force-dynamic";
+
+const useSecureCookies =
+  process.env.NODE_ENV === "production" ||
+  process.env.NEXT_PUBLIC_USE_HTTPS === "true";
 
 export async function POST(request: Request) {
   try {
@@ -38,9 +42,8 @@ export async function POST(request: Request) {
       imported: { students: data.students, events: data.events as VulcanCalendarEvent[], summaries: data.summaries },
     });
 
-    cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
+    cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: useSecureCookies, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
     saveHtmlTemporaryImport(html);
-    consumeLatestHtmlTemporaryImport();
     return Response.json({ success: true, account: { fullName: student.fullName, studentId: student.id }, imported: data });
   } catch (error) {
     return Response.json({ success: false, error: `Nie udało się zaimportować HTML: ${error instanceof Error ? error.message : "Nieznany błąd"}` }, { status: 500 });

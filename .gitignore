@@ -10,3 +10,5 @@ tsconfig.tsbuildinfo
 cookie.txt
 .tmp/
 .data/
+
+certificates

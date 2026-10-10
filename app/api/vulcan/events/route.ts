@@ -5,6 +5,10 @@ import { consumeLatestHtmlTemporaryImport, parseHtmlExport } from "@/services/ht
 
 export const dynamic = "force-dynamic";
 
+const useSecureCookies =
+  process.env.NODE_ENV === "production" ||
+  process.env.NEXT_PUBLIC_USE_HTTPS === "true";
+
 export async function GET() {
   const cookieStore = await cookies();
   const tokenCookie = cookieStore.get("vulcan_token");
@@ -31,7 +35,7 @@ export async function GET() {
         } as unknown as Student,
         imported: { students: data.students, events: data.events as VulcanCalendarEvent[], summaries: data.summaries },
       });
-      cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
+      cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: useSecureCookies, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
       return Response.json({ success: true, events: data.events });
     }
     return Response.json({ success: true, events: [] });
@@ -60,7 +64,7 @@ export async function GET() {
         } as unknown as Student,
         imported: { students: data.students, events: data.events as VulcanCalendarEvent[], summaries: data.summaries },
       });
-      cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: false, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
+      cookieStore.set("vulcan_token", sessionId, { httpOnly: true, secure: useSecureCookies, sameSite: "lax", path: "/", maxAge: 60 * 60 * 8 });
       return Response.json({ success: true, events: data.events });
     }
     return Response.json({ success: true, events: [] });
