@@ -1,13 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 import CalendarMini from "@/src/components/CalendarMini";
 
 export default function HomePage() {
   const { account } = useVulcanSession();
   const [provider, setProvider] = useState<"eduvulcan" | "librus" | null>(null);
+
+  useEffect(() => {
+    const savedProvider = window.localStorage.getItem("kandex-journal-provider");
+    if (savedProvider === "eduvulcan" || savedProvider === "librus") {
+      setProvider(savedProvider);
+    }
+  }, []);
+
+  function selectProvider(nextProvider: "eduvulcan" | "librus") {
+    setProvider(nextProvider);
+    window.localStorage.setItem("kandex-journal-provider", nextProvider);
+  }
 
   if (!account) {
     return (
@@ -39,7 +51,7 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-3">
-                <button type="button" aria-pressed={provider === "eduvulcan"} onClick={() => setProvider("eduvulcan")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
+                <button type="button" aria-pressed={provider === "eduvulcan"} onClick={() => selectProvider("eduvulcan")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-[var(--text)]">EduVULCAN</p>
@@ -49,7 +61,7 @@ export default function HomePage() {
                   </div>
                 </button>
 
-                <button type="button" aria-pressed={provider === "librus"} onClick={() => setProvider("librus")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
+                <button type="button" aria-pressed={provider === "librus"} onClick={() => selectProvider("librus")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-[var(--text)]">Librus</p>
