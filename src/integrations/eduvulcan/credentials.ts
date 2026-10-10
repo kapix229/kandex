@@ -23,13 +23,27 @@ async function fetchEduVulcan(
   } catch {
     // Do not include raw input or request options in diagnostics.
   }
+  // Loguj wyłącznie nazwę etapu i status HTTP. Nie zapisuj URL-i przekierowań,
+  // nagłówków, treści odpowiedzi, cookies ani danych formularza.
+  console.info("[eduvulcan-login] request", { stage, result: "pending" });
   try {
-    return await fetch(input, init);
+    const response = await fetch(input, init);
+    console.info("[eduvulcan-login] request", {
+      stage,
+      result: "response",
+      status: response.status,
+    });
+    return response;
   } catch (error) {
     const causeName =
       error instanceof Error && error.name ? error.name : "UnknownError";
+    console.error("[eduvulcan-login] request", {
+      stage,
+      result: "failed",
+      cause: causeName,
+    });
     throw new Error(
-      `EDUVULCAN_FETCH_FAILED stage=${stage} target=${safeTarget} cause=${causeName}. Serwer Kandex nie mógł połączyć się z usługą EduVULCAN.`,
+      `EDUVULCAN_FETCH_FAILED stage=${stage} cause=${causeName}. Serwer Kandex nie mógł połączyć się z usługą EduVULCAN.`,
     );
   }
 }
