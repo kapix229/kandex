@@ -1,12 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
 export default function SettingsPage() {
   const { account } = useVulcanSession();
   const [provider, setProvider] = useState<"eduvulcan" | "librus">("eduvulcan");
+
+  useEffect(() => {
+    const savedProvider = window.localStorage.getItem("kandex-journal-provider");
+    if (savedProvider === "eduvulcan" || savedProvider === "librus") {
+      setProvider(savedProvider);
+    }
+  }, []);
+
+  function selectProvider(nextProvider: "eduvulcan" | "librus") {
+    setProvider(nextProvider);
+    window.localStorage.setItem("kandex-journal-provider", nextProvider);
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6 py-8">
@@ -21,7 +33,7 @@ export default function SettingsPage() {
           <button
             type="button"
             aria-pressed={provider === "eduvulcan"}
-            onClick={() => setProvider("eduvulcan")}
+            onClick={() => selectProvider("eduvulcan")}
             className={`rounded-2xl border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}
           >
             <span className="flex items-center justify-between gap-3">
@@ -34,7 +46,7 @@ export default function SettingsPage() {
           <button
             type="button"
             aria-pressed={provider === "librus"}
-            onClick={() => setProvider("librus")}
+            onClick={() => selectProvider("librus")}
             className={`rounded-2xl border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}
           >
             <span className="flex items-center justify-between gap-3">
