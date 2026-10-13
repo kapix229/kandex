@@ -8,6 +8,22 @@ import { Keypair, RestUrlManager, VulcanHebeCe, VulcanJwtRegister } from "hebece
 const DATA_DIR = path.join(process.cwd(), ".data");
 const SESSIONS_FILE = path.join(DATA_DIR, "eduvulcan-mobile-sessions.json");
 
+async function step<T>(name: string, action: () => T | Promise<T>): Promise<T> {
+  try {
+    return await action();
+  } catch (error: unknown) {
+    const e = error instanceof Error ? error : new Error("Unknown error");
+
+    console.error(`[eduvulcan] step failed: ${name}`, {
+      name: e.name,
+      message: e.message,
+      stack: e.stack,
+    });
+
+    throw error;
+  }
+}
+
 type MobileKeypair = {
   fingerprint: string;
   privateKey: string;
@@ -138,19 +154,30 @@ export async function connectWithMobileApiAp(
   apiApHtml: string,
   account?: { fullName?: string; studentId?: number },
 ) {
+  console.info("[eduvulcan] runtime", {
+    node: process.version,
+    openssl: process.versions.openssl,
+  });
+
   const ap = parseApiAp(apiApHtml);
-  const keypair = (await new Keypair()) as unknown as MobileKeypair;
+  const keypair = await step(
+    "new Keypair",
+    async () => (await new Keypair()) as unknown as MobileKeypair,
+  );
 
   const registration = new VulcanJwtRegister(keypair, apiApHtml, false);
-  const registered = await registration.init();
+  const registered = await step("registration.init", () => registration.init());
   const restUrl = registered[0]?.RestURL;
   if (!restUrl) throw new Error("EduVULCAN nie zwrócił adresu REST API.");
 
   const restManager = new RestUrlManager();
-  await restManager.setRestUrls([restUrl]);
+  await step("restUrls", () => restManager.setRestUrls([restUrl]));
 
-  const api = new VulcanHebeCe(keypair);
-  await api.connect();
+  const api = await step(
+    "construct VulcanHebeCe",
+    async () => new VulcanHebeCe(keypair),
+  );
+  await step("api.connect", () => api.connect());
 
   const students = await api.listStudents();
   if (!students.length) throw new Error("Nie znaleziono ucznia na tym koncie.");
