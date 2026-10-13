@@ -7,13 +7,132 @@ import { Keypair, RestUrlManager, VulcanHebeCe, VulcanJwtRegister } from "hebece
 
 const DATA_DIR = path.join(process.cwd(), ".data");
 const SESSIONS_FILE = path.join(DATA_DIR, "eduvulcan-mobile-sessions.json");
+
+async function step<T>(name: string, action: () => T | Promise<T>): Promise<T> {
+  try {
+    return await action();
+  } catch (error: unknown) {
+    const e = error instanceof Error ? error : new Error("Unknown error");
+
+    console.error(`[eduvulcan] step failed: ${name}`, {
+      name: e.name,
+      message: e.message,
+      stack: e.stack,
+    });
+
+    throw error;
+  }
+}
+
+type MobileKeypair = {
+  fingerprint: string;
+  privateKey: string;
+  certificate: string;
+};
+
+type MobileStudent = {
+  PupilId: number;
+  FirstName: string;
+  LastName: string;
+  Pupil?: {
+    ClassDisplay?: string;
+    ConstituentUnit?: { Name?: string };
+    Unit?: { Name?: string };
+  };
+};
+
+type MobileGrade = {
+  Id: string | number;
+  Value: string | number;
+  Column?: {
+    Subject?: { Id?: string | number; Name?: string };
+    Weight?: string | number;
+    Name?: string;
+  };
+  DateCreated?: { Timestamp?: number };
+  Creator?: { DisplayName?: string };
+};
+
+type MobileLesson = {
+  Id: string | number;
+  Subject?: { Name?: string };
+  TeacherPrimary?: { DisplayName?: string };
+  Room?: { Code?: string } | null;
+  Date?: { Timestamp?: number; Date?: string };
+  TimeSlot?: { End?: string };
+};
+
+type MobileHomework = {
+  Id: string | number;
+  Content?: string;
+  Subject?: { Name?: string };
+  Deadline?: { Timestamp?: number };
+};
+
+type MobileAttendance = {
+  Id: string | number;
+  LessonId?: string | number;
+  Day?: { Timestamp?: number; Date?: string };
+  LessonNumber?: number;
+  Subject?: { Name?: string };
+  PresenceType?: {
+    Name?: string;
+    Presence?: boolean;
+    Absence?: boolean;
+    Late?: boolean;
+    AbsenceJustified?: boolean;
+    Removed?: boolean;
+  };
+};
+
+type MobileSession = {
+  id: string;
+  keypair: MobileKeypair;
+  restUrl: string;
+  student: MobileStudent;
+  account: { fullName: string; studentId?: number };
+  createdAt: string;
+};
+
+type ApiApPayload = {
+  Success?: boolean;
+  Tokens?: string[];
+  Alias?: string;
+  GivenName?: string;
+  Surname?: string;
+  AccessToken?: string;
+  IsConsentAccepted?: boolean;
+  CanAcceptConsent?: boolean;
+  ErrorMessage?: string | null;
+};
+
+async function readSessions(): Promise<Record<string, MobileSession>> {
+  try {
+    return JSON.parse(await readFile(SESSIONS_FILE, "utf8")) as Record<string, MobileSession>;
+  } catch {
+    return {};
+  }
+}
+
+async function saveSession(session: MobileSession) {
+  await mkdir(DATA_DIR, { recursive: true });
+  const sessions = await readSessions();
+  sessions[session.id] = session;
+  await writeFile(SESSIONS_FILE, JSON.stringify(sessions), "utf8");
+}
+
+export async function getMobileSession(id: string) {
+  const sessions = await readSessions();
+  return sessions[id] ?? null;
+}
+
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 const SESSION_KEY_PREFIX = "kandex:eduvulcan:mobile-session:";
 
 function getSessionStoreConfig() {
   const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-  return url && token ? { url: url.replace(/\\/$/, ""), token } : null;
+  return url && token ? { url: url.replace(/\/$/, ""), token } : null;
 }
 
 async function redisCommand<T>(command: unknown[]): Promise<T> {
@@ -35,8 +154,7 @@ async function redisCommand<T>(command: unknown[]): Promise<T> {
 }
 
 async function saveSession(session: MobileSession) {
-  const config = getSessionStoreConfig();
-  if (config) {
+  if (getSessionStoreConfig()) {
     await redisCommand(["SET", SESSION_KEY_PREFIX + session.id, JSON.stringify(session), "EX", String(SESSION_TTL_SECONDS)]);
     return;
   }
@@ -56,8 +174,7 @@ async function saveSession(session: MobileSession) {
 }
 
 export async function getMobileSession(id: string) {
-  const config = getSessionStoreConfig();
-  if (config) {
+  if (getSessionStoreConfig()) {
     const value = await redisCommand<string | null>(["GET", SESSION_KEY_PREFIX + id]);
     if (!value) return null;
     try {
