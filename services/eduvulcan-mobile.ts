@@ -106,26 +106,6 @@ type ApiApPayload = {
   ErrorMessage?: string | null;
 };
 
-async function readSessions(): Promise<Record<string, MobileSession>> {
-  try {
-    return JSON.parse(await readFile(SESSIONS_FILE, "utf8")) as Record<string, MobileSession>;
-  } catch {
-    return {};
-  }
-}
-
-async function saveSession(session: MobileSession) {
-  await mkdir(DATA_DIR, { recursive: true });
-  const sessions = await readSessions();
-  sessions[session.id] = session;
-  await writeFile(SESSIONS_FILE, JSON.stringify(sessions), "utf8");
-}
-
-export async function getMobileSession(id: string) {
-  const sessions = await readSessions();
-  return sessions[id] ?? null;
-}
-
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 const SESSION_KEY_PREFIX = "kandex:eduvulcan:mobile-session:";
 
