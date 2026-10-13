@@ -107,39 +107,87 @@ type ApiApPayload = {
 };
 
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
-const SESSION_KEY_PREFIX = "kandex:eduvulcan:mobile-session:";
+const SESSION_TABLE = "eduvulcan_mobile_sessions";
 
 function getSessionStoreConfig() {
-  const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-  return url && token ? { url: url.replace(/\/$/, ""), token } : null;
+  const url = process.env.SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SECRET_KEY ??
+    process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  return url && key ? { url: url.replace(/\/$/, ""), key } : null;
 }
 
-async function redisCommand<T>(command: unknown[]): Promise<T> {
+async function supabaseRequest<T>(
+  pathAndQuery: string,
+  init: RequestInit = {},
+): Promise<T> {
   const config = getSessionStoreConfig();
-  if (!config) throw new Error("Brak konfiguracji trwałego magazynu sesji. Ustaw KV_REST_API_URL i KV_REST_API_TOKEN w środowisku Vercel.");
-  const response = await fetch(config.url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.token}`,
-      "Content-Type": "application/json",
+  if (!config) {
+    throw new Error(
+      "Brak konfiguracji Supabase. Ustaw SUPABASE_URL i SUPABASE_SECRET_KEY (lub SUPABASE_SERVICE_ROLE_KEY) w Vercel.",
+    );
+  }
+
+  const response = await fetch(
+    `${config.url}/rest/v1/${pathAndQuery}`,
+    {
+      ...init,
+      headers: {
+        apikey: config.key,
+        Authorization: `Bearer ${config.key}`,
+        "Content-Type": "application/json",
+        ...init.headers,
+      },
+      cache: "no-store",
     },
-    body: JSON.stringify(command),
-    cache: "no-store",
-  });
-  if (!response.ok) throw new Error(`Magazyn sesji zwrócił HTTP ${response.status}.`);
-  const result = (await response.json()) as { result?: T; error?: string };
-  if (result.error) throw new Error("Operacja w magazynie sesji nie powiodła się.");
-  return result.result as T;
+  );
+
+  if (!response.ok) {
+    const details = await response.text().catch(() => "");
+    console.error("[eduvulcan] Supabase session store request failed", {
+      status: response.status,
+      details: details.slice(0, 500),
+    });
+    throw new Error(
+      `Magazyn sesji Supabase zwrócił HTTP ${response.status}. Sprawdź konfigurację klucza i tabeli.`,
+    );
+  }
+
+  if (response.status === 204) return undefined as T;
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 async function saveSession(session: MobileSession) {
   if (getSessionStoreConfig()) {
-    await redisCommand(["SET", SESSION_KEY_PREFIX + session.id, JSON.stringify(session), "EX", String(SESSION_TTL_SECONDS)]);
+    const now = new Date();
+    const expiresAt = new Date(
+      now.getTime() + SESSION_TTL_SECONDS * 1000,
+    ).toISOString();
+
+    await supabaseRequest<unknown>(
+      `${SESSION_TABLE}?on_conflict=session_id`,
+      {
+        method: "POST",
+        headers: {
+          Prefer: "resolution=merge-duplicates,return=minimal",
+        },
+        body: JSON.stringify({
+          session_id: session.id,
+          payload: session,
+          expires_at: expiresAt,
+          created_at: session.createdAt,
+        }),
+      },
+    );
     return;
   }
+
   if (process.env.VERCEL === "1") {
-    throw new Error("Brak trwałego magazynu sesji. Skonfiguruj KV_REST_API_URL i KV_REST_API_TOKEN w Vercel.");
+    throw new Error(
+      "Brak konfiguracji Supabase. Ustaw SUPABASE_URL i SUPABASE_SECRET_KEY (lub SUPABASE_SERVICE_ROLE_KEY) w środowisku Vercel.",
+    );
   }
 
   await mkdir(DATA_DIR, { recursive: true });
@@ -155,16 +203,24 @@ async function saveSession(session: MobileSession) {
 
 export async function getMobileSession(id: string) {
   if (getSessionStoreConfig()) {
-    const value = await redisCommand<string | null>(["GET", SESSION_KEY_PREFIX + id]);
-    if (!value) return null;
-    try {
-      return JSON.parse(value) as MobileSession;
-    } catch {
-      return null;
-    }
+    const query = new URLSearchParams({
+      select: "payload",
+      session_id: `eq.${id}`,
+      expires_at: `gt.${new Date().toISOString()}`,
+      limit: "1",
+    });
+
+    const rows = await supabaseRequest<Array<{ payload: MobileSession }>>(
+      `${SESSION_TABLE}?${query.toString()}`,
+      { method: "GET" },
+    );
+    return rows[0]?.payload ?? null;
   }
+
   if (process.env.VERCEL === "1") {
-    throw new Error("Brak trwałego magazynu sesji. Skonfiguruj KV_REST_API_URL i KV_REST_API_TOKEN w Vercel.");
+    throw new Error(
+      "Brak konfiguracji Supabase. Ustaw SUPABASE_URL i SUPABASE_SECRET_KEY (lub SUPABASE_SERVICE_ROLE_KEY) w środowisku Vercel.",
+    );
   }
 
   try {
