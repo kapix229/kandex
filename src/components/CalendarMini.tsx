@@ -110,14 +110,14 @@ export default function CalendarMini() {
     });
 
   return (
-    <div className="bg-white shadow-xl rounded-lg p-6 border border-indigo-100/50 w-full lg:w-96 flex-shrink-0">
-      <h2 className="text-xl font-bold text-indigo-700 mb-4 border-b pb-2">
+    <div className="bg-[var(--surface)] shadow-xl rounded-2xl p-5 border border-[var(--border)] w-full lg:w-96 flex-shrink-0">
+      <h2 className="text-xl font-bold text-[var(--text)] mb-4 border-b border-[var(--border)] pb-3">
         📅 Kalendarz Wydarzeń
       </h2>
 
       <div className="space-y-3 overflow-y-auto max-h-[500px]">
         {loading ? (
-          <p className="text-sm text-gray-500 text-center py-6">
+          <p className="text-sm text-[var(--text-tertiary)] text-center py-6">
             Ładowanie wydarzeń z Vulcana...
           </p>
         ) : buckets.length === 0 ? (
@@ -128,13 +128,13 @@ export default function CalendarMini() {
           buckets.map((day) => (
             <div
               key={day.date.toISOString()}
-              className="p-3 border border-gray-200 rounded-md bg-gray-50"
+              className="p-3 border border-[var(--border)] rounded-xl bg-white/[0.025]"
             >
               <div className="flex justify-between items-center mb-1">
-                <span className="text-sm font-semibold text-gray-600">
+                <span className="text-sm font-semibold text-[var(--text-muted)]">
                   {formatDate(day.date)}
                 </span>
-                <span className="px-3 py-0.5 text-xs font-bold rounded bg-indigo-100 text-indigo-700">
+                <span className="px-3 py-0.5 text-xs font-bold rounded bg-[#7c5cff]/15 text-[#c7beff]">
                   {day.weekday}
                 </span>
               </div>
@@ -143,7 +143,7 @@ export default function CalendarMini() {
                 {day.events.map((event) => (
                   <p
                     key={event.id}
-                    className="text-sm text-gray-700 flex items-start"
+                    className="text-sm text-[var(--text)] flex items-start"
                   >
                     <span className="mr-2 mt-1">•</span> {event.title}
                     {event.subject && (
@@ -161,7 +161,7 @@ export default function CalendarMini() {
 
       <a
         href="/calendar"
-        className="mt-6 block w-full text-center py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-md transition duration-150"
+        className="mt-6 block w-full text-center py-2 bg-gradient-to-r from-[#7c5cff] to-[#00cfe8] hover:brightness-110 text-white font-medium rounded-md transition duration-150"
       >
         Zobacz wszystkie wydarzenia
       </a>
