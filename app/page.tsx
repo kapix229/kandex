@@ -37,7 +37,7 @@ export default function HomePage() {
       <main className="min-h-screen px-5 py-8 sm:px-8">
         <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col justify-center">
           <div className="mb-12 flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[var(--accent)] text-lg font-black text-white">K</span>
+            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-lg font-black text-white shadow-[0_0_26px_rgba(124,92,255,0.28)]">K</span>
             <div>
               <p className="text-xl font-extrabold tracking-tight">Kandex</p>
               <p className="text-xs text-[var(--text-muted)]">Twój workspace do nauki</p>
@@ -62,7 +62,7 @@ export default function HomePage() {
               </div>
 
               <div className="space-y-3">
-                <button type="button" aria-pressed={provider === "eduvulcan"} onClick={() => selectProvider("eduvulcan")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
+                <button type="button" aria-pressed={provider === "eduvulcan"} onClick={() => selectProvider("eduvulcan")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white/[0.025] hover:bg-white/[0.06]"}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-[var(--text)]">EduVULCAN</p>
@@ -85,7 +85,7 @@ export default function HomePage() {
 
               {provider === "eduvulcan" && (
                 <div className="mt-5">
-                  <Link href="/login" className="block w-full rounded-2xl bg-[var(--accent)] px-4 py-3.5 text-center text-sm font-bold text-white transition hover:brightness-105">
+                  <Link href="/login" className="block w-full rounded-2xl bg-gradient-to-r from-[#7c5cff] to-[#00cfe8] px-4 py-3.5 text-center text-sm font-bold text-white shadow-[0_8px_26px_rgba(124,92,255,0.22)] transition hover:brightness-110">
                     Połącz EduVULCAN →
                   </Link>
                   <p className="mt-3 text-center text-[11px] leading-5 text-[var(--text-muted)]">
@@ -95,7 +95,7 @@ export default function HomePage() {
               )}
 
               {provider === "librus" && (
-                <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-5 text-amber-900">
+                <div className="mt-5 rounded-2xl border border-[#ffb74d]/25 bg-[#ffb74d]/[0.08] p-4 text-xs leading-5 text-[#ffd08a]">
                   Integracja Librus jest już wydzielona jako osobny provider, ale nie jest jeszcze aktywna. Nie będziemy udawać logowania, dopóki bezpieczny adapter nie będzie gotowy.
                 </div>
               )}
@@ -123,7 +123,7 @@ export default function HomePage() {
 
       <section className="grid gap-4 md:grid-cols-3">
         {cards.map(([icon, title, text, href]) => (
-          <Link key={title} href={href} className="workspace-card rounded-2xl p-5 transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(52,55,48,0.10)]">
+          <Link key={title} href={href} className="workspace-card rounded-2xl p-5 transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(0,0,0,0.28)]">
             <span className="mb-5 grid h-11 w-11 place-items-center rounded-xl bg-[var(--surface-muted)] text-lg font-bold text-[var(--accent)]">{icon}</span>
             <h2 className="font-bold text-[var(--text)]">{title}</h2>
             <p className="mt-1 text-sm text-[var(--text-muted)]">{text}</p>
