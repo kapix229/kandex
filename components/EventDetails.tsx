@@ -82,15 +82,15 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
   };
 
   return (
-    <div className={`bg-white rounded-2xl p-6 border border-zinc-200 animate-fade-in space-y-4 transition-all duration-300 ${
+    <div className={`bg-[var(--surface)] rounded-2xl p-6 border border-[var(--border)] animate-fade-in space-y-4 transition-all duration-300 ${
       showCompleteAnimation ? "scale-105" : "scale-100"
     }`}>
       <div className="flex items-start gap-3 mb-4">
         <span className="text-2xl">{config.emoji}</span>
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-zinc-800">{localEvent.title}</h2>
+          <h2 className="text-xl font-bold text-[var(--text)]">{localEvent.title}</h2>
           {localEvent.subject && (
-            <p className="text-sm text-zinc-600">{localEvent.subject}</p>
+            <p className="text-sm text-[var(--text-muted)]">{localEvent.subject}</p>
           )}
         </div>
       </div>
@@ -132,7 +132,7 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
       </div>
 
       {/* Date and time */}
-      <div className="bg-zinc-50 rounded-lg p-4 mb-4 border border-zinc-200">
+      <div className="bg-white/[0.035] rounded-xl p-4 mb-4 border border-[var(--border)]">
         <p className="text-sm text-zinc-600 mb-1">📅 Data</p>
         <p className="font-semibold text-zinc-800">
           {eventDate.format("dddd, D MMMM YYYY")}
@@ -150,23 +150,23 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
 
       {/* Description */}
       {localEvent.description && (
-        <div className="bg-blue-50 rounded-lg p-4 mb-4 border border-blue-200">
-          <p className="text-sm font-medium text-blue-900 mb-1">Opis</p>
-          <p className="text-sm text-blue-800">{localEvent.description}</p>
+        <div className="bg-[#4fc3f7]/[0.08] rounded-xl p-4 mb-4 border border-[#4fc3f7]/20">
+          <p className="text-sm font-medium text-[#8bd9ff] mb-1">Opis</p>
+          <p className="text-sm text-[#c4eaff]">{localEvent.description}</p>
         </div>
       )}
 
       {/* AI Learning Materials Section */}
       {needsStudyMaterials && (
-        <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
+        <div className="bg-gradient-to-br from-[#ffb74d]/[0.10] to-[#ff5cf0]/[0.06] rounded-xl p-4 border border-[#ffb74d]/20">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🤖</span>
-            <h3 className="font-semibold text-amber-900">
+            <h3 className="font-semibold text-[#ffd08a]">
               Sugerowane materiały do nauki
             </h3>
           </div>
 
-          <p className="text-xs text-amber-800 mb-3">
+          <p className="text-xs text-[#e6c99b] mb-3">
             Analiza AI: Znaleziono temat <strong>{extractedTopic.mainTopic}</strong>
           </p>
 
@@ -191,7 +191,7 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
         </button>
         <button
           onClick={() => setIsEditModalOpen(true)}
-          className="flex-1 bg-zinc-100 text-zinc-700 rounded-lg py-2 font-medium transition-all duration-200 hover:bg-zinc-200 hover:shadow-md"
+          className="flex-1 bg-white/[0.06] border border-[var(--border)] text-[var(--text)] rounded-lg py-2 font-medium transition-all duration-200 hover:bg-white/[0.10] hover:shadow-md"
         >
           ✏️ Edytuj
         </button>
