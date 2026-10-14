@@ -22,10 +22,10 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
           {initial.loggedIn ? (
             <div className="app-shell flex min-h-screen">
               <Sidebar />
-              <main className="min-w-0 flex-1 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
-                <div className="mx-auto max-w-[1500px]">{children}</div>
+              <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+                <div className="mx-auto max-w-[1280px]">{children}</div>
               </main>
-              <aside className="hidden w-[360px] shrink-0 border-l border-slate-200/70 bg-white/45 p-4 xl:flex xl:flex-col">
+              <aside className="hidden w-[360px] shrink-0 border-l border-[var(--border)] bg-[#0c1120]/65 p-4 backdrop-blur-xl xl:flex xl:flex-col">
                 <AIAssistant />
               </aside>
             </div>
