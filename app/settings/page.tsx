@@ -11,7 +11,7 @@ export default function SettingsPage() {
   useEffect(() => {
     const savedProvider = window.localStorage.getItem("kandex-journal-provider");
     if (savedProvider === "eduvulcan" || savedProvider === "librus") {
-      setProvider(savedProvider);
+      queueMicrotask(() => setProvider(savedProvider));
     }
   }, []);
 
