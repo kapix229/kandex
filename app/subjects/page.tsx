@@ -32,7 +32,7 @@ const GRADE_BG: Record<number, string> = {
 
 function gradeChipClass(value: number): string {
   const clamped = Math.min(6, Math.max(1, Math.round(value)));
-  return GRADE_BG[clamped] ?? "bg-slate-50 border-zinc-200 text-slate-700";
+  return GRADE_BG[clamped] ?? "bg-slate-50 border-[var(--border)] text-[var(--text)]";
 }
 
 function gradeDotClass(value: number): string {
@@ -116,19 +116,19 @@ export default function SubjectsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-slate-950 mb-2">Oceny</h1>
-          <p className="text-slate-500 text-sm">
+          <h1 className="text-3xl font-bold text-[var(--text)] mb-2">Oceny</h1>
+          <p className="text-[var(--text-muted)] text-sm">
             Dziennik ocen zsynchronizowany z Twoim kontem Vulcan
           </p>
         </div>
         {account && (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-[var(--text-tertiary)]">
               Zalogowano jako <span className="font-semibold">{account.fullName}</span>
             </span>
             <button
               onClick={handleLogout}
-              className="bg-white border border-zinc-300 text-slate-700 px-3 py-1.5 rounded-2xl text-sm hover:bg-slate-50"
+              className="bg-white border border-[var(--border-strong)] text-slate-700 px-3 py-1.5 rounded-2xl text-sm hover:bg-slate-50"
             >
               Wyloguj
             </button>
@@ -137,13 +137,13 @@ export default function SubjectsPage() {
       </div>
 
       {error && (
-        <div className="bg-white border-slate-200/70 text-slate-500 rounded-2xl px-4 py-3 text-sm">
+        <div className="bg-white border-[var(--border)] text-[var(--text-muted)] rounded-2xl px-4 py-3 text-sm">
           Dziennik jest pusty. Gdy pojawi się automatyczny import z Vulcana, oceny pojawią się tutaj.
         </div>
       )}
 
       {loading ? (
-        <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
+        <div className="glass-card rounded-3xl border-[var(--border)] p-12 text-center text-[var(--text-tertiary)]">
           Dziennik jest pusty.
         </div>
       ) : summaries.length === 0 ? (
@@ -156,7 +156,7 @@ export default function SubjectsPage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="glass-card rounded-3xl border-slate-200/70 p-5">
               <p className="text-sm text-slate-400 mb-1">Średnia ogólna</p>
-              <p className="text-3xl font-extrabold text-slate-950">
+              <p className="text-3xl font-extrabold text-[var(--text)]">
                 {overallAverage.toFixed(2)}
               </p>
             </div>
@@ -185,7 +185,7 @@ export default function SubjectsPage() {
                     onClick={() => setSelectedSubject(s.subject)}
                     className={`w-full text-left rounded-xl border p-4 transition-all ${
                       isActive
-                        ? "bg-indigo-50 border-indigo-200 shadow-sm"
+                        ? "bg-[#7c5cff]/15 border-[#7c5cff]/50 shadow-[0_0_24px_rgba(124,92,255,0.08)]"
                         : "bg-white border-zinc-200 hover:bg-slate-50"
                     }`}
                   >
@@ -193,7 +193,7 @@ export default function SubjectsPage() {
                       <div>
                         <p
                           className={`font-semibold ${
-                            isActive ? "text-blue-900" : "text-slate-950"
+                            isActive ? "text-[#c7beff]" : "text-slate-950"
                           }`}
                         >
                           {s.subject}
@@ -252,7 +252,7 @@ export default function SubjectsPage() {
                         {activeSummary.grades.map((g) => (
                           <tr
                             key={g.id}
-                            className="border-b border-zinc-100 last:border-0"
+                            className="border-b border-[var(--border)] last:border-0"
                           >
                             <td className="py-2 pr-2">
                               <span
