@@ -1,306 +1,97 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
-import { VulcanGrade, VulcanGradeSummary } from "@/types/vulcan";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
-type GradesResponse = {
-  success: boolean;
-  summaries?: Array<Omit<VulcanGradeSummary, "grades"> & {
-    grades: Array<Omit<VulcanGrade, "date"> & { date: string }>;
-  }>;
-  error?: string;
-};
-
-const GRADE_COLORS: Record<number, string> = {
-  1: "bg-red-500",
-  2: "bg-orange-500",
-  3: "bg-yellow-500",
-  4: "bg-lime-500",
-  5: "bg-green-500",
-  6: "bg-emerald-600",
-};
-
-const GRADE_BG: Record<number, string> = {
-  1: "bg-red-50 border-red-200 text-red-700",
-  2: "bg-orange-50 border-orange-200 text-orange-700",
-  3: "bg-yellow-50 border-yellow-200 text-yellow-700",
-  4: "bg-lime-50 border-lime-200 text-lime-700",
-  5: "bg-green-50 border-green-200 text-green-700",
-  6: "bg-emerald-50 border-emerald-200 text-emerald-700",
-};
-
-function gradeChipClass(value: number): string {
-  const clamped = Math.min(6, Math.max(1, Math.round(value)));
-  return GRADE_BG[clamped] ?? "bg-slate-50 border-zinc-200 text-slate-700";
-}
-
-function gradeDotClass(value: number): string {
-  const clamped = Math.min(6, Math.max(1, value));
-  return GRADE_COLORS[clamped] ?? "bg-slate-500";
-}
+type EduGrade = { id: string; subjectId: string; subjectName: string; value: string; type: string; date: string; weight: number };
+type GradeResponse = { success?: boolean; data?: { grades?: EduGrade[] }; error?: { message?: string } };
 
 export default function SubjectsPage() {
-  const { account, signOut } = useVulcanSession();
-  const [summaries, setSummaries] = useState<VulcanGradeSummary[]>([]);
+  const [grades, setGrades] = useState<EduGrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
 
-  async function handleLogout() {
-    try {
-      await fetch("/api/vulcan/login", { method: "DELETE" });
-    } catch (err) {
-      console.error("logout failed:", err);
-    } finally {
-      signOut();
-    }
-  }
-
   useEffect(() => {
     let cancelled = false;
-
-    async function load() {
+    async function loadGrades() {
+      setLoading(true);
       try {
-        const res = await fetch("/api/vulcan/grades");
-        const data: GradesResponse = await res.json();
-
-        if (cancelled) return;
-
-        if (!res.ok || !data.success) {
-          setError(data.error ?? "Nie udało się pobrać ocen.");
-          setSummaries([]);
-          return;
+        const response = await fetch("/api/eduvulcan/grades", { cache: "no-store" });
+        const result = await response.json() as GradeResponse;
+        if (!response.ok || !result.success) throw new Error(result.error?.message ?? "Nie udało się pobrać ocen z EduVULCAN.");
+        const nextGrades = result.data?.grades ?? [];
+        if (!cancelled) {
+          setGrades(nextGrades);
+          setSelectedSubject((current) => current ?? nextGrades[0]?.subjectName ?? null);
+          setError(null);
         }
-
-        const parsed: VulcanGradeSummary[] = (data.summaries ?? []).map((s) => ({
-          subject: s.subject,
-          average: s.average,
-          count: s.count,
-          grades: s.grades.map((g) => ({ ...g, date: new Date(g.date) })),
-        }));
-
-        // Sort by average descending (best subjects first).
-        parsed.sort((a, b) => b.average - a.average);
-
-        setSummaries(parsed);
-        if (parsed.length > 0) setSelectedSubject(parsed[0].subject);
-        setError(null);
       } catch (err) {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Nieznany błąd";
-        setError(`Błąd sieci: ${message}`);
-        setSummaries([]);
+        if (!cancelled) {
+          setGrades([]);
+          setError(err instanceof Error ? err.message : "Wystąpił błąd podczas pobierania ocen.");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-
-    load();
-    return () => {
-      cancelled = true;
-    };
+    void loadGrades();
+    return () => { cancelled = true; };
   }, []);
 
-  // Overall average across all subjects (unweighted mean of subject averages).
-  const overallAverage =
-    summaries.length > 0
-      ? summaries.reduce((s, x) => s + x.average, 0) / summaries.length
-      : 0;
+  const summaries = useMemo(() => {
+    const grouped = new Map<string, EduGrade[]>();
+    for (const grade of grades) {
+      const rows = grouped.get(grade.subjectName) ?? [];
+      rows.push(grade);
+      grouped.set(grade.subjectName, rows);
+    }
+    return [...grouped.entries()].map(([subject, rows]) => {
+      const numeric = rows.map((grade) => Number(grade.value)).filter(Number.isFinite);
+      return { subject, rows: [...rows].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()), count: rows.length, average: numeric.length ? numeric.reduce((sum, value) => sum + value, 0) / numeric.length : null };
+    }).sort((a, b) => (b.average ?? 0) - (a.average ?? 0));
+  }, [grades]);
 
-  const totalGrades = summaries.reduce((s, x) => s + x.count, 0);
-  const activeSummary =
-    summaries.find((s) => s.subject === selectedSubject) ?? null;
+  const active = summaries.find((item) => item.subject === selectedSubject) ?? summaries[0] ?? null;
+  const overallAverage = summaries.length ? summaries.reduce((sum, item) => sum + (item.average ?? 0), 0) / summaries.length : null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-950 mb-2">Oceny</h1>
-          <p className="text-slate-500 text-sm">
-            Dziennik ocen zsynchronizowany z Twoim kontem Vulcan
-          </p>
-        </div>
-        {account && (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-400">
-              Zalogowano jako <span className="font-semibold">{account.fullName}</span>
-            </span>
-            <button
-              onClick={handleLogout}
-              className="bg-white border border-zinc-300 text-slate-700 px-3 py-1.5 rounded-2xl text-sm hover:bg-slate-50"
-            >
-              Wyloguj
-            </button>
-          </div>
-        )}
-      </div>
+    <div className="animate-fade-in space-y-7 sm:space-y-9">
+      <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div><p className="eyebrow mb-3">Twój postęp</p><h1 className="text-3xl font-extrabold tracking-tight text-[var(--text)] sm:text-[2.4rem]">Oceny</h1><p className="mt-2 text-sm text-[var(--text-muted)]">Rzeczywiste oceny pobierane z połączonego EduVULCAN.</p></div>
+        <Link href="/settings" className="self-start rounded-xl border border-[var(--border)] bg-[var(--surface)] px-4 py-3 text-xs font-bold text-[var(--text)] hover:bg-white">Ustawienia dziennika ↗</Link>
+      </header>
 
-      {error && (
-        <div className="bg-white border-slate-200/70 text-slate-500 rounded-2xl px-4 py-3 text-sm">
-          Dziennik jest pusty. Gdy pojawi się automatyczny import z Vulcana, oceny pojawią się tutaj.
-        </div>
-      )}
+      {error && <div role="alert" className="rounded-2xl border border-[#ead0ca] bg-[#fff8f5] p-5"><p className="text-sm font-bold text-[#853f35]">Nie udało się pobrać ocen</p><p className="mt-1 text-sm leading-6 text-[#8e625b]">{error}</p><p className="mt-2 text-xs text-[#8e625b]">Sprawdź, czy sesja EduVULCAN jest aktywna, a następnie odśwież stronę.</p></div>}
 
-      {loading ? (
-        <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
-          Dziennik jest pusty.
-        </div>
-      ) : summaries.length === 0 ? (
-        <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
-          Brak ocen do wyświetlenia. Dziennik oczekuje na automatyczny import.
-        </div>
-      ) : (
-        <>
-          {/* Overall stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="glass-card rounded-3xl border-slate-200/70 p-5">
-              <p className="text-sm text-slate-400 mb-1">Średnia ogólna</p>
-              <p className="text-3xl font-extrabold text-slate-950">
-                {overallAverage.toFixed(2)}
-              </p>
-            </div>
-            <div className="glass-card rounded-3xl border-slate-200/70 p-5">
-              <p className="text-sm text-slate-400 mb-1">Przedmioty</p>
-              <p className="text-3xl font-extrabold text-slate-950">
-                {summaries.length}
-              </p>
-            </div>
-            <div className="glass-card rounded-3xl border-slate-200/70 p-5">
-              <p className="text-sm text-slate-400 mb-1">Wszystkie oceny</p>
-              <p className="text-3xl font-extrabold text-slate-950">
-                {totalGrades}
-              </p>
-            </div>
-          </div>
+      <section className="grid gap-4 sm:grid-cols-3">
+        <article className="workspace-card p-5 sm:p-6"><p className="text-xs font-semibold text-[var(--text-muted)]">Średnia z przedmiotów</p><p className="mt-4 text-3xl font-extrabold text-[var(--text)]">{overallAverage === null ? "—" : overallAverage.toFixed(2)}</p><p className="mt-1 text-xs text-[var(--text-muted)]">Średnia nieważona</p></article>
+        <article className="workspace-card p-5 sm:p-6"><p className="text-xs font-semibold text-[var(--text-muted)]">Przedmioty z ocenami</p><p className="mt-4 text-3xl font-extrabold text-[var(--text)]">{loading ? "…" : summaries.length}</p><p className="mt-1 text-xs text-[var(--text-muted)]">Na podstawie zaimportowanych danych</p></article>
+        <article className="workspace-card p-5 sm:p-6"><p className="text-xs font-semibold text-[var(--text-muted)]">Wszystkie oceny</p><p className="mt-4 text-3xl font-extrabold text-[var(--text)]">{loading ? "…" : grades.length}</p><p className="mt-1 text-xs text-[var(--text-muted)]">Zapisane w dzienniku</p></article>
+      </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Subject list */}
-            <div className="space-y-2">
-              {summaries.map((s) => {
-                const isActive = s.subject === selectedSubject;
-                return (
-                  <button
-                    key={s.subject}
-                    onClick={() => setSelectedSubject(s.subject)}
-                    className={`w-full text-left rounded-xl border p-4 transition-all ${
-                      isActive
-                        ? "bg-indigo-50 border-indigo-200 shadow-sm"
-                        : "bg-white border-zinc-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p
-                          className={`font-semibold ${
-                            isActive ? "text-blue-900" : "text-slate-950"
-                          }`}
-                        >
-                          {s.subject}
-                        </p>
-                        <p className="text-xs text-slate-400 mt-0.5">
-                          {s.count} {s.count === 1 ? "ocena" : "ocen"}
-                        </p>
-                      </div>
-                      <div
-                        className={`px-3 py-1 rounded-2xl text-lg font-bold ${gradeChipClass(
-                          s.average
-                        )}`}
-                      >
-                        {s.average.toFixed(2)}
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+      <section className="grid gap-5 xl:grid-cols-[minmax(260px,.72fr)_minmax(0,1.28fr)]">
+        <aside className="workspace-card p-4 sm:p-5">
+          <div className="mb-4 px-2"><p className="eyebrow">Przedmioty</p><h2 className="mt-1 text-lg font-extrabold text-[var(--text)]">Lista ocen</h2></div>
+          {loading ? <p className="p-4 text-sm text-[var(--text-muted)]">Pobieranie ocen…</p> : summaries.length ? <div className="space-y-1.5">
+            {summaries.map((item) => <button type="button" key={item.subject} onClick={() => setSelectedSubject(item.subject)} className={`flex w-full items-center justify-between gap-3 rounded-xl px-3 py-3 text-left transition ${active?.subject === item.subject ? "bg-[var(--accent-soft)] text-[var(--accent)]" : "hover:bg-[#f5f4ee] text-[var(--text)]"}`}>
+              <span className="min-w-0"><span className="block truncate text-sm font-bold">{item.subject}</span><span className="mt-1 block text-[11px] opacity-70">{item.count} {item.count === 1 ? "ocena" : "ocen"}</span></span>
+              <span className="rounded-lg bg-white px-2.5 py-1.5 text-sm font-extrabold">{item.average === null ? "—" : item.average.toFixed(2)}</span>
+            </button>)}
+          </div> : <div className="data-empty p-5"><p className="text-sm font-bold text-[var(--text)]">Brak ocen</p><p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">{error ? "Dane nie są obecnie dostępne." : "Po pobraniu ocen pojawią się tutaj."}</p></div>}
+        </aside>
 
-            {/* Grades list for selected subject */}
-            <div className="lg:col-span-2">
-              {activeSummary ? (
-                <div className="glass-card rounded-3xl border-slate-200/70 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-bold text-slate-950">
-                      {activeSummary.subject}
-                    </h2>
-                    <div
-                      className={`px-4 py-2 rounded-2xl text-2xl font-bold ${gradeChipClass(
-                        activeSummary.average
-                      )}`}
-                    >
-                      {activeSummary.average.toFixed(2)}
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-slate-400 mb-4">
-                    {activeSummary.count}{" "}
-                    {activeSummary.count === 1 ? "ocena" : "ocen"} • Nauczyciel:{" "}
-                    {activeSummary.grades[0]?.teacher ?? "—"}
-                  </p>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="text-left text-slate-400 border-b border-zinc-200">
-                          <th className="py-2 pr-2 font-medium">Ocena</th>
-                          <th className="py-2 pr-2 font-medium">Tytuł</th>
-                          <th className="py-2 pr-2 font-medium">Waga</th>
-                          <th className="py-2 pr-2 font-medium">Data</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {activeSummary.grades.map((g) => (
-                          <tr
-                            key={g.id}
-                            className="border-b border-zinc-100 last:border-0"
-                          >
-                            <td className="py-2 pr-2">
-                              <span
-                                className={`inline-flex items-center justify-center w-9 h-9 rounded-2xl text-white font-bold ${gradeDotClass(
-                                  g.value
-                                )}`}
-                              >
-                                {g.value}
-                              </span>
-                            </td>
-                            <td className="py-2 pr-2 text-slate-950">
-                              {g.title}
-                              {g.comment && (
-                                <p className="text-xs text-slate-400 mt-0.5">
-                                  {g.comment}
-                                </p>
-                              )}
-                            </td>
-                            <td className="py-2 pr-2 text-slate-500">
-                              {g.weight}
-                              {g.weight === 3
-                                ? " (sprawdzian)"
-                                : g.weight === 2
-                                ? " (kartkówka)"
-                                : " (aktywność)"}
-                            </td>
-                            <td className="py-2 pr-2 text-slate-500">
-                              {g.date.toLocaleDateString("pl-PL", {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              })}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ) : (
-                <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
-                  Wybierz przedmiot z listy, aby zobaczyć oceny.
-                </div>
-              )}
-            </div>
-          </div>
-        </>
-      )}
+        <section className="workspace-card overflow-hidden">
+          <div className="border-b border-[var(--border)] px-5 py-5 sm:px-6"><p className="eyebrow">Szczegóły</p><div className="mt-1 flex items-center justify-between gap-4"><h2 className="text-xl font-extrabold text-[var(--text)]">{active?.subject ?? "Wybierz przedmiot"}</h2>{active && <span className="rounded-xl bg-[var(--accent-soft)] px-3 py-2 text-lg font-extrabold text-[var(--accent)]">{active.average === null ? "—" : active.average.toFixed(2)}</span>}</div></div>
+          {loading ? <p className="p-8 text-sm text-[var(--text-muted)]">Pobieranie danych z EduVULCAN…</p> : active ? <div className="divide-y divide-[var(--border)]">
+            {active.rows.map((grade) => <div key={grade.id} className="flex items-center gap-4 px-5 py-4 sm:px-6">
+              <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-lg font-extrabold ${Number(grade.value) >= 5 ? "bg-[#e5efe6] text-[#315b43]" : Number(grade.value) >= 3 ? "bg-[#f4efe0] text-[#8b6b2d]" : "bg-[#f8e9e5] text-[#9b493c]"}`}>{grade.value}</span>
+              <div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-[var(--text)]">{grade.type || "Ocena"}</p><p className="mt-1 text-xs text-[var(--text-muted)]">{grade.weight ? `Waga ${grade.weight} · ` : ""}{new Date(grade.date).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" })}</p></div>
+            </div>)}
+          </div> : <div className="data-empty m-5 p-6"><p className="text-sm font-bold text-[var(--text)]">Nie ma jeszcze ocen do pokazania</p><p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Sprawdź połączenie i spróbuj ponownie później.</p></div>}
+        </section>
+      </section>
+      <p className="text-[11px] leading-5 text-[var(--text-muted)]">Oceny i średnie są wyliczane z danych zwróconych przez EduVULCAN. Średnia na tej stronie nie uwzględnia wag.</p>
     </div>
   );
 }

@@ -1,55 +1,92 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f3efe7;
-  --foreground: #30332f;
-  --surface: #ffffff;
-  --surface-muted: #f1f1ed;
-  --text: #30332f;
-  --text-muted: #777a73;
-  --border: #e2e0d9;
-  --accent: #315844;
-  --accent-soft: #e7eee9;
+  color-scheme: light;
+  --background: #f2efe8;
+  --foreground: #292e29;
+  --surface: #fffefa;
+  --surface-muted: #eae9e2;
+  --text: #292e29;
+  --text-muted: #777c73;
+  --border: #e3e1d8;
+  --accent: #315b43;
+  --accent-hover: #254a35;
+  --accent-soft: #e5ece5;
   --success: #3f7654;
   --warning: #c98a45;
+  --shadow-soft: 0 10px 30px rgba(41, 46, 41, 0.045);
+  --shadow-raised: 0 18px 44px rgba(41, 46, 41, 0.085);
 }
 
 * { box-sizing: border-box; }
-html { min-height: 100%; }
+html { min-height: 100%; scroll-behavior: smooth; }
 body {
   min-height: 100%;
   margin: 0;
   background: var(--background);
   color: var(--foreground);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  text-rendering: optimizeLegibility;
 }
-button, a, textarea, input { -webkit-tap-highlight-color: transparent; }
-::selection { background: rgba(49, 88, 68, 0.16); }
+button, a, textarea, input, select { -webkit-tap-highlight-color: transparent; }
+button, input, textarea, select { font: inherit; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+::selection { background: rgba(49, 91, 67, 0.16); }
 
 .app-shell { background: var(--background); }
 .workspace-card, .glass-card {
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 10px 28px rgba(52, 55, 48, 0.055);
+  box-shadow: var(--shadow-soft);
 }
+.workspace-card {
+  border-radius: 24px;
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+.workspace-card:hover { border-color: #d6d8ce; }
+.surface-muted { background: var(--surface-muted); }
+.eyebrow {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--success);
+  box-shadow: 0 0 0 3px rgba(63, 118, 84, 0.12);
+}
+.data-empty {
+  border: 1px dashed #d6d8ce;
+  border-radius: 18px;
+  background: rgba(255, 254, 250, 0.72);
+}
+.muted-scrollbar { scrollbar-width: thin; scrollbar-color: #d3d4ca transparent; }
+.muted-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.muted-scrollbar::-webkit-scrollbar-thumb { background: #d3d4ca; border-radius: 999px; }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-10px); }
   to { opacity: 1; transform: translateX(0); }
 }
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(10px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-.animate-fade-in { animation: fadeIn 0.35s ease-out both; }
-.animate-slide-in-left { animation: slideInLeft 0.35s ease-out both; }
-.animate-slide-in-right { animation: slideInRight 0.35s ease-out both; }
+.animate-fade-in { animation: fadeIn 0.32s ease-out both; }
+.animate-slide-in-left { animation: slideInLeft 0.32s ease-out both; }
 
 @media (max-width: 1023px) {
   .app-shell { display: block !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
