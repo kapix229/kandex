@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
 type EduGrade = { id: string; subjectId: string; subjectName: string; value: string; type: string; date: string; weight: number };
 type GradeResponse = { success?: boolean; data?: { grades?: EduGrade[] }; error?: { message?: string } };
 
 export default function SubjectsPage() {
-  const { account } = useVulcanSession();
   const [grades, setGrades] = useState<EduGrade[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
