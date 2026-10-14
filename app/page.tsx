@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
 type Snapshot = {
@@ -36,7 +36,9 @@ export default function HomePage() {
 
   useEffect(() => {
     const savedProvider = window.localStorage.getItem("kandex-journal-provider");
-    if (savedProvider === "eduvulcan" || savedProvider === "librus") setProvider(savedProvider);
+    if (savedProvider === "eduvulcan" || savedProvider === "librus") {
+      queueMicrotask(() => setProvider(savedProvider));
+    }
   }, []);
 
   useEffect(() => {
