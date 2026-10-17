@@ -40,7 +40,7 @@ const GRADE_BG: Record<number, string> = {
 
 function gradeChipClass(value: number): string {
   const clamped = Math.min(6, Math.max(1, Math.round(value)));
-  return GRADE_BG[clamped] ?? "bg-slate-50 border-[var(--border)] text-[var(--text)]";
+  return GRADE_BG[clamped] ?? "bg-[var(--surface-muted)] border-[var(--border)] text-[var(--text)]";
 }
 
 function gradeDotClass(value: number): string {
@@ -182,15 +182,15 @@ export default function SubjectsPage() {
                 {overallAverage.toFixed(2)}
               </p>
             </div>
-            <div className="glass-card rounded-3xl border-slate-200/70 p-5">
-              <p className="text-sm text-slate-400 mb-1">Przedmioty</p>
+            <div className="glass-card rounded-3xl border-[var(--border)] p-5">
+              <p className="text-sm text-[var(--text-muted)] mb-1">Przedmioty</p>
               <p className="text-3xl font-extrabold text-[var(--text)]">
                 {summaries.length}
               </p>
             </div>
-            <div className="glass-card rounded-3xl border-slate-200/70 p-5">
-              <p className="text-sm text-slate-400 mb-1">Wszystkie oceny</p>
-              <p className="text-3xl font-extrabold text-slate-950">
+            <div className="glass-card rounded-3xl border-[var(--border)] p-5">
+              <p className="text-sm text-[var(--text-muted)] mb-1">Wszystkie oceny</p>
+              <p className="text-3xl font-extrabold text-[var(--text)]">
                 {totalGrades}
               </p>
             </div>
@@ -288,7 +288,7 @@ export default function SubjectsPage() {
                             <td className="py-2 pr-2 text-[var(--text)]">
                               {g.title}
                               {g.comment && (
-                                <p className="text-xs text-slate-400 mt-0.5">
+                                <p className="text-xs text-[var(--text-muted)] mt-0.5">
                                   {g.comment}
                                 </p>
                               )}
@@ -301,7 +301,7 @@ export default function SubjectsPage() {
                                 ? " (kartkówka)"
                                 : " (aktywność)"}
                             </td>
-                            <td className="py-2 pr-2 text-slate-500">
+                            <td className="py-2 pr-2 text-[var(--text-muted)]">
                               {g.date.toLocaleDateString("pl-PL", {
                                 day: "2-digit",
                                 month: "short",
