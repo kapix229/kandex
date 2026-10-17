@@ -11,21 +11,24 @@ export async function GET() {
       cookieStore.get(EDUVULCAN_SESSION_COOKIE)?.value,
     );
 
-    // Do not report a successful empty calendar when EduVULCAN failed to load
-    // lessons or homework. Keep partial data available when one source works.
-    if (!snapshot.syncStatus.lessons && !snapshot.syncStatus.homework) {
+    // Do not report a successful empty calendar if every source failed.
+    // Keep partial data available when lessons, homework, or exams work.
+    if (!snapshot.syncStatus.lessons && !snapshot.syncStatus.homework && !snapshot.syncStatus.exams) {
       throw new Error(
         snapshot.syncErrors?.lessons ??
         snapshot.syncErrors?.homework ??
-        "EduVULCAN nie zwrócił ani planu lekcji, ani zadań.",
+        snapshot.syncErrors?.exams ??
+        "EduVULCAN nie zwrócił planu lekcji, zadań ani sprawdzianów.",
       );
     }
-    if (!snapshot.syncStatus.lessons || !snapshot.syncStatus.homework) {
+    if (!snapshot.syncStatus.lessons || !snapshot.syncStatus.homework || !snapshot.syncStatus.exams) {
       console.warn("[eduvulcan] calendar returned partial data", {
         lessonsAvailable: snapshot.syncStatus.lessons,
         homeworkAvailable: snapshot.syncStatus.homework,
+        examsAvailable: snapshot.syncStatus.exams,
         lessonsCount: snapshot.schedule.length,
         homeworkCount: snapshot.assignments.length,
+        examsCount: snapshot.exams.length,
       });
     }
 
@@ -56,7 +59,20 @@ export async function GET() {
         priority: "normal" as const,
       }));
 
-    const events = [...lessons, ...assignments].sort(
+    const exams = snapshot.exams
+      .filter((exam) => Boolean(exam.date))
+      .map((exam) => ({
+        id: `exam-${exam.id}`,
+        title: exam.title || "Sprawdzian",
+        type: "exam" as const,
+        subject: exam.subject,
+        date: exam.date as string,
+        dueDate: exam.date,
+        completed: false,
+        priority: "high" as const,
+      }));
+
+    const events = [...lessons, ...assignments, ...exams].sort(
       (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
 
