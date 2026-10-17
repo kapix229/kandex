@@ -371,6 +371,42 @@ export async function connectWithMobileJwt(jwtToken: string) {
   return connectWithMobileApiAp(apHtml, { fullName: decoded.name });
 }
 
+export async function fetchMobileGrades(sessionId: string) {
+  const session = await getMobileSession(sessionId);
+  if (!session) throw new Error("SESSION_EXPIRED");
+
+  const restManager = new RestUrlManager();
+  await restManager.setRestUrls([session.restUrl]);
+
+  const api = new VulcanHebeCe(session.keypair);
+  await api.connect();
+  await api.selectStudent(session.student.PupilId);
+
+  // Fetch grades alone: an unrelated timetable/homework/attendance failure
+  // must not prevent the grades page from loading.
+  const response = await api.getGrades();
+  const rows = response.Envelope ?? [];
+
+  return rows.flatMap((grade: MobileGrade) => {
+    // EduVULCAN may represent grades as strings such as "5+" or "4-".
+    const rawValue = String(grade.Value ?? "").trim().replace(",", ".");
+    const match = rawValue.match(/-?\d+(?:\.\d+)?/);
+    const value = match ? Number(match[0]) : Number.NaN;
+    if (!Number.isFinite(value)) return [];
+
+    return [{
+      id: String(grade.Id),
+      subject: grade.Column?.Subject?.Name ?? "Inne",
+      subjectId: String(grade.Column?.Subject?.Id ?? grade.Column?.Subject?.Name ?? "Inne"),
+      value,
+      date: new Date(grade.DateCreated?.Timestamp ?? Date.now()).toISOString(),
+      weight: Number(grade.Column?.Weight ?? 1),
+      teacher: grade.Creator?.DisplayName ?? "",
+      title: grade.Column?.Name ?? "Ocena",
+    }];
+  });
+}
+
 export async function fetchMobileSnapshot(sessionId: string) {
   const session = await getMobileSession(sessionId);
   if (!session) throw new Error("Sesja mobilna nie istnieje lub wygasła.");
