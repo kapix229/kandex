@@ -44,6 +44,7 @@ export interface AttendanceSummary {
   absent: number;
   late: number;
   excused: number;
+  unknown: number;
 }
 
 export interface AttendanceEntry {
