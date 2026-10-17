@@ -25,7 +25,7 @@ export default function CalendarPage() {
 
   async function handleLogout() {
     try {
-      await fetch("/api/vulcan/login", { method: "DELETE" });
+      await fetch("/api/eduvulcan/login", { method: "DELETE" });
     } catch (err) {
       console.error("logout failed:", err);
     } finally {
@@ -38,7 +38,7 @@ export default function CalendarPage() {
 
     async function load() {
       try {
-        const res = await fetch("/api/vulcan/events");
+        const res = await fetch("/api/eduvulcan/events", { cache: "no-store" });
         const data: EventsResponse = await res.json();
 
         if (cancelled) return;
@@ -91,19 +91,19 @@ export default function CalendarPage() {
     <div className="space-y-6">
       <div className="animate-slide-in-down flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-slate-950 mb-2">Kalendarz</h1>
-          <p className="text-slate-500 text-sm">
+          <h1 className="text-3xl font-bold text-[var(--text)] mb-2">Kalendarz</h1>
+          <p className="text-[var(--text-muted)] text-sm">
             Śledzenie zadań, sprawdzianów i ocen z Vulcana
           </p>
         </div>
         {account && (
           <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-400">
+            <span className="text-sm text-[var(--text-tertiary)]">
               Zalogowano jako <span className="font-semibold">{account.fullName}</span>
             </span>
             <button
               onClick={handleLogout}
-              className="bg-white border border-zinc-300 text-slate-700 px-3 py-1.5 rounded-2xl text-sm hover:bg-slate-50"
+              className="bg-[var(--surface-muted)] border border-[var(--border)] text-[var(--text)] px-3 py-1.5 rounded-xl text-sm hover:bg-white/[0.08]"
             >
               Wyloguj
             </button>
@@ -112,20 +112,18 @@ export default function CalendarPage() {
       </div>
 
       {authError && (
-        <div className="bg-white border-slate-200/70 text-slate-500 rounded-2xl px-4 py-3 text-sm">
-          Dziennik jest pusty. Gdy pojawi się automatyczny import z Vulcana, wydarzenia pojawią się tutaj.
-        </div>
+        <div role="alert" className="bg-[#ff5c7c]/[0.08] border border-[#ff5c7c]/25 text-[#ffb0bf] rounded-2xl px-4 py-3 text-sm">{authError}</div>
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {loading ? (
-            <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
-              Dziennik jest pusty.
+            <div className="glass-card rounded-3xl border-[var(--border)] p-12 text-center text-[var(--text-tertiary)]">
+              Pobieranie kalendarza z EduVULCAN…
             </div>
           ) : events.length === 0 ? (
-            <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-slate-400">
-              Brak wydarzeń w dzienniku. Poczekaj na automatyczny import z Vulcana.
+            <div className="glass-card rounded-3xl border-[var(--border)] p-12 text-center text-[var(--text-muted)]">
+              Brak wydarzeń do wyświetlenia. Gdy dziennik udostępni terminy, pojawią się tutaj.
             </div>
           ) : (
             <Calendar
@@ -140,8 +138,8 @@ export default function CalendarPage() {
 
         <div className="space-y-4">
           {selectedDate && (
-            <div className="glass-card rounded-3xl p-6 border-slate-200/70 animate-fade-in">
-              <h3 className="text-lg font-bold text-slate-950 mb-3">
+            <div className="glass-card rounded-3xl p-6 border-[var(--border)] animate-fade-in">
+              <h3 className="text-lg font-bold text-[var(--text)] mb-3">
                 {selectedDate.toLocaleDateString("pl-PL", {
                   weekday: "long",
                   year: "numeric",
@@ -156,19 +154,19 @@ export default function CalendarPage() {
                     <button
                       key={event.id}
                       onClick={() => setSelectedEvent(event)}
-                      className="w-full text-left p-3 rounded-2xl border-slate-200/70 hover:bg-slate-50 transition-colors duration-200"
+                      className="w-full text-left p-3 rounded-2xl border border-[var(--border)] hover:bg-white/[0.06] transition-colors duration-200"
                     >
-                      <p className="font-semibold text-slate-950 text-sm">
+                      <p className="font-semibold text-[var(--text)] text-sm">
                         {event.title}
                       </p>
                       {event.subject && (
-                        <p className="text-xs text-slate-500">{event.subject}</p>
+                        <p className="text-xs text-[var(--text-muted)]">{event.subject}</p>
                       )}
                     </button>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-slate-400 text-center py-4">
+                <p className="text-sm text-[var(--text-muted)] text-center py-4">
                   Brak zdarzeń w tym dniu
                 </p>
               )}

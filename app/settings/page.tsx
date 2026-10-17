@@ -1,34 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useJournalProvider, setJournalProvider } from "@/src/hooks/useJournalProvider";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
 export default function SettingsPage() {
   const { account } = useVulcanSession();
-  const [provider, setProvider] = useState<"eduvulcan" | "librus">("eduvulcan");
-
-  useEffect(() => {
-    const savedProvider = window.localStorage.getItem("kandex-journal-provider");
-    if (savedProvider === "eduvulcan" || savedProvider === "librus") {
-      setProvider(savedProvider);
-    }
-  }, []);
+  const provider = useJournalProvider() ?? "eduvulcan";
 
   function selectProvider(nextProvider: "eduvulcan" | "librus") {
-    console.info("[Kandex provider] Click:", nextProvider);
     try {
-      window.localStorage.setItem("kandex-journal-provider", nextProvider);
-      console.info(
-        "[Kandex provider] Stored value:",
-        window.localStorage.getItem("kandex-journal-provider"),
-        "| origin:",
-        window.location.origin,
-      );
+      setJournalProvider(nextProvider);
     } catch (error) {
-      console.error("[Kandex provider] localStorage write failed:", error);
+      console.error("[Kandex provider] Could not save journal preference:", error);
     }
-    setProvider(nextProvider);
   }
 
   return (
@@ -45,7 +30,7 @@ export default function SettingsPage() {
             type="button"
             aria-pressed={provider === "eduvulcan"}
             onClick={() => selectProvider("eduvulcan")}
-            className={`rounded-2xl border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}
+            className={`rounded-2xl border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "eduvulcan" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white/[0.025] hover:bg-white/[0.06]"}`}
           >
             <span className="flex items-center justify-between gap-3">
               <span className="font-bold text-[var(--text)]">EduVULCAN</span>
@@ -58,7 +43,7 @@ export default function SettingsPage() {
             type="button"
             aria-pressed={provider === "librus"}
             onClick={() => selectProvider("librus")}
-            className={`rounded-2xl border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}
+            className={`rounded-2xl border p-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white/[0.025] hover:bg-white/[0.06]"}`}
           >
             <span className="flex items-center justify-between gap-3">
               <span className="font-bold text-[var(--text)]">Librus</span>
@@ -81,7 +66,7 @@ export default function SettingsPage() {
             </Link>
           </div>
         ) : (
-          <p className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+          <p className="mt-5 rounded-2xl border border-[#ffb74d]/25 bg-[#ffb74d]/[0.08] p-4 text-sm leading-6 text-[#ffd08a]">
             Librus można wybrać, ale logowanie nie jest jeszcze dostępne. Wybierz EduVULCAN, aby kontynuować konfigurację.
           </p>
         )}
@@ -96,7 +81,7 @@ export default function SettingsPage() {
             ["!", "Sprawdziany", "Terminy sprawdzianów, jeśli są dostępne."],
             ["⌁", "Zadania", "Prace domowe, jeśli są dostępne."],
           ].map(([icon, title, text]) => (
-            <div key={title} className="rounded-2xl border border-[var(--border)] bg-white p-4">
+            <div key={title} className="rounded-2xl border border-[var(--border)] bg-white/[0.025] p-4">
               <span className="text-lg text-[var(--accent)]">{icon}</span>
               <h3 className="mt-2 text-sm font-bold text-[var(--text)]">{title}</h3>
               <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">{text}</p>
@@ -105,9 +90,9 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
-        <p className="text-sm font-bold text-amber-900">Bezpieczeństwo</p>
-        <p className="mt-1 text-xs leading-5 text-amber-800">
+      <div className="rounded-2xl border border-[#ffb74d]/25 bg-[#ffb74d]/[0.08] p-5">
+        <p className="text-sm font-bold text-[#ffd08a]">Bezpieczeństwo</p>
+        <p className="mt-1 text-xs leading-5 text-[#e6c99b]">
           Dane logowania są wysyłane do serwera Kandex przez HTTPS. Nie udostępniaj hasła w rozmowie ani w plikach projektu.
         </p>
       </div>

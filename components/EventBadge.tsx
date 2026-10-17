@@ -8,12 +8,12 @@ interface EventBadgeProps {
 }
 
 const eventTypeConfig = {
-  assignment: { bg: "bg-purple-100", text: "text-purple-700", label: "Zadanie" },
-  test: { bg: "bg-orange-100", text: "text-orange-700", label: "Sprawdzian" },
-  exam: { bg: "bg-red-100", text: "text-red-700", label: "Egzamin" },
-  grade: { bg: "bg-green-100", text: "text-green-700", label: "Ocena" },
-  note: { bg: "bg-blue-100", text: "text-blue-700", label: "Notatka" },
-  event: { bg: "bg-cyan-100", text: "text-cyan-700", label: "Wydarzenie" },
+  assignment: { bg: "bg-[#7c5cff]/15", text: "text-[#c7beff]", label: "Zadanie" },
+  test: { bg: "bg-[#ffb74d]/15", text: "text-[#ffd08a]", label: "Sprawdzian" },
+  exam: { bg: "bg-[#ff5c7c]/15", text: "text-[#ffb0bf]", label: "Egzamin" },
+  grade: { bg: "bg-[#00e676]/[0.12]", text: "text-[#8cf0b0]", label: "Ocena" },
+  note: { bg: "bg-[#4fc3f7]/[0.12]", text: "text-[#a8e4ff]", label: "Notatka" },
+  event: { bg: "bg-[#00e5ff]/[0.12]", text: "text-[#9df5ff]", label: "Wydarzenie" },
 };
 
 export default function EventBadge({ event, compact }: EventBadgeProps) {
@@ -57,7 +57,7 @@ export default function EventBadge({ event, compact }: EventBadgeProps) {
         <span className={`${config.text} opacity-75`}>
           {event.subject && `${event.subject}`}
         </span>
-        {event.completed && <span className="text-green-600">✓ Ukończone</span>}
+        {event.completed && <span className="text-[#8cf0b0]">✓ Ukończone</span>}
       </div>
     </div>
   );

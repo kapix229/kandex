@@ -231,6 +231,35 @@ export async function getMobileSession(id: string) {
   }
 }
 
+export async function deleteMobileSession(id: string) {
+  if (!id) return;
+
+  if (getSessionStoreConfig()) {
+    const query = new URLSearchParams({ session_id: `eq.${id}` });
+    await supabaseRequest<unknown>(`${SESSION_TABLE}?${query.toString()}`, {
+      method: "DELETE",
+      headers: { Prefer: "return=minimal" },
+    });
+    return;
+  }
+
+  if (process.env.VERCEL === "1") {
+    throw new Error("Brak konfiguracji Supabase dla unieważnienia sesji.");
+  }
+
+  try {
+    const sessions = JSON.parse(
+      await readFile(SESSIONS_FILE, "utf8"),
+    ) as Record<string, MobileSession>;
+    if (sessions[id]) {
+      delete sessions[id];
+      await writeFile(SESSIONS_FILE, JSON.stringify(sessions), "utf8");
+    }
+  } catch {
+    // A missing local session file means there is no local session to remove.
+  }
+}
+
 function parseApiAp(apiApHtml: string): ApiApPayload {
   const value = load(apiApHtml)("input[id='ap']").attr("value");
   if (!value) throw new Error("Nie znaleziono danych #ap w odpowiedzi EduVULCAN.");
