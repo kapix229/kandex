@@ -437,17 +437,31 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const to = new Date(today);
   to.setDate(today.getDate() + 35);
 
+  // Każdy obszar pobieramy niezależnie. Awaria kalendarza, zadań lub
+  // frekwencji nie może wyłączyć całego widoku danych dziennika.
   const [grades, lessons, homework, attendance] = await Promise.all([
-    api.getGrades(),
-    api.getLessons(from, to),
-    api.getHomework(from, to),
-    api.getAttendance(from, to),
+    api.getGrades().catch((error: unknown) => {
+      console.error("[eduvulcan] snapshot grades failed", error instanceof Error ? error.message : "Unknown error");
+      return null;
+    }),
+    api.getLessons(from, to).catch((error: unknown) => {
+      console.error("[eduvulcan] snapshot timetable failed", error instanceof Error ? error.message : "Unknown error");
+      return null;
+    }),
+    api.getHomework(from, to).catch((error: unknown) => {
+      console.error("[eduvulcan] snapshot homework failed", error instanceof Error ? error.message : "Unknown error");
+      return null;
+    }),
+    api.getAttendance(from, to).catch((error: unknown) => {
+      console.error("[eduvulcan] snapshot attendance failed", error instanceof Error ? error.message : "Unknown error");
+      return null;
+    }),
   ]);
 
-  const gradeRows = grades.Envelope ?? [];
-  const lessonRows = lessons.Envelope ?? [];
-  const homeworkRows = homework.Envelope ?? [];
-  const attendanceRows = attendance.Envelope ?? [];
+  const gradeRows = grades?.Envelope ?? [];
+  const lessonRows = lessons?.Envelope ?? [];
+  const homeworkRows = homework?.Envelope ?? [];
+  const attendanceRows = attendance?.Envelope ?? [];
 
   const subjectMap = new Map<string, { id: string; name: string; values: number[]; count: number }>();
   const normalizedGrades = gradeRows.flatMap((grade: MobileGrade) => {
