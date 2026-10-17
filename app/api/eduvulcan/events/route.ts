@@ -44,8 +44,12 @@ export async function GET() {
 
     return NextResponse.json({ success: true, events });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "";
+    const message = error instanceof Error ? error.message : "Unknown error";
     const expired = message.includes("SESSION_EXPIRED");
+    console.error("[eduvulcan] calendar import failed", {
+      name: error instanceof Error ? error.name : "UnknownError",
+      message,
+    });
     return NextResponse.json(
       {
         success: false,
