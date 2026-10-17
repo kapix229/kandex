@@ -22,7 +22,7 @@ export async function GET() {
           code: expired ? "SESSION_EXPIRED" : "IMPORT_FAILED",
           message: expired
             ? "Sesja EduVULCAN wygasła. Połącz dziennik ponownie."
-            : "Nie udało się pobrać planu lekcji z EduVULCAN. Spróbuj ponownie za chwilę.",
+            : message,
         },
       },
       { status: expired ? 401 : 502 },
