@@ -31,7 +31,7 @@ const WEEKDAYS = [
 
 /**
  * Compact calendar widget shown on the dashboard. It fetches upcoming
- * events from the Vulcan API the same way the full calendar page does.
+ * events from the EduVULCAN API the same way the full calendar page does.
  * Until the user logs in to Vulcan and a sync runs, the widget stays
  * empty - we never show hardcoded sample events.
  */
@@ -44,7 +44,7 @@ export default function CalendarMini() {
 
     async function load() {
       try {
-        const res = await fetch("/api/vulcan/events");
+        const res = await fetch("/api/eduvulcan/events", { cache: "no-store" });
         if (!res.ok) {
           // 401 (not logged in) is expected - just render an empty state.
           if (!cancelled) {
@@ -118,11 +118,11 @@ export default function CalendarMini() {
       <div className="space-y-3 overflow-y-auto max-h-[500px]">
         {loading ? (
           <p className="text-sm text-[var(--text-tertiary)] text-center py-6">
-            Ładowanie wydarzeń z Vulcana...
+            Ładowanie wydarzeń z EduVULCAN…
           </p>
         ) : buckets.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-6 italic">
-            Brak wydarzeń. Połącz konto Vulcan, aby zaimportować zadania i sprawdziany.
+          <p className="text-sm text-[var(--text-muted)] text-center py-6 italic">
+            Brak wydarzeń. Sprawdź, czy w EduVULCAN są dostępne terminy i zadania.
           </p>
         ) : (
           buckets.map((day) => (
@@ -147,7 +147,7 @@ export default function CalendarMini() {
                   >
                     <span className="mr-2 mt-1">•</span> {event.title}
                     {event.subject && (
-                      <span className="ml-2 text-xs text-gray-500">
+                      <span className="ml-2 text-xs text-[var(--text-tertiary)]">
                         ({event.subject})
                       </span>
                     )}
