@@ -1,4 +1,4 @@
-import { getMobileSession, fetchMobileSnapshot } from "@/services/eduvulcan-mobile";
+import { getMobileSession, fetchMobileGrades, fetchMobileSnapshot } from "@/services/eduvulcan-mobile";
 import type {
   AttendanceData,
   Grade,
@@ -40,13 +40,14 @@ export async function getEduVulcanStudent(sessionId: string | undefined): Promis
 }
 
 export async function getEduVulcanGrades(sessionId: string | undefined): Promise<Grade[]> {
-  const snapshot = await getEduVulcanSnapshot(sessionId);
-  return snapshot.grades.map((grade) => ({
+  if (!sessionId) throw new Error("SESSION_EXPIRED");
+  const grades = await fetchMobileGrades(sessionId);
+  return grades.map((grade) => ({
     id: grade.id,
-    subjectId: snapshot.subjects.find((subject) => subject.name === grade.subject)?.id ?? grade.subject,
+    subjectId: grade.subjectId,
     subjectName: grade.subject,
     value: String(grade.value),
-    type: grade.title ?? "ocena",
+    type: grade.title,
     date: grade.date,
     weight: Number(grade.weight || 1),
   }));
