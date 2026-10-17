@@ -381,6 +381,45 @@ export async function connectWithMobileJwt(jwtToken: string) {
   return connectWithMobileApiAp(apHtml, { fullName: decoded.name });
 }
 
+function parseGradeValue(raw: string | number | null | undefined): number {
+  const normalized = String(raw ?? "").trim().replace(",", ".");
+  const match = normalized.match(/\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : Number.NaN;
+}
+
+export async function fetchMobileGrades(sessionId: string) {
+  const session = await getMobileSession(sessionId);
+  if (!session) throw new Error("SESSION_EXPIRED");
+
+  const restManager = new RestUrlManager();
+  await restManager.setRestUrls([session.restUrl]);
+
+  const api = new VulcanHebeCe(session.keypair);
+  await api.connect();
+  await api.selectStudent(session.student.PupilId);
+
+  // Pobieramy oceny niezależnie, aby błąd kalendarza lub frekwencji
+  // nie blokował widoku ocen.
+  const response = await api.getGrades();
+  const rows = response.Envelope ?? [];
+
+  return rows.flatMap((grade: MobileGrade) => {
+    const value = parseGradeValue(grade.Value);
+    if (!Number.isFinite(value)) return [];
+
+    return [{
+      id: String(grade.Id),
+      subject: grade.Column?.Subject?.Name ?? "Inne",
+      subjectId: String(grade.Column?.Subject?.Id ?? grade.Column?.Subject?.Name ?? "Inne"),
+      value,
+      date: new Date(grade.DateCreated?.Timestamp ?? Date.now()).toISOString(),
+      weight: Number(grade.Column?.Weight ?? 1),
+      teacher: grade.Creator?.DisplayName ?? "",
+      title: grade.Column?.Name ?? "Ocena",
+    }];
+  });
+}
+
 export async function fetchMobileSnapshot(sessionId: string) {
   const session = await getMobileSession(sessionId);
   if (!session) throw new Error("Sesja mobilna nie istnieje lub wygasła.");
@@ -398,22 +437,36 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const to = new Date(today);
   to.setDate(today.getDate() + 35);
 
+  // Każdy obszar pobieramy niezależnie. Awaria kalendarza, zadań lub
+  // frekwencji nie może wyłączyć całego widoku danych dziennika.
   const [grades, lessons, homework, attendance] = await Promise.all([
-    api.getGrades(),
-    api.getLessons(from, to),
-    api.getHomework(from, to),
-    api.getAttendance(from, to),
+    api.getGrades().catch((error: unknown) => {
+      console.error("[eduvulcan] snapshot grades failed", error instanceof Error ? error.message : "Unknown error");
+      return null;
+    }),
+    api.getLessons(from, to).catch((error: unknown) => {
+      console.error("[eduvulcan] snapshot timetable failed", error instanceof Error ? error.message : "Unknown error");
+      return null;
+    }),
+    api.getHomework(from, to).catch((error: unknown) => {
+      console.error("[eduvulcan] snapshot homework failed", error instanceof Error ? error.message : "Unknown error");
+      return null;
+    }),
+    api.getAttendance(from, to).catch((error: unknown) => {
+      console.error("[eduvulcan] snapshot attendance failed", error instanceof Error ? error.message : "Unknown error");
+      return null;
+    }),
   ]);
 
-  const gradeRows = grades.Envelope ?? [];
-  const lessonRows = lessons.Envelope ?? [];
-  const homeworkRows = homework.Envelope ?? [];
-  const attendanceRows = attendance.Envelope ?? [];
+  const gradeRows = grades?.Envelope ?? [];
+  const lessonRows = lessons?.Envelope ?? [];
+  const homeworkRows = homework?.Envelope ?? [];
+  const attendanceRows = attendance?.Envelope ?? [];
 
   const subjectMap = new Map<string, { id: string; name: string; values: number[]; count: number }>();
   const normalizedGrades = gradeRows.flatMap((grade: MobileGrade) => {
     const subject = grade.Column?.Subject?.Name ?? "Inne";
-    const value = Number(grade.Value);
+    const value = parseGradeValue(grade.Value);
     if (!Number.isFinite(value)) return [];
 
     const key = String(grade.Column?.Subject?.Id ?? subject);
