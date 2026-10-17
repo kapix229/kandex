@@ -63,7 +63,27 @@ export default function AttendancePage() {
     }
   }, []);
 
-  useEffect(() => { void loadAttendance(); }, [loadAttendance]);
+  useEffect(() => {
+    let cancelled = false;
+    async function initialLoad() {
+      try {
+        const response = await fetch("/api/eduvulcan/attendance", { cache: "no-store" });
+        const result = (await response.json()) as AttendanceResponse;
+        if (!response.ok || !result.success || !result.data) {
+          throw new Error(result.error?.message ?? "Nie udało się pobrać frekwencji.");
+        }
+        if (cancelled) return;
+        setEntries(result.data.entries ?? []);
+        setSummary(result.data.summary ?? { present: 0, absent: 0, late: 0, excused: 0 });
+      } catch (cause) {
+        if (!cancelled) setError(cause instanceof Error ? cause.message : "Wystąpił błąd podczas pobierania frekwencji.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void initialLoad();
+    return () => { cancelled = true; };
+  }, []);
 
   const total = summary.present + summary.absent + summary.late + summary.excused;
   const presenceRate = total ? Math.round(((summary.present + summary.late) / total) * 100) : 0;
