@@ -5,9 +5,8 @@ import { getEduVulcanTimetable, EDUVULCAN_SESSION_COOKIE } from "@/services/eduv
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const lessons = await getEduVulcanTimetable(
-      cookieStore.get(EDUVULCAN_SESSION_COOKIE)?.value,
-    );
+    const sessionId = cookieStore.get(EDUVULCAN_SESSION_COOKIE)?.value;
+    const lessons = await getEduVulcanTimetable(sessionId);
     return NextResponse.json({ success: true, data: { lessons } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
