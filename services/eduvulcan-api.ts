@@ -57,7 +57,7 @@ export async function getEduVulcanGrades(sessionId: string | undefined): Promise
 export async function getEduVulcanAttendance(sessionId: string | undefined): Promise<AttendanceData> {
   const snapshot = await getEduVulcanSnapshot(sessionId);
   if (!snapshot.syncStatus.attendance) {
-    throw new Error("EduVULCAN nie zwrócił danych frekwencji.");
+    throw new Error(snapshot.syncErrors?.attendance ?? "EduVULCAN nie zwrócił danych frekwencji.");
   }
   const entries = snapshot.attendance ?? [];
   return {
@@ -75,7 +75,7 @@ export async function getEduVulcanAttendance(sessionId: string | undefined): Pro
 export async function getEduVulcanTimetable(sessionId: string | undefined): Promise<Lesson[]> {
   const snapshot = await getEduVulcanSnapshot(sessionId);
   if (!snapshot.syncStatus.lessons) {
-    throw new Error("EduVULCAN nie zwrócił planu lekcji.");
+    throw new Error(snapshot.syncErrors?.lessons ?? "EduVULCAN nie zwrócił planu lekcji.");
   }
   return snapshot.schedule.map((lesson) => ({
     date: lesson.date,
