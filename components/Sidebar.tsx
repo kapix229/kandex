@@ -47,7 +47,7 @@ export default function Sidebar() {
           Kandex
         </Link>
         <div className="flex items-center gap-2">
-          <a href="/?chooseJournal=1" className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-bold text-[var(--text)]">Zmień dziennik</a>
+          <Link href="/?chooseJournal=1" className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-bold text-[var(--text)]">Zmień dziennik</Link>
           <button type="button" onClick={handleLogout} disabled={loggingOut} className="rounded-lg border border-[var(--danger)]/30 px-3 py-2 text-xs font-bold text-[var(--danger)] disabled:opacity-60">
             {loggingOut ? "..." : "Wyloguj"}
           </button>
@@ -78,9 +78,9 @@ export default function Sidebar() {
           <p className="text-xs font-bold text-[var(--text)]">EduVULCAN połączony</p>
           <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{account?.fullName ?? "Aktywna sesja"}</p>
         </Link>
-        <a href="/?chooseJournal=1" className="block rounded-xl border border-[var(--border)] px-4 py-3 text-center text-xs font-bold text-[var(--text)] transition hover:bg-white/[0.06]">
+        <Link href="/?chooseJournal=1" className="block rounded-xl border border-[var(--border)] px-4 py-3 text-center text-xs font-bold text-[var(--text)] transition hover:bg-white/[0.06]">
           ← Zmień dziennik
-        </a>
+        </Link>
         <div className="rounded-xl border border-[var(--border)] bg-white/[0.025] p-4">
           <p className="text-xs font-bold text-[var(--text)]">Skup się na nauce...</p>
           <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">Kalendarz, oceny i materiały w jednym miejscu.</p>
