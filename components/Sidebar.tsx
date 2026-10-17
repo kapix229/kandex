@@ -41,21 +41,21 @@ export default function Sidebar() {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[#0c1120]/95 px-4 py-3 lg:hidden">
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[var(--surface)]/95 px-4 py-3 lg:hidden">
         <Link href="/" className="flex items-center gap-2 text-sm font-extrabold text-[var(--text)]">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-white">K</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-[var(--accent)] text-[#211e24]">K</span>
           Kandex
         </Link>
         <div className="flex items-center gap-2">
           <a href="/?chooseJournal=1" className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-bold text-[var(--text)]">Zmień dziennik</a>
-          <button type="button" onClick={handleLogout} disabled={loggingOut} className="rounded-lg border border-[#ff5c7c]/30 px-3 py-2 text-xs font-bold text-[#ff9eae] disabled:opacity-60">
+          <button type="button" onClick={handleLogout} disabled={loggingOut} className="rounded-lg border border-[var(--danger)]/30 px-3 py-2 text-xs font-bold text-[var(--danger)] disabled:opacity-60">
             {loggingOut ? "..." : "Wyloguj"}
           </button>
         </div>
       </div>
-      <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 border-r border-[var(--border)] bg-[#0c1120]/90 backdrop-blur-xl px-4 py-5 lg:flex lg:flex-col">
+      <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 border-r border-[var(--border)] bg-[var(--surface)]/95 px-4 py-6 lg:flex lg:flex-col">
       <Link href="/" className="mb-10 flex items-center gap-3 px-2">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-lg font-black text-white shadow-[0_0_26px_rgba(124,92,255,0.28)]">K</span>
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-lg font-black text-white shadow-sm">K</span>
         <span>
           <span className="block text-lg font-extrabold tracking-tight text-[var(--text)]">Kandex</span>
           <span className="block text-[11px] font-medium text-[var(--text-muted)]">study workspace</span>
@@ -66,8 +66,8 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
-            <Link key={item.href} href={item.href} className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all ${active ? "bg-[var(--accent-soft)] text-white ring-1 ring-inset ring-[#7c5cff]/35 shadow-[0_8px_22px_rgba(0,0,0,0.18)]" : "text-[var(--text-muted)] hover:bg-white/[0.05] hover:text-[var(--text)]"}`}>
-              <span className={`grid h-8 w-8 place-items-center rounded-lg text-sm ${active ? "bg-[#7c5cff]/20 text-[#b8aaff]" : "bg-white/[0.05] text-[var(--text-tertiary)] group-hover:bg-[#7c5cff]/15 group-hover:text-[#b8aaff]"}`}>{item.icon}</span>
+            <Link key={item.href} href={item.href} className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all ${active ? "bg-[var(--accent-soft)] text-[var(--text)] ring-1 ring-inset ring-[var(--accent)]/25 shadow-sm" : "text-[var(--text-muted)] hover:bg-white/[0.05] hover:text-[var(--text)]"}`}>
+              <span className={`grid h-8 w-8 place-items-center rounded-lg text-sm ${active ? "bg-[var(--accent)]/15 text-[var(--accent-secondary)]" : "bg-white/[0.05] text-[var(--text-tertiary)] group-hover:bg-[var(--accent)]/10 group-hover:text-[var(--accent-secondary)]"}`}>{item.icon}</span>
               {item.label}
             </Link>
           );
@@ -86,7 +86,7 @@ export default function Sidebar() {
           <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">Kalendarz, oceny i materiały w jednym miejscu.</p>
         </div>
         {logoutError && <p role="alert" className="text-xs text-[#ff9eae]">{logoutError}</p>}
-        <button type="button" onClick={handleLogout} disabled={loggingOut} className="w-full rounded-xl border border-[#ff5c7c]/30 px-4 py-3 text-center text-xs font-bold text-[#ff9eae] transition hover:bg-[#ff5c7c]/[0.08] disabled:opacity-60">
+        <button type="button" onClick={handleLogout} disabled={loggingOut} className="w-full rounded-xl border border-[#ff5c7c]/30 px-4 py-3 text-center text-xs font-bold text-[#ff9eae] transition hover:bg-[var(--danger)]/[0.08] disabled:opacity-60">
           {loggingOut ? "Wylogowywanie..." : "Wyloguj"}
         </button>
       </div>
