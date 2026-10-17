@@ -41,26 +41,58 @@ function parseCalendarDate(value: string | undefined): string | null {
   return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10);
 }
 
-function lessonStartDate(lesson: MobileLesson): Date | null {
-  return dateFromTimestamp(lesson.Date?.Timestamp) ?? (() => {
-    const calendarDate = parseCalendarDate(lesson.Date?.Date);
-    return calendarDate ? new Date(`${calendarDate}T12:00:00Z`) : null;
-  })();
+function calendarDateFromTimestamp(timestamp: number | undefined): string | null {
+  const date = dateFromTimestamp(timestamp);
+  if (!date) return null;
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Warsaw", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(date);
+  const part = (type: string) => parts.find((item) => item.type === type)?.value;
+  const year = part("year"), month = part("month"), day = part("day");
+  return year && month && day ? year + "-" + month + "-" + day : null;
 }
-
+function schoolDate(lesson: MobileLesson): string | null {
+  return parseCalendarDate(lesson.Date?.Date) ?? calendarDateFromTimestamp(lesson.Date?.Timestamp);
+}
+function schoolTimeToDate(date: string, rawTime: string | undefined): Date | null {
+  if (!rawTime) return null;
+  const match = rawTime.trim().match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  if (!match) return null;
+  const hours = Number(match[1]), minutes = Number(match[2]), seconds = Number(match[3] ?? 0);
+  if (hours > 23 || minutes > 59 || seconds > 59) return null;
+  const wallClock = Date.UTC(Number(date.slice(0, 4)), Number(date.slice(5, 7)) - 1,
+    Number(date.slice(8, 10)), hours, minutes, seconds);
+  let instant = wallClock;
+  for (let i = 0; i < 2; i += 1) {
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Europe/Warsaw", year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
+    }).formatToParts(new Date(instant));
+    const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    const represented = Date.UTC(Number(values.year), Number(values.month) - 1, Number(values.day),
+      Number(values.hour), Number(values.minute), Number(values.second));
+    instant += wallClock - represented;
+  }
+  const result = new Date(instant);
+  return Number.isNaN(result.getTime()) ? null : result;
+}
+function lessonStartDate(lesson: MobileLesson): Date | null {
+  const date = schoolDate(lesson);
+  if (!date) return null;
+  return schoolTimeToDate(date, lesson.TimeSlot?.Start) ?? new Date(date + "T12:00:00Z");
+}
 function lessonEndDate(lesson: MobileLesson, start: Date): string | undefined {
-  const rawTime = lesson.TimeSlot?.End?.trim();
-  if (!rawTime) return undefined;
-  const match = rawTime.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
-  if (!match) return undefined;
-  const hours = Number(match[1]);
-  const minutes = Number(match[2]);
-  const seconds = Number(match[3] ?? 0);
-  if (hours > 23 || minutes > 59 || seconds > 59) return undefined;
-
-  const date = parseCalendarDate(lesson.Date?.Date) ?? start.toISOString().slice(0, 10);
-  const result = new Date(`${date}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}Z`);
-  return Number.isNaN(result.getTime()) ? undefined : result.toISOString();
+  const date = schoolDate(lesson) ?? calendarDateFromTimestamp(start.getTime());
+  if (!date) return undefined;
+  const end = schoolTimeToDate(date, lesson.TimeSlot?.End);
+  return end && end > start ? end.toISOString() : undefined;
+}
+function schoolClockTime(value: string | undefined): string {
+  if (!value) return "";
+  const match = value.trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  return match && Number(match[1]) <= 23 && Number(match[2]) <= 59
+    ? String(Number(match[1])).padStart(2, "0") + ":" + match[2]
+    : "";
 }
 
 async function step<T>(name: string, action: () => T | Promise<T>): Promise<T> {
@@ -114,7 +146,8 @@ type MobileLesson = {
   TeacherPrimary?: { DisplayName?: string };
   Room?: { Code?: string } | null;
   Date?: { Timestamp?: number; Date?: string };
-  TimeSlot?: { End?: string };
+  LessonNumber?: number;
+  TimeSlot?: { Start?: string; End?: string };
 };
 
 type MobileHomework = {
@@ -568,9 +601,13 @@ export async function fetchMobileSnapshot(sessionId: string) {
     })),
     grades: normalizedGrades,
     schedule: lessonRows.flatMap((lesson: MobileLesson) => {
-      const start = lessonStartDate(lesson);
-      if (!start) {
-        console.warn("[eduvulcan] skipped lesson with invalid date", { lessonId: String(lesson.Id) });
+      const date = schoolDate(lesson), start = lessonStartDate(lesson);
+      if (!date || !start) {
+        console.warn("[eduvulcan] skipped lesson with invalid date", {
+          lessonId: String(lesson.Id),
+          hasDate: Boolean(lesson.Date?.Date || lesson.Date?.Timestamp),
+          hasStartTime: Boolean(lesson.TimeSlot?.Start),
+        });
         return [];
       }
       return [{
@@ -578,6 +615,10 @@ export async function fetchMobileSnapshot(sessionId: string) {
         subject: lesson.Subject?.Name ?? "Lekcja",
         teacher: lesson.TeacherPrimary?.DisplayName,
         room: lesson.Room?.Code,
+        lessonNumber: Number(lesson.LessonNumber ?? 0),
+        date,
+        startTime: schoolClockTime(lesson.TimeSlot?.Start),
+        endTime: schoolClockTime(lesson.TimeSlot?.End),
         startsAt: start.toISOString(),
         endsAt: lessonEndDate(lesson, start),
       }];
@@ -617,7 +658,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
         // może przesunąć lekcję na poprzedni dzień w polskiej strefie czasowej.
         date:
           parseCalendarDate(item.Day?.Date) ??
-          dateFromTimestamp(item.Day?.Timestamp)?.toISOString().slice(0, 10) ??
+          calendarDateFromTimestamp(item.Day?.Timestamp) ??
           "",
         lesson: Number(item.LessonNumber ?? 0),
         subject: item.Subject?.Name ?? "Lekcja",
