@@ -9,10 +9,20 @@ export async function GET() {
       cookieStore.get(EDUVULCAN_SESSION_COOKIE)?.value,
     );
     return NextResponse.json({ success: true, data: { grades } });
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const expired = message.includes("SESSION_EXPIRED");
     return NextResponse.json(
-      { success: false, error: { code: "SESSION_EXPIRED", message: "Brak aktywnej sesji." } },
-      { status: 401 },
+      {
+        success: false,
+        error: {
+          code: expired ? "SESSION_EXPIRED" : "IMPORT_FAILED",
+          message: expired
+            ? "Sesja EduVULCAN wygasła. Połącz dziennik ponownie."
+            : "Nie udało się pobrać ocen z EduVULCAN. Spróbuj ponownie za chwilę.",
+        },
+      },
+      { status: expired ? 401 : 502 },
     );
   }
 }
