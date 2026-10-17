@@ -9,6 +9,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: "◉" },
   { href: "/calendar", label: "Plan lekcji", icon: "▣" },
   { href: "/subjects", label: "Oceny", icon: "✓" },
+  { href: "/attendance", label: "Frekwencja", icon: "◷" },
   { href: "/assignments", label: "Zadania", icon: "⌁" },
   { href: "/study", label: "Nauka", icon: "✦" },
   { href: "/settings", label: "Ustawienia", icon: "⚙" },
