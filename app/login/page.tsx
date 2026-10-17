@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
+import { useJournalProvider } from "@/src/hooks/useJournalProvider";
 import { useRouter } from "next/navigation";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
@@ -13,14 +14,7 @@ export default function LoginPage() {
   const [jwtToken, setJwtToken] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [selectedProvider, setSelectedProvider] = useState<"eduvulcan" | "librus">("eduvulcan");
-
-  useEffect(() => {
-    const savedProvider = window.localStorage.getItem("kandex-journal-provider");
-    if (savedProvider === "eduvulcan" || savedProvider === "librus") {
-      setSelectedProvider(savedProvider);
-    }
-  }, []);
+  const selectedProvider = useJournalProvider() ?? "eduvulcan";
 
   async function submitCredentials(event: FormEvent) {
     event.preventDefault();
