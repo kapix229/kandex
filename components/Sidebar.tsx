@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
 const navItems = [
@@ -15,7 +16,27 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { account } = useVulcanSession();
+  const router = useRouter();
+  const { account, signOut } = useVulcanSession();
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+
+  async function handleLogout() {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    setLogoutError("");
+    try {
+      const response = await fetch("/api/eduvulcan/login", { method: "DELETE" });
+      if (!response.ok) throw new Error("Nie udało się zakończyć sesji.");
+      signOut();
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      setLogoutError(error instanceof Error ? error.message : "Nie udało się wylogować.");
+    } finally {
+      setLoggingOut(false);
+    }
+  }
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
@@ -44,10 +65,17 @@ export default function Sidebar() {
           <p className="text-xs font-bold text-[var(--text)]">EduVULCAN połączony</p>
           <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{account?.fullName ?? "Aktywna sesja"}</p>
         </Link>
+        <Link href="/?chooseJournal=1" className="block rounded-xl border border-[var(--border)] px-4 py-3 text-center text-xs font-bold text-[var(--text)] transition hover:bg-white/[0.06]">
+          ← Zmień dziennik
+        </Link>
         <div className="rounded-xl border border-[var(--border)] bg-white/[0.025] p-4">
           <p className="text-xs font-bold text-[var(--text)]">Skup się na nauce...</p>
           <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">Kalendarz, oceny i materiały w jednym miejscu.</p>
         </div>
+        {logoutError && <p role="alert" className="text-xs text-[#ff9eae]">{logoutError}</p>}
+        <button type="button" onClick={handleLogout} disabled={loggingOut} className="w-full rounded-xl border border-[#ff5c7c]/30 px-4 py-3 text-center text-xs font-bold text-[#ff9eae] transition hover:bg-[#ff5c7c]/[0.08] disabled:opacity-60">
+          {loggingOut ? "Wylogowywanie..." : "Wyloguj"}
+        </button>
       </div>
     </aside>
   );
