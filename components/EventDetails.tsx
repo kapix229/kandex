@@ -98,7 +98,7 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
       {/* Status */}
       <div className="mb-4 space-y-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-zinc-600">Status:</span>
+          <span className="text-sm font-medium text-[var(--text-muted)]">Status:</span>
           <button
             onClick={handleToggleCompletion}
             className={`px-3 py-1 rounded-full text-xs font-semibold transition-all duration-200 cursor-pointer hover:shadow-md ${
@@ -112,7 +112,7 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-zinc-600">Priorytet:</span>
+          <span className="text-sm font-medium text-[var(--text-muted)]">Priorytet:</span>
           <span
             className={`px-3 py-1 rounded-full text-xs font-semibold ${
               localEvent.priority === "high"
@@ -133,12 +133,12 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
 
       {/* Date and time */}
       <div className="bg-white/[0.035] rounded-xl p-4 mb-4 border border-[var(--border)]">
-        <p className="text-sm text-zinc-600 mb-1">📅 Data</p>
-        <p className="font-semibold text-zinc-800">
+        <p className="text-sm text-[var(--text-muted)] mb-1">📅 Data</p>
+        <p className="font-semibold text-[var(--text)]">
           {eventDate.format("dddd, D MMMM YYYY")}
         </p>
         {daysUntil >= 0 && (
-          <p className="text-xs text-zinc-600 mt-2">
+          <p className="text-xs text-[var(--text-muted)] mt-2">
             {daysUntil === 0
               ? "Dzisiaj"
               : daysUntil === 1
