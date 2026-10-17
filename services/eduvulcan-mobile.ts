@@ -522,12 +522,12 @@ async function fetchMobileRows<T>(
     params.set("periodId", String(currentPeriod.Id));
   }
 
-  const url = `${session.restUrl.replace(/\\/$/, "")}/${unit.Symbol}/api/mobile/${endpoint}?${params.toString()}`;
+  const url = `${session.restUrl.replace(/\/$/, "")}/${unit.Symbol}/api/mobile/${endpoint}?${params.toString()}`;
   const dateHeader = new Date().toUTCString();
   const canonicalMatch = url.match("(api/mobile/.+)");
   if (!canonicalMatch) throw new Error("Nieprawidłowy adres mobilnego API EduVULCAN.");
   const canonicalUrl = encodeURIComponent(canonicalMatch[0]).toLowerCase();
-  const privateKey = `-----BEGIN PRIVATE KEY-----\\n${session.keypair.privateKey}\\n-----END PRIVATE KEY-----`;
+  const privateKey = `-----BEGIN PRIVATE KEY-----\n${session.keypair.privateKey}\n-----END PRIVATE KEY-----`;
   const signatureValue = createSign("RSA-SHA256")
     .update(canonicalUrl + dateHeader)
     .sign(privateKey, "base64");
