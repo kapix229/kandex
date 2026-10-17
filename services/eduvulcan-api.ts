@@ -70,10 +70,10 @@ export async function getEduVulcanAttendance(sessionId: string | undefined): Pro
 export async function getEduVulcanTimetable(sessionId: string | undefined): Promise<Lesson[]> {
   const snapshot = await getEduVulcanSnapshot(sessionId);
   return snapshot.schedule.map((lesson) => ({
-    date: lesson.startsAt.slice(0, 10),
-    lessonNumber: 0,
-    start: lesson.startsAt.slice(11, 16),
-    end: lesson.endsAt?.slice(11, 16) ?? "",
+    date: lesson.date,
+    lessonNumber: lesson.lessonNumber,
+    start: lesson.startTime,
+    end: lesson.endTime,
     subject: lesson.subject,
     teacher: lesson.teacher ?? "",
     room: lesson.room ?? "",
