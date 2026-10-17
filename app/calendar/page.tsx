@@ -118,7 +118,7 @@ export default function CalendarPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           {loading ? (
-            <div className="glass-card rounded-3xl border-slate-200/70 p-12 text-center text-[var(--text-tertiary)]">
+            <div className="glass-card rounded-3xl border-[var(--border)] p-12 text-center text-[var(--text-tertiary)]">
               Pobieranie kalendarza z EduVULCAN…
             </div>
           ) : events.length === 0 ? (
