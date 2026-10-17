@@ -58,9 +58,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-2xl items-center justify-center py-10">
-      <div className="workspace-card w-full rounded-[28px] p-6 sm:p-8">
-        <Link href="/?chooseJournal=1" className="inline-flex items-center gap-2 text-sm font-bold text-[var(--accent)]"><span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-white">K</span>Kandex</Link>
+    <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-2xl items-center justify-center py-6 sm:py-10">
+      <div className="workspace-card animate-fade-in w-full rounded-[22px] p-5 sm:p-8">
+        <Link href="/?chooseJournal=1" className="inline-flex items-center gap-2 text-sm font-bold text-[var(--accent)]"><span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--accent)] text-[#211e24]">K</span>Kandex</Link>
         <p className="mt-7 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">Połączenie z dziennikiem</p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--text)]">{selectedProvider === "eduvulcan" ? "Połącz EduVULCAN" : "Librus — wkrótce"}</h1>
         <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{selectedProvider === "eduvulcan" ? "Kandex wykona wymagane zabezpieczenie CAPTCHA na serwerze i przekaże wynik do EduVULCAN." : "Integracja Librus nie jest jeszcze aktywna. Wróć do ustawień i wybierz EduVULCAN."}</p>
@@ -70,9 +70,9 @@ export default function LoginPage() {
         <section className="mt-6 rounded-2xl border border-[var(--border)] bg-[var(--surface-muted)] p-5">
           <h2 className="font-bold text-[var(--text)]">Logowanie</h2>
           <form onSubmit={submitCredentials} className="mt-5 space-y-4">
-            <input value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" required placeholder="Login" className="w-full rounded-2xl border border-[var(--border)] bg-[#0a0e1a] text-[var(--text)] placeholder:text-[var(--text-tertiary)] px-4 py-3 text-sm outline-none focus:border-[var(--accent)]" />
+            <input value={username} onChange={e => setUsername(e.target.value)} autoComplete="username" required placeholder="Login" className="w-full rounded-2xl border border-[var(--border)] bg-[#25242b] text-[var(--text)] placeholder:text-[var(--text-tertiary)] px-4 py-3 text-sm outline-none focus:border-[var(--accent)]" />
             <input value={password} onChange={e => setPassword(e.target.value)} type="password" autoComplete="current-password" required placeholder="Hasło" className="w-full rounded-2xl border border-[var(--border)] bg-[#0a0e1a] text-[var(--text)] placeholder:text-[var(--text-tertiary)] px-4 py-3 text-sm outline-none focus:border-[var(--accent)]" />
-            <button disabled={loading || selectedProvider !== "eduvulcan"} className="w-full rounded-2xl bg-[var(--accent)] px-4 py-3.5 text-sm font-bold text-white shadow-lg disabled:opacity-60">{loading ? "Logowanie..." : "Zaloguj do EduVULCAN →"}</button>
+            <button disabled={loading || selectedProvider !== "eduvulcan"} className="w-full rounded-2xl bg-[var(--accent)] px-4 py-3.5 text-sm font-bold text-[#211e24] shadow-sm hover:brightness-105 disabled:opacity-60">{loading ? "Logowanie..." : "Zaloguj do EduVULCAN →"}</button>
           </form>
         </section>
 
