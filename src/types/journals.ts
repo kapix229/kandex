@@ -33,7 +33,10 @@ export interface Grade {
   id: string;
   subjectId: string;
   subjectName: string;
+  /** Display value from EduVULCAN, including + / - modifiers. */
   value: string;
+  /** Numeric value used for averages; + adds 0.25 and - subtracts 0.25. */
+  numericValue?: number;
   type: string;
   date: string;
   weight: number;
