@@ -40,7 +40,20 @@ export default function Sidebar() {
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 border-r border-[var(--border)] bg-[#0c1120]/90 backdrop-blur-xl px-4 py-5 lg:flex lg:flex-col">
+    <>
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--border)] bg-[#0c1120]/95 px-4 py-3 lg:hidden">
+        <Link href="/" className="flex items-center gap-2 text-sm font-extrabold text-[var(--text)]">
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-white">K</span>
+          Kandex
+        </Link>
+        <div className="flex items-center gap-2">
+          <a href="/?chooseJournal=1" className="rounded-lg border border-[var(--border)] px-3 py-2 text-xs font-bold text-[var(--text)]">Zmień dziennik</a>
+          <button type="button" onClick={handleLogout} disabled={loggingOut} className="rounded-lg border border-[#ff5c7c]/30 px-3 py-2 text-xs font-bold text-[#ff9eae] disabled:opacity-60">
+            {loggingOut ? "..." : "Wyloguj"}
+          </button>
+        </div>
+      </div>
+      <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 border-r border-[var(--border)] bg-[#0c1120]/90 backdrop-blur-xl px-4 py-5 lg:flex lg:flex-col">
       <Link href="/" className="mb-10 flex items-center gap-3 px-2">
         <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-lg font-black text-white shadow-[0_0_26px_rgba(124,92,255,0.28)]">K</span>
         <span>
@@ -77,6 +90,7 @@ export default function Sidebar() {
           {loggingOut ? "Wylogowywanie..." : "Wyloguj"}
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }
