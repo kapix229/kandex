@@ -1,34 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useJournalProvider, setJournalProvider } from "@/src/hooks/useJournalProvider";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 
 export default function SettingsPage() {
   const { account } = useVulcanSession();
-  const [provider, setProvider] = useState<"eduvulcan" | "librus">("eduvulcan");
-
-  useEffect(() => {
-    const savedProvider = window.localStorage.getItem("kandex-journal-provider");
-    if (savedProvider === "eduvulcan" || savedProvider === "librus") {
-      setProvider(savedProvider);
-    }
-  }, []);
+  const provider = useJournalProvider() ?? "eduvulcan";
 
   function selectProvider(nextProvider: "eduvulcan" | "librus") {
-    console.info("[Kandex provider] Click:", nextProvider);
     try {
-      window.localStorage.setItem("kandex-journal-provider", nextProvider);
-      console.info(
-        "[Kandex provider] Stored value:",
-        window.localStorage.getItem("kandex-journal-provider"),
-        "| origin:",
-        window.location.origin,
-      );
+      setJournalProvider(nextProvider);
     } catch (error) {
-      console.error("[Kandex provider] localStorage write failed:", error);
+      console.error("[Kandex provider] Could not save journal preference:", error);
     }
-    setProvider(nextProvider);
   }
 
   return (
