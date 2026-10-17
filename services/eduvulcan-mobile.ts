@@ -584,26 +584,34 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const attendanceTo = new Date(today);
   attendanceTo.setDate(today.getDate() + 1);
 
-  // Każdy obszar pobieramy niezależnie. Awaria kalendarza, zadań lub
-  // frekwencji nie może wyłączyć całego widoku danych dziennika.
+  // Każdy obszar pobieramy niezależnie. Zachowujemy też bezpieczne komunikaty
+  // błędów, aby interfejs mógł pokazać przyczynę nieudanego importu.
+  const syncErrors: Partial<Record<"grades" | "lessons" | "homework" | "attendance", string>> = {};
+  const errorMessage = (error: unknown) =>
+    error instanceof Error ? error.message : "Nieznany błąd API EduVULCAN.";
+
   const [grades, lessons, homework, attendance] = await Promise.all([
     api.getGrades().catch((error: unknown) => {
-      console.error("[eduvulcan] snapshot grades failed", error instanceof Error ? error.message : "Unknown error");
+      syncErrors.grades = errorMessage(error);
+      console.error("[eduvulcan] snapshot grades failed", syncErrors.grades);
       return null;
     }),
     fetchRowsInDateChunks<MobileLesson>(from, to, (chunkFrom, chunkTo) => api.getLessons(chunkFrom, chunkTo), 7)
       .catch((error: unknown) => {
-        console.error("[eduvulcan] snapshot timetable failed", error instanceof Error ? error.message : "Unknown error");
+        syncErrors.lessons = errorMessage(error);
+        console.error("[eduvulcan] snapshot timetable failed", syncErrors.lessons);
         return null;
       }),
     fetchRowsInDateChunks<MobileHomework>(from, to, (chunkFrom, chunkTo) => api.getHomework(chunkFrom, chunkTo), 14)
       .catch((error: unknown) => {
-        console.error("[eduvulcan] snapshot homework failed", error instanceof Error ? error.message : "Unknown error");
+        syncErrors.homework = errorMessage(error);
+        console.error("[eduvulcan] snapshot homework failed", syncErrors.homework);
         return null;
       }),
     fetchRowsInDateChunks<MobileAttendance>(schoolYearStart, attendanceTo, (chunkFrom, chunkTo) => api.getAttendance(chunkFrom, chunkTo), 14)
       .catch((error: unknown) => {
-        console.error("[eduvulcan] snapshot attendance failed", error instanceof Error ? error.message : "Unknown error");
+        syncErrors.attendance = errorMessage(error);
+        console.error("[eduvulcan] snapshot attendance failed", syncErrors.attendance);
         return null;
       }),
   ]);
@@ -659,6 +667,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
       homework: homework !== null,
       attendance: attendance !== null,
     },
+    syncErrors,
     schedule: lessonRows.flatMap((lesson: MobileLesson) => {
       const date = schoolDate(lesson), start = lessonStartDate(lesson);
       if (!date || !start) {
