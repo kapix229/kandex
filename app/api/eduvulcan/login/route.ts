@@ -128,12 +128,18 @@ export async function POST(req: Request) {
     }
     return successResponse(result);
   } catch (error) {
-    // Do not log error messages because upstream HTML may contain private data.
+    // Only surface known, non-sensitive configuration errors. Never return upstream
+    // HTML or raw authentication responses, which may contain private data.
+    const rawMessage = error instanceof Error ? error.message : "";
+    const safeMessage = /^(Magazyn sesji Supabase zwrócił HTTP \\d+\\. Sprawdź konfigurację klucza i tabeli\\.|Brak konfiguracji Supabase\\..*|Brak konfiguracji Supabase dla unieważnienia sesji\\.)$/.test(rawMessage)
+      ? rawMessage
+      : "Wewnętrzny błąd podczas logowania. Sprawdź logi serwera.";
     console.error("[eduvulcan-login] unexpected server error", {
       errorType: error instanceof Error ? error.name : "UnknownError",
+      configurationError: safeMessage !== "Wewnętrzny błąd podczas logowania. Sprawdź logi serwera.",
     });
     return NextResponse.json(
-      { success: false, error: { code: "LOGIN_FAILED", message: "Wewnętrzny błąd podczas logowania. Sprawdź logi serwera." } },
+      { success: false, error: { code: "LOGIN_FAILED", message: safeMessage } },
       { status: 500 },
     );
   }
