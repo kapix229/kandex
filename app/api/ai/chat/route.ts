@@ -117,10 +117,30 @@ export async function POST(request: Request) {
     } | null;
 
     if (!response.ok) {
-      console.error("[ai-assistant] provider request failed", { status: response.status });
+      const providerError = result?.error as { message?: string; type?: string; code?: string } | undefined;
+      console.error("[ai-assistant] provider request failed", {
+        status: response.status,
+        errorType: providerError?.type ?? null,
+        errorCode: providerError?.code ?? null,
+      });
+
+      let message = "Usługa AI odrzuciła żądanie. Sprawdź ustawienia integracji OpenAI.";
+      let status = 502;
+      if (response.status === 401) {
+        message = "Klucz OpenAI jest nieprawidłowy lub wygasł. Zaktualizuj OPENAI_API_KEY w Vercel.";
+      } else if (response.status === 403) {
+        message = "Klucz OpenAI nie ma uprawnień do użycia tego modelu. Sprawdź dostęp do modelu i projekt API.";
+      } else if (response.status === 429) {
+        message = providerError?.code === "insufficient_quota"
+          ? "Konto API OpenAI nie ma dostępnego limitu lub środków. Sprawdź billing i limity na platform.openai.com."
+          : "Limit zapytań OpenAI został osiągnięty. Poczekaj chwilę i spróbuj ponownie.";
+        status = 429;
+      } else if (response.status === 404) {
+        message = "Wybrany model OpenAI nie jest dostępny. Sprawdź zmienną OPENAI_MODEL w Vercel.";
+      }
       return NextResponse.json(
-        { success: false, error: { message: response.status === 429 ? "Asystent jest chwilowo przeciążony. Spróbuj za chwilę." : "Nie udało się uzyskać odpowiedzi AI. Sprawdź konfigurację klucza API." } },
-        { status: response.status === 429 ? 429 : 502 },
+        { success: false, error: { code: providerError?.code ?? `OPENAI_HTTP_${response.status}`, message } },
+        { status },
       );
     }
 
