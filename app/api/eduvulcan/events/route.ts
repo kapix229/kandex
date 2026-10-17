@@ -14,7 +14,11 @@ export async function GET() {
     // Do not report a successful empty calendar when EduVULCAN failed to load
     // lessons or homework. Keep partial data available when one source works.
     if (!snapshot.syncStatus.lessons && !snapshot.syncStatus.homework) {
-      throw new Error("EduVULCAN nie zwrócił ani planu lekcji, ani zadań.");
+      throw new Error(
+        snapshot.syncErrors?.lessons ??
+        snapshot.syncErrors?.homework ??
+        "EduVULCAN nie zwrócił ani planu lekcji, ani zadań.",
+      );
     }
     if (!snapshot.syncStatus.lessons || !snapshot.syncStatus.homework) {
       console.warn("[eduvulcan] calendar returned partial data", {
@@ -69,7 +73,7 @@ export async function GET() {
         success: false,
         error: expired
           ? "Sesja EduVULCAN wygasła. Połącz dziennik ponownie."
-          : "Nie udało się pobrać kalendarza z EduVULCAN. Spróbuj ponownie za chwilę.",
+          : message,
       },
       { status: expired ? 401 : 502 },
     );
