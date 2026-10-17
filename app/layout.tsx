@@ -36,7 +36,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="min-h-full">
         <VulcanSessionProvider initialLoggedIn={initial.loggedIn} initialAccount={initial.account}>
           {initial.loggedIn ? (
-            <div className="app-shell flex min-h-screen">
+            <div className="app-shell flex min-h-screen flex-col lg:flex-row">
               <Sidebar />
               <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
                 <div className="mx-auto max-w-[1280px]">{children}</div>
