@@ -1,0 +1,241 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="eduVULCAN. Dostęp do informacji z Dziennika VULCAN">
+        <meta name="robots" content="noindex">
+    <title>eduVULCAN logowanie</title>
+    <link rel="stylesheet" href="/Content/Dist/main.min.css?_=26.9.1.2456" />
+    <link href="/Content/Fonts/work-sans.css?_=26.9.1.2456" rel="stylesheet" />
+    <link href="/Content/Fonts/plus-jakarta-sans.css?_=26.9.1.2456" rel="stylesheet" />
+    <link href="/Content/Fonts/material-symbols-outlined.css?_=26.9.1.2456" rel="stylesheet" />
+    <script src="/Scripts/jquery-3.7.1.min.js?_=26.9.1.2456"></script>
+    <script src="/Scripts/jquery-ui-1.14.1.min.js?_=26.9.1.2456"></script>
+    <script src="/Scripts/jquery.validate-1.21.min.js"></script>
+    <script src="/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="/Content/Dist/main.min.js?_=26.9.1.2456"></script>
+    
+</head>
+<body>
+    
+
+
+    <header id="header_layout" class="flex flex-center-cross">
+    <div id="header-box_layout" class="header-appearance">
+        <div class="header-part-1">
+            <a id="eduvulcan-logo" href="/" class="eduVulcan-logo-dim" aria-label="Przejście do strony głównej">
+                <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 595.3 202.2" xml:space="preserve">
+                <style type="text/css">
+                    .st0 {
+                        fill: #2A2835;
+                    }
+
+                    .st1 {
+                        fill: #006BD6;
+                    }
+</style>
+                <g>
+                <g>
+                <path class="st0" d="M303,91.1l-24.9,57.3l-24.9-57.3h12.9l12.4,30.9l11.7-30.9H303z" />
+                <path class="st0" d="M323.8,130.5c1.2,1.6,2.5,2.8,4.1,3.9c1.8,0.9,3.7,1.4,5.5,1.4c2.1,0,4.1-0.5,5.8-1.4
+									c1.8-0.9,3.2-2.3,4.1-3.9c0.9-1.6,1.6-3.2,1.6-5.1V90.9h10.6v34.8c0,3.9-0.9,7.4-3,10.6c-2.1,3.2-4.6,5.5-8.1,7.4
+									c-3.5,1.8-7.1,2.5-11.3,2.5c-4.1,0-7.8-0.9-11.1-2.5c-3.5-1.8-6-4.1-8.1-7.4c-2.1-3.2-3-6.7-3-10.6V91.1h10.8v34.5
+									C322.1,127.2,322.8,129.1,323.8,130.5z" />
+                <path class="st0" d="M379.5,91.1v44.2h25.8v10.4h-36.4V91.1H379.5z" />
+                <path class="st0" d="M449.3,144.7c-3,1.2-6.2,1.6-9.9,1.6c-5.8,0-10.6-1.2-15-3.7c-4.1-2.5-7.4-5.8-9.7-9.9
+									c-2.3-4.1-3.5-8.8-3.5-13.8c0-5.5,1.2-10.4,3.5-14.7c2.3-4.4,5.3-7.6,9.4-10.1c4.1-2.5,8.8-3.7,13.8-3.7c3.2,0,6.4,0.5,9.2,1.4
+									c2.8,0.9,5.3,2.1,7.4,3.5l-4.1,10.1c-3.9-3-7.8-4.4-12-4.4c-2.8,0-5.3,0.7-7.8,2.3c-2.5,1.6-4.4,3.7-5.8,6.2
+									c-1.4,2.5-2.1,5.5-2.1,8.8c0,3.5,0.7,6.7,2.1,9.2c1.4,2.5,3.2,4.6,5.8,6.2c2.5,1.4,5.3,2.3,8.8,2.3c2.8,0,5.1-0.5,7.1-1.4
+									c2.1-0.9,3.9-1.8,5.1-3l4.4,9.7C454.6,142.4,452.3,143.6,449.3,144.7z" />
+                <path class="st0" d="M493.7,135.1h-18.2l-4.4,10.6h-10.6l24.6-56.9h0.7l24.6,56.9h-12.4L493.7,135.1z M490.3,126.1l-5.3-13.4
+									l-5.5,13.4H490.3z" />
+                <path class="st0" d="M567.6,91.1V148h-0.2l-38.2-34.5l0.2,32.2h-10.8V89h0.5l38.2,35l-0.2-32.9H567.6z" />
+					</g>
+				</g>
+                <g>
+                <path class="st1" d="M129.8,174.4c2.4-0.5,4.5-1,6.4-1.6V55.3l-21.4,3.4v38.2l-1.5-0.6c-2.6-1.1-5.1-2-7.6-2.6
+								c-2.5-0.6-5.3-0.9-8.5-0.9c-2.8,0-5.6,0.2-8.1,0.7c-5.9,0.6-16.5,1.3-22.9-0.6c-0.6-0.2-1.1-0.3-1.7-0.5c-0.6-0.3-1-0.4-1.3-0.5
+								c-1.7-0.7-3.1-1.4-4.2-2.3c-3.9-2.8-6.3-6.6-7.1-11.3l-0.2-1.2H105c0.1-1.2,0.2-2.6,0.3-4.2c0.1-1.6,0.2-3.1,0.2-4.4
+								c0-13.6-3.3-24.1-10-31C89,30.5,79.8,27,68.4,27c-4.9,0-9.7,0.9-14.3,2.8c-4.6,1.8-8.8,4.6-12.3,8.1c-3.6,3.6-6.5,8.1-8.7,13.4
+								c-2.2,5.4-3.3,11.7-3.3,18.9c0,6,0.9,11.6,2.5,16.7c1.7,5.1,4.3,9.5,7.8,13.2c3.5,3.7,8,6.7,13.3,8.8c3.2,1.3,6.9,2.2,11.1,2.7
+								l1.4,0.2l-0.5,1.3c-0.7,1.6-1.2,3-1.6,4.4c-1.6,5.3-2.5,11.3-2.5,17.9c0,6.5,1,12.4,2.8,17.5c1.9,5.1,4.6,9.6,8.2,13.2
+								c3.6,3.6,8,6.4,13.2,8.3c7.4,2.8,16.3,3.4,26.7,2.5c3.1-0.3,6.1-0.6,9.1-1C124.2,175.5,127.1,175,129.8,174.4z M51.8,61
+								c0.3-2.1,0.8-4.1,1.5-6.1c0.7-2.1,1.8-3.9,3.1-5.4c1.3-1.6,3.1-2.9,5.1-3.8c2-1,4.5-1.4,7.2-1.4c2.9,0,5.3,0.5,7.3,1.5
+								c2,1,3.6,2.3,4.9,3.9c1.3,1.6,2.3,3.4,2.9,5.4c0.6,2,1,4,1.1,6.1l0.1,1.1H51.6L51.8,61z M114.8,158.4l-0.9,0.2
+								c-1.2,0.2-2.7,0.4-4.5,0.6c-1.8,0.2-3.8,0.2-5.9,0.2c-6.7,0-11.9-2.4-15.3-7c-3.4-4.6-5.1-10.7-5.1-18.1c0-15.7,6-23.7,17.7-23.7
+								c2.5,0,5,0.3,7.4,1c2.5,0.7,4.5,1.5,6,2.5l0.5,0.3V158.4z" />
+                <path class="st1" d="M152.5,116.4c2.6,3.3,6.2,5.8,10.7,7.6c4.5,1.8,10.3,2.8,17.2,2.8c6.8,0,13.5-0.5,19.7-1.5
+								c5.8-0.9,10.7-1.9,14.6-3l-0.1-38.8h0l0-29.8c0-5.4-2.6-10.2-7.1-13.2c-4.2-2.8-9.5-3.5-14.2-1.8l0,69.2l-0.9,0.1
+								c-1.5,0.2-3.1,0.4-5.1,0.6c-1.9,0.2-3.7,0.2-5.4,0.2c-5.8,0-9.9-1.9-12.1-5.5c-2.1-3.6-3.1-9.1-3.1-16.9V44.1h-21.4v45.1
+								c0,5.6,0.6,10.7,1.7,15.3C148,109.1,149.9,113.1,152.5,116.4z" />
+				</g>
+			</svg>
+            </a>
+        </div>
+        <div class="header-part-2">
+            <div class="empty-area-wide"></div>
+                <div>
+                    <div id="wcag-tools">
+    <button type="button" id="wcag-tools-toggle" class="wcag-tools-toggle" title="Ustawienia dostępności" aria-haspopup="dialog" aria-controls="wcag-tools-menu" aria-expanded="true">
+        <span class="wcag-tools-toggle__icon icon-accessibility" aria-hidden="true"></span>
+    </button>
+    <div id="wcag-tools-menu" class="wcag-tools-menu" role="dialog" aria-labelledby="wcag-tools-title" aria-hidden="false" tabindex="-1" hidden>
+        <div class="wcag-tools-menu__header">
+            <h2 id="wcag-tools-title" class="wcag-tools-menu__title">Ustawienia dostępności</h2>
+            <button type="button" class="wcag-tools-menu__close" data-action="close" aria-label="Zamknij ustawienia dostępności">
+                <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" focusable="false">
+                    <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="wcag-tools-menu__group" aria-labelledby="wcag-font-size-label">
+            <span id="wcag-font-size-label" class="wcag-tools-menu__label">Rozmiar tekstu</span>
+            <div class="wcag-font-size-controls">
+                <button type="button" class="wcag-font-size-button" data-action="font-size-decrease" aria-label="Zmniejsz rozmiar tekstu" disabled=""><span aria-hidden="true">A−</span></button>
+                <output class="wcag-font-size-value" data-wcag-font-size="" aria-live="polite">100%</output>
+                <button type="button" class="wcag-font-size-button" data-action="font-size-increase" aria-label="Zwiększ rozmiar tekstu"><span aria-hidden="true">A+</span></button>
+            </div>
+        </div>
+
+        <button type="button" class="wcag-contrast-control" data-action="toggle-contrast" aria-pressed="false">
+            <span>
+                <strong>Wysoki kontrast</strong>
+                <small data-wcag-contrast-state="">Wyłączony</small>
+            </span>
+            <span class="wcag-switch" aria-hidden="true"><span></span></span>
+        </button>
+
+        <button type="button" class="wcag-tools-menu__reset" data-action="reset" disabled="">Przywróć ustawienia domyślne</button>
+    </div>
+</div>
+
+                    
+                </div>
+        </div>
+    </div>
+</header>
+
+    <div class="main">
+        <div class="page-center-box flex-col flex-center-main flex-center-cross flex-1">
+            
+
+<div class="center-box px-8 py-5 mb-5">
+
+    <form action="" method="post" id="form1" data-queryuri="https://eduvulcan.pl/Account/QueryUserInfo" data-queryskip="False" class="flex-col gap-3">
+        <div>
+            <h2 class="form-focused-title mt-2 mb-2">Logowanie </h2>
+            <span class="form-focused-subtitle pb-2">krok <span id="titlestep">1</span> z 2</span>
+        </div>
+
+        <div id="wizard1" class="flex-col gap-3 mt-2 mb-2">
+            <div id="localMessage" class="message-error" style="display: none">
+            </div>
+            <div class="input-components">
+                <label for="UserName">Login:</label>
+                <input aria-required="true" autocapitalize="off" autocomplete="username" data-val="true" data-val-required="To pole jest wymagane" id="UserName" name="UserName" spellcheck="false" type="text" value="" />
+                <span class="field-validation-valid" data-valmsg-for="UserName" data-valmsg-replace="true"></span>
+            </div>
+
+            <div class="flex-col gap-3 my-2">
+                <button id="btNext" class="base-button button-primary button-wide">Dalej</button>
+                <div class="flex-row">
+                    <a href="/utworzKonto" class="link-simple flex mx-1">Utwórz konto</a>
+                    <a href="/konto/reset" class="link-simple flex ml-auto">Nie pamiętam hasła</a>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div id="wizard2" style="display:none" class="flex-col gap-3 mt-2 mb-2">
+            <div id="localMessage2" class="message-error" style="display: none">
+            </div>
+            <div class="input-components">
+                <label for="Password">Hasło użytkownika <span id="lblPassword" class="input-span-bold-wrapped"></span>:</label>
+                <input aria-required="true" autocapitalize="off" autocomplete="current-password" id="Password" name="Password" spellcheck="false" type="password" />
+                <span class="field-validation-valid" data-valmsg-for="Password" data-valmsg-replace="true"></span>
+            </div>
+            <div id="captcha">
+                <div class="captcha-wrapper input-components" data-challenge="980ec699-fe3e-4fc4-a803-f68617fc1f2f" data-difficulty="100000" data-rounds="15"><div class="captcha-progress-wrapper child active" id="captcha-progress-wrapper"><label class="captcha-progress-label">Zabezpieczenie przed robotami - proszę czekać</label>
+<div class="captcha-progress"><span class="captcha-progress-fill" id="captcha-progress-fill" style="width: 0%"></span>
+<span class="captcha-progress-text" id="captcha-progress-text"></span>
+</div>
+</div>
+<div class="captcha-success-wrapper child" id="captcha-success-wrapper"><span class="captcha-success-mark">&#x2713</span>
+<span class="captcha-success-label">zabezpieczenie przed robotami - zakończono sprawdzanie</span>
+</div>
+<input id="captcha-response" name="captcha-response" type="hidden"></input>
+</div>
+            </div>
+            <div class="flex-col gap-3 my-2">
+                <button id="btLogOn" class="base-button button-primary button-wide captcha-input">Zaloguj</button>
+                <button id="btPrev" class="button-simple flex mx-3">Wróć do wpisywania loginu</button>
+            </div>
+        </div>
+
+        <input name="__RequestVerificationToken" type="hidden" value="64cCG1-s7GtsesK3NLQ6lXtndhNdkU-g4oILR4vH8KP6mwkSbVWLq1s3kldz9qecCUgVZisibmSMHzYj-vGUFcB4WvQ1" />
+    </form>
+</div>
+
+<div class="center-box px-8 py-5" id="fidoAvailable">
+
+    <div class="flex-col gap-3 mt-2 mb-2">
+        <div id="localMessage-fido" class="message-error" style="display: none">
+        </div>
+
+        <div class="passkey-box gap-2">
+            <span class="material-symbols-outlined user-select-none">qr_code_scanner</span>
+            <span class="material-symbols-outlined user-select-none">ar_on_you</span>
+            <span class="material-symbols-outlined user-select-none">fingerprint</span>
+            <span class="material-symbols-outlined user-select-none">security_key</span>
+            <span class="material-symbols-outlined user-select-none">id_card</span>
+        </div>
+
+        <div class="flex-row gap-3 mt-2 mb-2">
+            <button type="button" id="btAssertion" class="passkey-button button-secondary flex-1">Użyj klucza dostępu</button>
+            <a class="flex flex-center-cross link-simplest" href="/logowanieKluczDostepuInfo?ReturnUrl=%2Flogowanie">
+                <span class="material-symbols-outlined px-2 flex-center-cross" style="display: flex">help</span>
+            </a>
+        </div>
+    </div>
+
+</div>
+
+
+        </div>
+        <footer>
+    <div class="footer-content">
+            <div>    26.9.1.2456
+ <a href="/game">&copy;</a> <a id="vulcan-website-link" target="_blank" href="https://www.vulcan.edu.pl" rel="noopener noreferrer nofollow">VULCAN</a></div>
+        <div class="footer-links">
+            <a title="Regulamin" data-mimetype="application/pdf" href="/dokumenty/regulamin" id="regulations-link" target="_blank" rel="noopener noreferrer nofollow"><span class="footer-links-small material-symbols-outlined">contract</span><span class="footer-links-big">Regulamin</span></a>
+            <a title="Polityka prywatności" href="" id="information-clause-link"><span class="footer-links-small material-symbols-outlined">article</span><span class="footer-links-big">Polityka prywatności</span></a>
+            <a title="Ustawienia cookies" href="" id="cookie-settings-link"><span class="footer-links-small material-symbols-outlined">cookie</span><span class="footer-links-big">Ustawienia cookies</span></a>
+        </div>
+    </div>
+</footer>
+
+    </div>
+    
+    <script src="/Scripts/general/defaultButtonHandler.js?_=26.9.1.2456"></script>
+    <script src="/Scripts/account/logon.js?_=26.9.1.2456"></script>
+
+
+    <div id="information-clause-wrapper" class="cookie-wrapper item-hidden">
+    <iframe id="information-clause-frame" title="Polityka prywatności" src="/klauzulaInformacyjna" class="cookie-frame" loading="lazy">
+    </iframe>
+</div>
+<div id="respect-privacy-wrapper" class="cookie-wrapper item-hidden">
+    <iframe id="respect-privacy-frame" title="Szanujemy Twoją prywatność" src="/szanujemyPrywatnosc" class="cookie-frame" loading="lazy">
+    </iframe>
+</div>
+<div id="cookie-settings-wrapper" class="cookie-wrapper item-hidden">
+    <iframe id="cookie-settings-frame" title="Szanujemy Twoją prywatność" src="/ustawieniaCookie" class="cookie-frame" loading="lazy">
+    </iframe>
+</div>
+
+</body>
+</html>
