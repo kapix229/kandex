@@ -135,6 +135,9 @@ async function supabaseRequest<T>(
   const headers = new Headers(init.headers);
   headers.set("apikey", config.key);
   headers.set("Content-Type", "application/json");
+  // Make it explicit that this request originates from our server backend.
+  // Supabase secret keys are rejected when the request looks browser-originated.
+  headers.set("User-Agent", "kandex-backend/1.0");
   if (config.key.startsWith("eyJ")) {
     headers.set("Authorization", `Bearer ${config.key}`);
   } else {
