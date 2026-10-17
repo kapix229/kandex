@@ -12,7 +12,7 @@ type AttendanceEntry = {
 type AttendanceResponse = {
   success: boolean;
   data?: {
-    summary: { present: number; absent: number; late: number; excused: number };
+    summary: { present: number; absent: number; late: number; excused: number; unknown: number };
     entries: AttendanceEntry[];
   };
   error?: { message?: string };
@@ -36,7 +36,7 @@ function formatDate(value: string) {
 
 export default function AttendancePage() {
   const [entries, setEntries] = useState<AttendanceEntry[]>([]);
-  const [summary, setSummary] = useState({ present: 0, absent: 0, late: 0, excused: 0 });
+  const [summary, setSummary] = useState({ present: 0, absent: 0, late: 0, excused: 0, unknown: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
@@ -54,7 +54,7 @@ export default function AttendancePage() {
         throw new Error(result.error?.message ?? "Nie udało się pobrać frekwencji.");
       }
       setEntries(result.data.entries ?? []);
-      setSummary(result.data.summary ?? { present: 0, absent: 0, late: 0, excused: 0 });
+      setSummary(result.data.summary ?? { present: 0, absent: 0, late: 0, excused: 0, unknown: 0 });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Wystąpił błąd podczas pobierania frekwencji.");
     } finally {
@@ -85,7 +85,7 @@ export default function AttendancePage() {
     return () => { cancelled = true; };
   }, []);
 
-  const total = summary.present + summary.absent + summary.late + summary.excused;
+  const total = summary.present + summary.absent + summary.late + summary.excused + summary.unknown;
   const presenceRate = total ? Math.round(((summary.present + summary.late) / total) * 100) : 0;
   const filteredEntries = useMemo(() => entries
     .filter((entry) => filter === "all" || entry.status === filter)
@@ -111,7 +111,7 @@ export default function AttendancePage() {
         <div className="workspace-card rounded-2xl p-12 text-center text-sm text-[var(--text-muted)]">Pobieranie frekwencji z EduVULCAN…</div>
       ) : (
         <>
-          <section className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+          <section className="grid grid-cols-2 gap-3 xl:grid-cols-6">
             <div className="workspace-card col-span-2 rounded-2xl p-5 xl:col-span-1">
               <p className="text-sm text-[var(--text-muted)]">Frekwencja</p>
               <p className="mt-2 text-3xl font-extrabold text-[var(--text)]">{total ? `${presenceRate}%` : "—"}</p>
@@ -124,6 +124,7 @@ export default function AttendancePage() {
               ["Nieobecności", summary.absent, "text-rose-300"],
               ["Spóźnienia", summary.late, "text-amber-200"],
               ["Usprawiedliwione", summary.excused, "text-sky-200"],
+              ["Nieznany status", summary.unknown, "text-[var(--text-muted)]"],
             ] as const).map(([label, value, color]) => (
               <div key={label} className="workspace-card rounded-2xl p-5">
                 <p className="text-sm text-[var(--text-muted)]">{label}</p>
@@ -176,7 +177,7 @@ export default function AttendancePage() {
               </div>
             )}
           </section>
-          <p className="text-xs leading-relaxed text-[var(--text-tertiary)]">Dane pochodzą z ostatniej synchronizacji EduVULCAN. Procent liczony jest z wpisów oznaczonych jako obecność, nieobecność, spóźnienie lub usprawiedliwienie; statusy nieznane nie wchodzą do wyliczenia.</p>
+          <p className="text-xs leading-relaxed text-[var(--text-tertiary)]">Dane pochodzą z ostatniej synchronizacji EduVULCAN. Procent liczony jest ze wszystkich wpisów frekwencji. Obecności i spóźnienia są liczone jako obecność; nieznane statusy pozostają w mianowniku, aby nie zawyżać wyniku.</p>
         </>
       )}
     </div>
