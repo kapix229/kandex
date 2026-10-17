@@ -85,7 +85,7 @@ export default function SubjectsPage() {
         const grouped = new Map<string, VulcanGrade[]>();
         for (const grade of data.data?.grades ?? []) {
           const rawValue = String(grade.value).trim().replace(",", ".");
-          const parsed = rawValue.match(/^(\\d+(?:\\.\\d+)?)([+-])?$/);
+          const parsed = rawValue.match(/^(\d+(?:\.\d+)?)([+-])?$/);
           const parsedValue = parsed
             ? Number(parsed[1]) + (parsed[2] === "+" ? 0.25 : parsed[2] === "-" ? -0.25 : 0)
             : Number.NaN;
