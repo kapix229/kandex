@@ -131,7 +131,7 @@ export async function POST(req: Request) {
     // Only surface known, non-sensitive configuration errors. Never return upstream
     // HTML or raw authentication responses, which may contain private data.
     const rawMessage = error instanceof Error ? error.message : "";
-    const safeMessage = /^(Magazyn sesji Supabase zwrócił HTTP \\d+\\. Sprawdź konfigurację klucza i tabeli\\.|Brak konfiguracji Supabase\\..*|Brak konfiguracji Supabase dla unieważnienia sesji\\.)$/.test(rawMessage)
+    const safeMessage = /^(Magazyn sesji Supabase zwrócił HTTP \d+\. Sprawdź konfigurację klucza i tabeli\.|Brak konfiguracji Supabase\..*|Brak konfiguracji Supabase dla unieważnienia sesji\.)$/.test(rawMessage)
       ? rawMessage
       : "Wewnętrzny błąd podczas logowania. Sprawdź logi serwera.";
     console.error("[eduvulcan-login] unexpected server error", {
