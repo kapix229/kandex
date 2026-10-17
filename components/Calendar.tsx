@@ -95,7 +95,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                 new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
               )
             }
-            className="p-2 rounded-2xl hover:bg-white/[0.06] transition-colors duration-200"
+            className="p-2 rounded-2xl hover:bg-white/[0.025]/[0.06] transition-colors duration-200"
           >
             ←
           </button>
@@ -111,7 +111,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                 new Date(currentDate.getFullYear(), currentDate.getMonth() + 1)
               )
             }
-            className="p-2 rounded-2xl hover:bg-slate-100 transition-colors duration-200"
+            className="p-2 rounded-2xl hover:bg-white/[0.06] transition-colors duration-200"
           >
             →
           </button>
@@ -145,7 +145,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                   ? "bg-[#7c5cff]/20 border-[#8b70ff] shadow-[0_0_18px_rgba(124,92,255,0.16)] font-bold"
                   : selectedDate?.toDateString() === day.date.toDateString()
                     ? "bg-[#7c5cff]/12 border-[#7c5cff]/60 shadow-md ring-1 ring-[#7c5cff]/40"
-                    : "bg-white/[0.025] border-[var(--border)] hover:bg-white/[0.06] hover:border-[var(--border-strong)]"
+                    : "bg-white/[0.025]/[0.025] border-[var(--border)] hover:bg-white/[0.025]/[0.06] hover:border-[var(--border-strong)]"
                 : "bg-black/10 border-[var(--border)]"
             }`}
           >
@@ -156,7 +156,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                   : selectedDate?.toDateString() === day.date.toDateString()
                     ? "text-[#b8aaff]"
                     : day.isCurrentMonth
-                      ? "text-slate-950"
+                      ? "text-[var(--text)]"
                       : "text-[var(--text-tertiary)]"
               }`}
             >
@@ -170,7 +170,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                   <EventBadge key={event.id} event={event} compact />
                 ))}
                 {day.events.length > 2 && (
-                  <div className="text-xs text-slate-400 font-medium">
+                  <div className="text-xs text-[var(--text-tertiary)] font-medium">
                     +{day.events.length - 2}
                   </div>
                 )}
@@ -194,15 +194,15 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
               .map((event) => (
                 <div
                   key={event.id}
-                  className="p-3 bg-slate-50 rounded-2xl border-slate-200/70 hover:bg-slate-100 transition-colors duration-200"
+                  className="p-3 bg-slate-50 rounded-2xl border-slate-200/70 hover:bg-white/[0.06] transition-colors duration-200"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                      <p className="text-sm font-medium text-slate-950">
+                      <p className="text-sm font-medium text-[var(--text)]">
                         {event.title}
                       </p>
                       {event.subject && (
-                        <p className="text-xs text-slate-400">{event.subject}</p>
+                        <p className="text-xs text-[var(--text-tertiary)]">{event.subject}</p>
                       )}
                     </div>
                     <span className="text-xs text-[var(--text-muted)] whitespace-nowrap">
