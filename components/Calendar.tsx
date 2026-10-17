@@ -95,7 +95,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                 new Date(currentDate.getFullYear(), currentDate.getMonth() - 1)
               )
             }
-            className="p-2 rounded-2xl hover:bg-white/[0.025]/[0.06] transition-colors duration-200"
+            className="p-2 rounded-2xl hover:bg-white/[0.06] transition-colors duration-200"
           >
             ←
           </button>
@@ -145,7 +145,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
                   ? "bg-[#7c5cff]/20 border-[#8b70ff] shadow-[0_0_18px_rgba(124,92,255,0.16)] font-bold"
                   : selectedDate?.toDateString() === day.date.toDateString()
                     ? "bg-[#7c5cff]/12 border-[#7c5cff]/60 shadow-md ring-1 ring-[#7c5cff]/40"
-                    : "bg-white/[0.025]/[0.025] border-[var(--border)] hover:bg-white/[0.025]/[0.06] hover:border-[var(--border-strong)]"
+                    : "bg-white/[0.025] border-[var(--border)] hover:bg-white/[0.06] hover:border-[var(--border-strong)]"
                 : "bg-black/10 border-[var(--border)]"
             }`}
           >
@@ -194,7 +194,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
               .map((event) => (
                 <div
                   key={event.id}
-                  className="p-3 bg-slate-50 rounded-2xl border-slate-200/70 hover:bg-white/[0.06] transition-colors duration-200"
+                  className="p-3 bg-white/[0.025] rounded-2xl border border-[var(--border)] hover:bg-white/[0.06] transition-colors duration-200"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
