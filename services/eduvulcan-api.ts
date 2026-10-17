@@ -65,6 +65,7 @@ export async function getEduVulcanAttendance(sessionId: string | undefined): Pro
       absent: entries.filter((entry) => entry.status === "absent").length,
       late: entries.filter((entry) => entry.status === "late").length,
       excused: entries.filter((entry) => entry.status === "excused").length,
+      unknown: entries.filter((entry) => entry.status === "unknown").length,
     },
     entries,
   };
