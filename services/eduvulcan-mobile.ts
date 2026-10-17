@@ -568,6 +568,32 @@ async function fetchMobileRows<T>(
   return data.Envelope;
 }
 
+/** Split long attendance history into month-sized requests to stay below API result caps. */
+async function fetchMobileRowsInDateChunks<T>(
+  session: MobileSession,
+  endpoint: "lesson/byPupil",
+  dateFrom: Date,
+  dateTo: Date,
+): Promise<T[]> {
+  const startTime = Date.UTC(dateFrom.getUTCFullYear(), dateFrom.getUTCMonth(), dateFrom.getUTCDate());
+  const endTime = Date.UTC(dateTo.getUTCFullYear(), dateTo.getUTCMonth(), dateTo.getUTCDate());
+  const chunkMilliseconds = 30 * 24 * 60 * 60 * 1000;
+  const rows: T[] = [];
+
+  for (let chunkStart = startTime; chunkStart <= endTime; chunkStart += chunkMilliseconds) {
+    const chunkEnd = Math.min(chunkStart + chunkMilliseconds - 24 * 60 * 60 * 1000, endTime);
+    const chunkRows = await fetchMobileRows<T>(
+      session,
+      endpoint,
+      new Date(chunkStart),
+      new Date(chunkEnd),
+    );
+    rows.push(...chunkRows);
+  }
+
+  return rows;
+}
+
 function parseGradeValue(raw: string | number | null | undefined): number {
   const normalized = String(raw ?? "").trim().replace(",", ".");
   const match = normalized.match(/\d+(?:\.\d+)?/);
@@ -653,7 +679,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
         console.error("[eduvulcan] snapshot homework failed", error instanceof Error ? error.message : "Unknown error");
         return null;
       }),
-    fetchMobileRows<MobileAttendance>(session, "lesson/byPupil", schoolYearStart, attendanceTo)
+    fetchMobileRowsInDateChunks<MobileAttendance>(session, "lesson/byPupil", schoolYearStart, attendanceTo)
       .then((Envelope) => ({ Envelope }))
       .catch((error: unknown) => {
         console.error("[eduvulcan] snapshot attendance failed", error instanceof Error ? error.message : "Unknown error");
