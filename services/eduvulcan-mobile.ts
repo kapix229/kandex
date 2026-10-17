@@ -600,6 +600,12 @@ export async function fetchMobileSnapshot(sessionId: string) {
       gradeCount: subject.count,
     })),
     grades: normalizedGrades,
+    syncStatus: {
+      grades: grades !== null,
+      lessons: lessons !== null,
+      homework: homework !== null,
+      attendance: attendance !== null,
+    },
     schedule: lessonRows.flatMap((lesson: MobileLesson) => {
       const date = schoolDate(lesson), start = lessonStartDate(lesson);
       if (!date || !start) {
