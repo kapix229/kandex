@@ -534,6 +534,13 @@ function formatGradeValue(raw: string | number | null | undefined): string {
   return String(raw ?? "").trim().replace(",", ".");
 }
 
+function gradeDisplayValue(grade: Pick<MobileGrade, "ContentRaw" | "Content" | "Value">): string {
+  const candidates = [grade.ContentRaw, grade.Content, grade.Value]
+    .filter((value): value is string | number => value !== undefined && value !== null && String(value).trim() !== "");
+  const modified = candidates.find((value) => /^\d+(?:[.,]\d+)?[+-]$/.test(String(value).trim()));
+  return formatGradeValue(modified ?? candidates[0]);
+}
+
 export async function fetchMobileGrades(sessionId: string) {
   const session = await getMobileSession(sessionId);
   if (!session) throw new Error("SESSION_EXPIRED");
@@ -554,7 +561,7 @@ export async function fetchMobileGrades(sessionId: string) {
     // EduVULCAN keeps the visible mark (for example "4+") in ContentRaw /
     // Content; Value can contain only the base numeric grade. Always parse
     // the display label first so the modifier affects both display and average.
-    const displayValue = formatGradeValue(grade.ContentRaw ?? grade.Content ?? grade.Value);
+    const displayValue = gradeDisplayValue(grade);
     const parsedDisplayValue = parseGradeValue(displayValue);
     const value = Number.isFinite(parsedDisplayValue) ? parsedDisplayValue : parseGradeValue(grade.Value);
     if (!Number.isFinite(value)) return [];
