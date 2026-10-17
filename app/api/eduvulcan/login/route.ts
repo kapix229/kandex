@@ -39,6 +39,18 @@ function successResponse(result: { sessionId?: string; account?: { fullName: str
   return response;
 }
 
+export async function DELETE() {
+  const response = NextResponse.json({ success: true });
+  response.cookies.set(EDUVULCAN_SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_USE_HTTPS === "true",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  return response;
+}
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json()) as {
