@@ -170,6 +170,10 @@ const SESSION_FILE = path.join(process.cwd(), ".data", "vulcan-sessions.json");
 const sessions = new Map<string, CachedSession>();
 
 function ensureSessionStore(): void {
+  // Vercel's deployed function filesystem is read-only. The legacy Vulcan
+  // session cache is process-local there, so never create .data during import.
+  if (process.env.VERCEL === "1") return;
+
   const dir = path.dirname(SESSION_FILE);
   fs.mkdirSync(dir, { recursive: true });
   if (!fs.existsSync(SESSION_FILE)) {
@@ -178,6 +182,9 @@ function ensureSessionStore(): void {
 }
 
 function persistSessionStore(): void {
+  // Do not write to the read-only deployment filesystem.
+  if (process.env.VERCEL === "1") return;
+
   ensureSessionStore();
   const serializable = Object.fromEntries(
     Array.from(sessions.entries()).map(([key, value]) => {
@@ -194,6 +201,9 @@ function persistSessionStore(): void {
 }
 
 function loadSessionStore(): void {
+  // Avoid filesystem access during serverless module initialization.
+  if (process.env.VERCEL === "1") return;
+
   ensureSessionStore();
   try {
     const raw = fs.readFileSync(SESSION_FILE, "utf8");
