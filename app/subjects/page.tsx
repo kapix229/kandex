@@ -142,7 +142,7 @@ export default function SubjectsPage() {
         <div>
           <h1 className="text-3xl font-bold text-[var(--text)] mb-2">Oceny</h1>
           <p className="text-[var(--text-muted)] text-sm">
-            Dziennik ocen zsynchronizowany z Twoim kontem Vulcan
+            Oceny zsynchronizowane z Twoim kontem EduVULCAN
           </p>
         </div>
         {account && (
@@ -207,7 +207,7 @@ export default function SubjectsPage() {
                     onClick={() => setSelectedSubject(s.subject)}
                     className={`w-full text-left rounded-xl border p-4 transition-all ${
                       isActive
-                        ? "bg-[#7c5cff]/15 border-[#7c5cff]/50 shadow-[0_0_24px_rgba(124,92,255,0.08)]"
+                        ? "bg-[#A995BA]/[0.12] border-[#A995BA]/45 shadow-sm"
                         : "bg-white/[0.025] border-[var(--border)] hover:bg-white/[0.06]"
                     }`}
                   >
@@ -215,7 +215,7 @@ export default function SubjectsPage() {
                       <div>
                         <p
                           className={`font-semibold ${
-                            isActive ? "text-[#c7beff]" : "text-[var(--text)]"
+                            isActive ? "text-[#D8C8E2]" : "text-[var(--text)]"
                           }`}
                         >
                           {s.subject}
