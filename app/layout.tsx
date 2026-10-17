@@ -45,6 +45,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               <aside className="hidden w-[360px] shrink-0 border-l border-[var(--border)] bg-[var(--surface)]/75 p-4 backdrop-blur-xl xl:flex xl:flex-col">
                 <AIAssistant />
               </aside>
+              <AIMobileLauncher />
             </div>
           ) : (
             children
