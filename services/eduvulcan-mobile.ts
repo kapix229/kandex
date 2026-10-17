@@ -161,6 +161,15 @@ type MobileHomework = {
   Deadline?: { Timestamp?: number };
 };
 
+type MobileExam = {
+  Id: string | number;
+  Content?: string;
+  Type?: string;
+  Subject?: { Name?: string };
+  Deadline?: { Timestamp?: number; Date?: string };
+  DateCreated?: { Timestamp?: number; Date?: string };
+};
+
 type MobileAttendance = {
   Id: string | number;
   LessonId?: string | number;
@@ -593,11 +602,11 @@ export async function fetchMobileSnapshot(sessionId: string) {
 
   // Każdy obszar pobieramy niezależnie. Zachowujemy też bezpieczne komunikaty
   // błędów, aby interfejs mógł pokazać przyczynę nieudanego importu.
-  const syncErrors: Partial<Record<"grades" | "lessons" | "homework" | "attendance", string>> = {};
+  const syncErrors: Partial<Record<"grades" | "lessons" | "homework" | "exams" | "attendance", string>> = {};
   const errorMessage = (error: unknown) =>
     error instanceof Error ? error.message : "Nieznany błąd API EduVULCAN.";
 
-  const [grades, lessons, homework, attendance] = await Promise.all([
+  const [grades, lessons, homework, exams, attendance] = await Promise.all([
     api.getGrades().catch((error: unknown) => {
       syncErrors.grades = errorMessage(error);
       console.error("[eduvulcan] snapshot grades failed", syncErrors.grades);
@@ -615,6 +624,12 @@ export async function fetchMobileSnapshot(sessionId: string) {
         console.error("[eduvulcan] snapshot homework failed", syncErrors.homework);
         return null;
       }),
+    fetchRowsInDateChunks<MobileExam>(from, to, (chunkFrom, chunkTo) => api.getExams(chunkFrom, chunkTo), 14)
+      .catch((error: unknown) => {
+        syncErrors.exams = errorMessage(error);
+        console.error("[eduvulcan] snapshot exams failed", syncErrors.exams);
+        return null;
+      }),
     fetchRowsInDateChunks<MobileAttendance>(schoolYearStart, attendanceTo, (chunkFrom, chunkTo) => api.getAttendance(chunkFrom, chunkTo), 14)
       .catch((error: unknown) => {
         syncErrors.attendance = errorMessage(error);
@@ -626,6 +641,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const gradeRows = grades?.Envelope ?? [];
   const lessonRows = lessons?.Envelope ?? [];
   const homeworkRows = homework?.Envelope ?? [];
+  const examRows = exams?.Envelope ?? [];
   const attendanceRows = attendance?.Envelope ?? [];
 
   const subjectMap = new Map<string, { id: string; name: string; values: number[]; count: number }>();
@@ -675,6 +691,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
       grades: grades !== null,
       lessons: lessons !== null,
       homework: homework !== null,
+      exams: exams !== null,
       attendance: attendance !== null,
     },
     syncErrors,
@@ -707,6 +724,15 @@ export async function fetchMobileSnapshot(sessionId: string) {
       subject: item.Subject?.Name,
       dueDate: dateFromTimestamp(item.Deadline?.Timestamp)?.toISOString(),
       completed: false,
+    })),
+    exams: examRows.map((item: MobileExam) => ({
+      id: String(item.Id),
+      title: item.Content ?? item.Type ?? "Sprawdzian",
+      subject: item.Subject?.Name,
+      date: dateFromTimestamp(item.Deadline?.Timestamp ?? item.DateCreated?.Timestamp)?.toISOString()
+        ?? parseCalendarDate(item.Deadline?.Date ?? item.DateCreated?.Date)
+        ?? undefined,
+      type: item.Type ?? "exam",
     })),
     attendance: attendanceRows.flatMap((item: MobileAttendance) => {
       const presence = item.PresenceType;
