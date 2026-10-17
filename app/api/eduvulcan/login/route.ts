@@ -62,6 +62,14 @@ export async function DELETE() {
     path: "/",
     maxAge: 0,
   });
+  // Also clear the legacy cookie so the root layout cannot restore an old session.
+  response.cookies.set("vulcan_token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_USE_HTTPS === "true",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
   return response;
 }
 
