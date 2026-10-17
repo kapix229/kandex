@@ -11,6 +11,20 @@ export async function GET() {
       cookieStore.get(EDUVULCAN_SESSION_COOKIE)?.value,
     );
 
+    // Do not report a successful empty calendar when EduVULCAN failed to load
+    // lessons or homework. Keep partial data available when one source works.
+    if (!snapshot.syncStatus.lessons && !snapshot.syncStatus.homework) {
+      throw new Error("EduVULCAN nie zwrócił ani planu lekcji, ani zadań.");
+    }
+    if (!snapshot.syncStatus.lessons || !snapshot.syncStatus.homework) {
+      console.warn("[eduvulcan] calendar returned partial data", {
+        lessonsAvailable: snapshot.syncStatus.lessons,
+        homeworkAvailable: snapshot.syncStatus.homework,
+        lessonsCount: snapshot.schedule.length,
+        homeworkCount: snapshot.assignments.length,
+      });
+    }
+
     const lessons = snapshot.schedule.map((lesson) => ({
       id: `lesson-${lesson.id}`,
       title: lesson.subject || "Lekcja",
