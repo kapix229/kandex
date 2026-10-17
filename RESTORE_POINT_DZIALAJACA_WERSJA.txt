@@ -1,0 +1,3 @@
+Punkt oznaczenia wersji.
+Commit bazowy: 0da844c2c169308071053f8d51a1f98a7047badd
+Uwaga: ten commit oznacza aktualny stan gałęzi, nie potwierdza testu działania aplikacji.
