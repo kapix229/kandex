@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import AIAssistant from "@/components/AIAssistant";
+import AIMobileLauncher from "@/components/AIMobileLauncher";
 import { VulcanSessionProvider } from "@/src/components/VulcanSessionProvider";
 import { resolveInitialSession } from "@/services/vulcan-session";
 import { getMobileSession } from "@/services/eduvulcan-mobile";
