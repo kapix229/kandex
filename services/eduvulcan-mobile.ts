@@ -21,7 +21,7 @@ function parseCalendarDate(value: string | undefined): string | null {
   if (!value) return null;
   const trimmed = value.trim();
   // Vulcan dates can be ISO strings or Polish dates (DD.MM.YYYY / DD-MM-YYYY).
-  const polish = trimmed.match(/^(\\d{1,2})[.\\/-](\\d{1,2})[.\\/-](\\d{4})$/);
+  const polish = trimmed.match(/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{4})$/);
   if (polish) {
     const day = Number(polish[1]);
     const month = Number(polish[2]);
@@ -32,7 +32,7 @@ function parseCalendarDate(value: string | undefined): string | null {
     }
     return null;
   }
-  const isoDate = trimmed.match(/^(\\d{4}-\\d{2}-\\d{2})/);
+  const isoDate = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
   if (isoDate) {
     const candidate = new Date(`${isoDate[1]}T12:00:00Z`);
     return Number.isNaN(candidate.getTime()) ? null : isoDate[1];
@@ -51,7 +51,7 @@ function lessonStartDate(lesson: MobileLesson): Date | null {
 function lessonEndDate(lesson: MobileLesson, start: Date): string | undefined {
   const rawTime = lesson.TimeSlot?.End?.trim();
   if (!rawTime) return undefined;
-  const match = rawTime.match(/^(\\d{1,2}):(\\d{2})(?::(\\d{2}))?$/);
+  const match = rawTime.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
   if (!match) return undefined;
   const hours = Number(match[1]);
   const minutes = Number(match[2]);
@@ -534,7 +534,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
       id: String(grade.Id),
       subject,
       value,
-      date: new Date(grade.DateCreated?.Timestamp ?? Date.now()).toISOString(),
+      date: (dateFromTimestamp(grade.DateCreated?.Timestamp) ?? new Date()).toISOString(),
       weight: Number(grade.Column?.Weight ?? 1),
       teacher: grade.Creator?.DisplayName,
       title: grade.Column?.Name,
