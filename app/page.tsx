@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useJournalProvider, setJournalProvider } from "@/src/hooks/useJournalProvider";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 import CalendarMini from "@/src/components/CalendarMini";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function HomePage() {
   const { account } = useVulcanSession();
   const provider = useJournalProvider();
   // Keep the journal chooser visible after refresh when the URL requests it.
-  const [chooseJournal] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("chooseJournal") === "1");
+  const [chooseJournal, setChooseJournal] = useState(false);
+  useEffect(() => {
+    setChooseJournal(new URLSearchParams(window.location.search).get("chooseJournal") === "1");
+  }, []);
 
   function selectProvider(nextProvider: "eduvulcan" | "librus") {
     try {
