@@ -110,7 +110,7 @@ export default function CalendarMini() {
     });
 
   return (
-    <div className="bg-[var(--surface)] shadow-xl rounded-2xl p-5 border border-[var(--border)] w-full lg:w-96 flex-shrink-0">
+    <div className="glass-card w-full flex-shrink-0 rounded-2xl p-5 shadow-sm">
       <h2 className="text-xl font-bold text-[var(--text)] mb-4 border-b border-[var(--border)] pb-3">
         📅 Kalendarz Wydarzeń
       </h2>
@@ -134,7 +134,7 @@ export default function CalendarMini() {
                 <span className="text-sm font-semibold text-[var(--text-muted)]">
                   {formatDate(day.date)}
                 </span>
-                <span className="px-3 py-0.5 text-xs font-bold rounded bg-[#7c5cff]/15 text-[#c7beff]">
+                <span className="px-3 py-0.5 text-xs font-bold rounded bg-[var(--accent-soft)] text-[var(--accent-secondary)]">
                   {day.weekday}
                 </span>
               </div>
@@ -161,7 +161,7 @@ export default function CalendarMini() {
 
       <a
         href="/calendar"
-        className="mt-6 block w-full text-center py-2 bg-gradient-to-r from-[#7c5cff] to-[#00cfe8] hover:brightness-110 text-white font-medium rounded-md transition duration-150"
+        className="mt-6 block w-full rounded-xl border border-white/10 bg-[var(--accent)] py-2.5 text-center font-semibold text-[#211e24] transition duration-150 hover:brightness-105"
       >
         Zobacz wszystkie wydarzenia
       </a>
