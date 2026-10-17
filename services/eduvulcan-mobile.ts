@@ -631,7 +631,10 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const subjectMap = new Map<string, { id: string; name: string; values: number[]; count: number }>();
   const normalizedGrades = gradeRows.flatMap((grade: MobileGrade) => {
     const subject = grade.Column?.Subject?.Name ?? "Inne";
-    const value = parseGradeValue(grade.Value);
+    // The numeric Value may omit +/-; prefer the original label for display and averaging.
+    const displayValue = formatGradeValue(grade.ContentRaw ?? grade.Content ?? grade.Value);
+    const parsedDisplayValue = parseGradeValue(displayValue);
+    const value = Number.isFinite(parsedDisplayValue) ? parsedDisplayValue : parseGradeValue(grade.Value);
     if (!Number.isFinite(value)) return [];
 
     const key = String(grade.Column?.Subject?.Id ?? subject);
@@ -644,7 +647,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
       id: String(grade.Id),
       subject,
       value,
-      displayValue: formatGradeValue(grade.Value),
+      displayValue,
       date: (dateFromTimestamp(grade.DateCreated?.Timestamp) ?? new Date()).toISOString(),
       weight: Number(grade.Column?.Weight ?? 1),
       teacher: grade.Creator?.DisplayName,
