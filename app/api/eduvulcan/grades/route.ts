@@ -10,7 +10,11 @@ export async function GET() {
     );
     return NextResponse.json({ success: true, data: { grades } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "";
+    const message = error instanceof Error ? error.message : "Unknown error";
+    console.error("[eduvulcan] grades import failed", {
+      name: error instanceof Error ? error.name : "UnknownError",
+      message,
+    });
     const expired = message.includes("SESSION_EXPIRED");
     return NextResponse.json(
       {
