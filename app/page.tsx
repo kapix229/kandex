@@ -25,19 +25,19 @@ export default function HomePage() {
 
   if (!account || chooseJournal) {
     return (
-      <main className="min-h-screen px-5 py-8 sm:px-8">
-        <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-6xl flex-col justify-center">
-          <div className="mb-12 flex items-center gap-3">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-lg font-black text-white shadow-[0_0_26px_rgba(124,92,255,0.28)]">K</span>
+      <main className="min-h-screen px-4 py-6 sm:px-8 sm:py-10">
+        <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl flex-col justify-center">
+          <div className="mb-10 flex items-center gap-3 sm:mb-14">
+            <span className="grid h-11 w-11 place-items-center rounded-2xl border border-white/10 bg-[var(--accent)] text-lg font-black text-[#211e24]">K</span>
             <div>
               <p className="text-xl font-extrabold tracking-tight">Kandex</p>
               <p className="text-xs text-[var(--text-muted)]">Twój workspace do nauki</p>
             </div>
           </div>
 
-          <div className="grid gap-10 lg:grid-cols-[1.1fr_.9fr] lg:items-center">
+          <div className="grid gap-8 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:gap-14">
             <section>
-              <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[var(--accent)]">Krok 01 · konfiguracja</p>
+              <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--accent)]">Krok 01 · konfiguracja</p>
               <h1 className="max-w-3xl text-4xl font-black tracking-tight text-[var(--text)] sm:text-6xl">
                 Zacznij od swojego dziennika.
               </h1>
@@ -46,7 +46,7 @@ export default function HomePage() {
               </p>
             </section>
 
-            <section className="workspace-card rounded-[30px] p-5 sm:p-7">
+            <section className="workspace-card rounded-[22px] p-5 sm:p-7">
               <div className="mb-6">
                 <p className="text-sm font-extrabold text-[var(--text)]">Z którego dziennika korzystasz?</p>
                 <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Możesz później zmienić dostawcę w ustawieniach.</p>
@@ -76,7 +76,7 @@ export default function HomePage() {
 
               {provider === "eduvulcan" && (
                 <div className="mt-5">
-                  <Link href="/login" className="block w-full rounded-2xl bg-gradient-to-r from-[#7c5cff] to-[#00cfe8] px-4 py-3.5 text-center text-sm font-bold text-white shadow-[0_8px_26px_rgba(124,92,255,0.22)] transition hover:brightness-110">
+                  <Link href="/login" className="block w-full rounded-xl border border-white/10 bg-[var(--accent)] px-4 py-3.5 text-center text-sm font-bold text-[#211e24] transition hover:brightness-105 hover:shadow-lg">
                     Połącz EduVULCAN →
                   </Link>
                   <p className="mt-3 text-center text-[11px] leading-5 text-[var(--text-muted)]">
@@ -112,9 +112,9 @@ export default function HomePage() {
         <p className="mt-2 max-w-2xl text-sm text-[var(--text-muted)]">Twoje dane szkolne i nauka w jednym miejscu.</p>
       </header>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-3 sm:gap-4 md:grid-cols-3">
         {cards.map(([icon, title, text, href]) => (
-          <Link key={title} href={href} className="workspace-card rounded-2xl p-5 transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(0,0,0,0.28)]">
+          <Link key={title} href={href} className="workspace-card rounded-[18px] p-5 transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(0,0,0,0.2)]">
             <span className="mb-5 grid h-11 w-11 place-items-center rounded-xl bg-[var(--surface-muted)] text-lg font-bold text-[var(--accent)]">{icon}</span>
             <h2 className="font-bold text-[var(--text)]">{title}</h2>
             <p className="mt-1 text-sm text-[var(--text-muted)]">{text}</p>
@@ -123,7 +123,7 @@ export default function HomePage() {
         ))}
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <section className="grid gap-4 sm:gap-5 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="workspace-card rounded-2xl p-5 sm:p-6">
           <div className="mb-5 flex items-center justify-between">
             <div>
