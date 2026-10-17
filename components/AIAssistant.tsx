@@ -78,28 +78,28 @@ export default function AIAssistant({ context }: AIAssistantProps) {
   };
 
   return (
-    <aside className="h-full w-full overflow-hidden rounded-[22px] border border-[#e1e6ee] bg-white flex flex-col shadow-[0_10px_30px_rgba(22,32,54,0.07)] animate-slide-in-right">
-      <div className="flex flex-shrink-0 items-center gap-3 bg-[#070b19] px-4 py-4 text-white">
+    <aside className="h-full w-full overflow-hidden rounded-[22px] border border-[var(--border)] bg-[var(--surface)] flex flex-col shadow-[0_10px_30px_rgba(0,0,0,0.22)] animate-slide-in-right">
+      <div className="flex flex-shrink-0 items-center gap-3 bg-gradient-to-r from-[#201743] to-[#102533] px-4 py-4 text-white">
         <span className="text-xl">🤖</span>
         <div><h3 className="text-sm font-bold">AI Asystent Nauki</h3><p className="text-xs text-white/85">Zawsze dostępny do pomocy</p></div>
       </div>
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}>
-            <div className={`max-w-xs rounded-xl px-4 py-3 text-sm leading-relaxed ${message.role === "user" ? "rounded-br-none bg-[#070b19] text-white" : "rounded-bl-none border border-[#e1e6ee] bg-[#f8fafc] text-[#26334a] shadow-sm"}`}>
+            <div className={`max-w-xs rounded-xl px-4 py-3 text-sm leading-relaxed ${message.role === "user" ? "rounded-br-none bg-[#32225f] text-white" : "rounded-bl-none border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--text)] shadow-sm"}`}>
               <div className="whitespace-pre-wrap break-words">{message.content}</div>
-              <p className={`mt-1 text-xs ${message.role === "user" ? "text-white/65" : "text-[#8995a8]"}`}>{message.timestamp.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}</p>
+              <p className={`mt-1 text-xs ${message.role === "user" ? "text-white/65" : "text-[var(--text-tertiary)]"}`}>{message.timestamp.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" })}</p>
             </div>
           </div>
         ))}
-        {loading && <div className="flex justify-start animate-fade-in"><div className="rounded-xl border border-[#e1e6ee] bg-white px-4 py-3"><div className="flex gap-1"><div className="h-2 w-2 animate-bounce rounded-full bg-[#5138ee]" /><div className="h-2 w-2 animate-bounce rounded-full bg-[#5138ee]" style={{ animationDelay: "0.1s" }} /><div className="h-2 w-2 animate-bounce rounded-full bg-[#5138ee]" style={{ animationDelay: "0.2s" }} /></div></div></div>}
+        {loading && <div className="flex justify-start animate-fade-in"><div className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] px-4 py-3"><div className="flex gap-1"><div className="h-2 w-2 animate-bounce rounded-full bg-[#8b70ff]" /><div className="h-2 w-2 animate-bounce rounded-full bg-[#5138ee]" style={{ animationDelay: "0.1s" }} /><div className="h-2 w-2 animate-bounce rounded-full bg-[#5138ee]" style={{ animationDelay: "0.2s" }} /></div></div></div>}
         <div ref={messagesEndRef} />
       </div>
-      <div className="flex flex-shrink-0 space-y-2 border-t border-[#e5e9ef] bg-white p-3">
+      <div className="flex flex-shrink-0 space-y-2 border-t border-[var(--border)] bg-[var(--surface)] p-3">
         {context?.eventTitle && <div className="rounded border border-indigo-100 bg-indigo-50 px-2 py-1 text-xs text-[#5f6f86]">📚 Kontekst: {context.eventTitle}{context.eventSubject && ` • ${context.eventSubject}`}</div>}
         <div className="flex w-full gap-2">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={handleKeyPress} placeholder="Zadaj pytanie... (Shift+Enter dla nowej linii)" className="flex-1 resize-none rounded-xl border border-[#dfe5ed] bg-[#f8fafc] px-3 py-2 text-sm text-[#26334a] outline-none focus:ring-2 focus:ring-[#5138ee]/20" rows={2} disabled={loading} />
-          <button onClick={handleSendMessage} disabled={loading || !input.trim()} className="rounded-xl bg-[#7c7f88] px-3 py-2 font-medium text-white transition-all duration-200 hover:bg-[#5138ee] disabled:cursor-not-allowed disabled:opacity-50" title="Wyślij (Enter)">➤</button>
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyPress={handleKeyPress} placeholder="Zadaj pytanie... (Shift+Enter dla nowej linii)" className="flex-1 resize-none rounded-xl border border-[var(--border-strong)] bg-[#0d1324] px-3 py-2 text-sm text-[var(--text)] outline-none focus:ring-2 focus:ring-[#7c5cff]/40" rows={2} disabled={loading} />
+          <button onClick={handleSendMessage} disabled={loading || !input.trim()} className="rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#00bcd4] px-3 py-2 font-semibold text-white transition-all duration-200 hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50" title="Wyślij (Enter)">➤</button>
         </div>
       </div>
     </aside>

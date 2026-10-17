@@ -19,9 +19,9 @@ export default function Sidebar() {
   const isActive = (href: string) => href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 border-r border-[var(--border)] bg-[#f7f4ee] px-4 py-5 lg:flex lg:flex-col">
+    <aside className="sticky top-0 hidden h-screen w-[250px] shrink-0 border-r border-[var(--border)] bg-[#0c1120]/90 backdrop-blur-xl px-4 py-5 lg:flex lg:flex-col">
       <Link href="/" className="mb-10 flex items-center gap-3 px-2">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-[var(--accent)] text-lg font-black text-white shadow-[0_7px_16px_rgba(49,88,68,0.20)]">K</span>
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-lg font-black text-white shadow-[0_0_26px_rgba(124,92,255,0.28)]">K</span>
         <span>
           <span className="block text-lg font-extrabold tracking-tight text-[var(--text)]">Kandex</span>
           <span className="block text-[11px] font-medium text-[var(--text-muted)]">study workspace</span>
@@ -32,19 +32,19 @@ export default function Sidebar() {
         {navItems.map((item) => {
           const active = isActive(item.href);
           return (
-            <Link key={item.href} href={item.href} className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all ${active ? "bg-[var(--accent)] text-white shadow-[0_8px_18px_rgba(49,88,68,0.15)]" : "text-[#62675f] hover:bg-white hover:text-[var(--text)]"}`}>
-              <span className={`grid h-8 w-8 place-items-center rounded-lg text-sm ${active ? "bg-white/10 text-white" : "bg-[#ebe9e2] text-[#6c716a] group-hover:bg-[var(--accent-soft)] group-hover:text-[var(--accent)]"}`}>{item.icon}</span>
+            <Link key={item.href} href={item.href} className={`group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition-all ${active ? "bg-[var(--accent-soft)] text-white ring-1 ring-inset ring-[#7c5cff]/35 shadow-[0_8px_22px_rgba(0,0,0,0.18)]" : "text-[var(--text-muted)] hover:bg-white/[0.05] hover:text-[var(--text)]"}`}>
+              <span className={`grid h-8 w-8 place-items-center rounded-lg text-sm ${active ? "bg-[#7c5cff]/20 text-[#b8aaff]" : "bg-white/[0.05] text-[var(--text-tertiary)] group-hover:bg-[#7c5cff]/15 group-hover:text-[#b8aaff]"}`}>{item.icon}</span>
               {item.label}
             </Link>
           );
         })}
       </nav>
       <div className="mt-auto space-y-3">
-        <Link href="/settings" className="block rounded-xl border border-[var(--border)] bg-white/80 p-4 transition hover:bg-white">
+        <Link href="/settings" className="block rounded-xl border border-[var(--border)] bg-white/[0.035] p-4 transition hover:bg-white/[0.07]">
           <p className="text-xs font-bold text-[var(--text)]">EduVULCAN połączony</p>
           <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">{account?.fullName ?? "Aktywna sesja"}</p>
         </Link>
-        <div className="rounded-xl border border-[var(--border)] bg-white/70 p-4">
+        <div className="rounded-xl border border-[var(--border)] bg-white/[0.025] p-4">
           <p className="text-xs font-bold text-[var(--text)]">Skup się na nauce...</p>
           <p className="mt-1 text-xs leading-relaxed text-[var(--text-muted)]">Kalendarz, oceny i materiały w jednym miejscu.</p>
         </div>

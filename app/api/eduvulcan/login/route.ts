@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import {
   loginWithCredentials,
   completeEduVulcanCaptchaLogin,
 } from "@/src/integrations/eduvulcan/credentials";
 import type { APIResponse, Student } from "@/src/types/journals";
 import { EDUVULCAN_SESSION_COOKIE } from "@/services/eduvulcan-api";
+import { deleteMobileSession } from "@/services/eduvulcan-mobile";
 
 function mapLoginError(message: string) {
   const normalized = message.toLowerCase();
@@ -36,6 +38,30 @@ function successResponse(result: { sessionId?: string; account?: { fullName: str
       maxAge: 60 * 60 * 12,
     });
   }
+  return response;
+}
+
+export async function DELETE() {
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get(EDUVULCAN_SESSION_COOKIE)?.value;
+  if (sessionId) {
+    try {
+      await deleteMobileSession(sessionId);
+    } catch (error) {
+      console.error("[eduvulcan-logout] session cleanup failed", {
+        errorType: error instanceof Error ? error.name : "UnknownError",
+      });
+    }
+  }
+
+  const response = NextResponse.json({ success: true });
+  response.cookies.set(EDUVULCAN_SESSION_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_USE_HTTPS === "true",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
   return response;
 }
 
