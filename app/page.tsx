@@ -72,7 +72,7 @@ export default function HomePage() {
                   </div>
                 </button>
 
-                <button type="button" aria-pressed={provider === "librus"} onClick={() => selectProvider("librus")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white hover:bg-[var(--surface-muted)]"}`}>
+                <button type="button" aria-pressed={provider === "librus"} onClick={() => selectProvider("librus")} className={`w-full rounded-2xl border p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${provider === "librus" ? "border-[var(--accent)] bg-[var(--accent-soft)] ring-1 ring-[var(--accent)]" : "border-[var(--border)] bg-white/[0.025] hover:bg-white/[0.06]"}`}>
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-bold text-[var(--text)]">Librus</p>
