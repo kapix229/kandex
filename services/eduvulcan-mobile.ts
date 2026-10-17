@@ -133,6 +133,8 @@ type MobileStudent = {
 type MobileGrade = {
   Id: string | number;
   Value: string | number;
+  ContentRaw?: string | number | null;
+  Content?: string | number | null;
   Column?: {
     Subject?: { Id?: string | number; Name?: string };
     Weight?: string | number;
@@ -540,7 +542,12 @@ export async function fetchMobileGrades(sessionId: string) {
   const rows = response.Envelope ?? [];
 
   return rows.flatMap((grade: MobileGrade) => {
-    const value = parseGradeValue(grade.Value);
+    // EduVULCAN keeps the visible mark (for example "4+") in ContentRaw /
+    // Content; Value can contain only the base numeric grade. Always parse
+    // the display label first so the modifier affects both display and average.
+    const displayValue = formatGradeValue(grade.ContentRaw ?? grade.Content ?? grade.Value);
+    const parsedDisplayValue = parseGradeValue(displayValue);
+    const value = Number.isFinite(parsedDisplayValue) ? parsedDisplayValue : parseGradeValue(grade.Value);
     if (!Number.isFinite(value)) return [];
 
     return [{
@@ -548,7 +555,7 @@ export async function fetchMobileGrades(sessionId: string) {
       subject: grade.Column?.Subject?.Name ?? "Inne",
       subjectId: String(grade.Column?.Subject?.Id ?? grade.Column?.Subject?.Name ?? "Inne"),
       value,
-      displayValue: formatGradeValue(grade.Value),
+      displayValue,
       date: (dateFromTimestamp(grade.DateCreated?.Timestamp) ?? new Date()).toISOString(),
       weight: Number(grade.Column?.Weight ?? 1),
       teacher: grade.Creator?.DisplayName ?? "",
