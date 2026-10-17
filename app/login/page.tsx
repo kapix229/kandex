@@ -60,7 +60,7 @@ export default function LoginPage() {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-3rem)] max-w-2xl items-center justify-center py-10">
       <div className="workspace-card w-full rounded-[28px] p-6 sm:p-8">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm font-bold text-[var(--accent)]"><span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-white">K</span>Kandex</Link>
+        <Link href="/?chooseJournal=1" className="inline-flex items-center gap-2 text-sm font-bold text-[var(--accent)]"><span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-[#7c5cff] to-[#00cfe8] text-white">K</span>Kandex</Link>
         <p className="mt-7 text-[10px] font-bold uppercase tracking-[0.18em] text-[var(--text-muted)]">Połączenie z dziennikiem</p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-[var(--text)]">{selectedProvider === "eduvulcan" ? "Połącz EduVULCAN" : "Librus — wkrótce"}</h1>
         <p className="mt-2 text-sm leading-6 text-[var(--text-muted)]">{selectedProvider === "eduvulcan" ? "Kandex wykona wymagane zabezpieczenie CAPTCHA na serwerze i przekaże wynik do EduVULCAN." : "Integracja Librus nie jest jeszcze aktywna. Wróć do ustawień i wybierz EduVULCAN."}</p>
