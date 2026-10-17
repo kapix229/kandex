@@ -8,6 +8,61 @@ import { Keypair, RestUrlManager, VulcanHebeCe, VulcanJwtRegister } from "hebece
 const DATA_DIR = path.join(process.cwd(), ".data");
 const SESSIONS_FILE = path.join(DATA_DIR, "eduvulcan-mobile-sessions.json");
 
+/** Normalize EduVULCAN timestamps without allowing invalid dates to crash an entire import. */
+function dateFromTimestamp(timestamp: number | undefined): Date | null {
+  if (timestamp === undefined || !Number.isFinite(timestamp)) return null;
+  // Some EduVULCAN responses use Unix seconds, while others use milliseconds.
+  const milliseconds = Math.abs(timestamp) < 100_000_000_000 ? timestamp * 1000 : timestamp;
+  const date = new Date(milliseconds);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function parseCalendarDate(value: string | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  // Vulcan dates can be ISO strings or Polish dates (DD.MM.YYYY / DD-MM-YYYY).
+  const polish = trimmed.match(/^(\\d{1,2})[.\\/-](\\d{1,2})[.\\/-](\\d{4})$/);
+  if (polish) {
+    const day = Number(polish[1]);
+    const month = Number(polish[2]);
+    const year = Number(polish[3]);
+    const candidate = new Date(Date.UTC(year, month - 1, day));
+    if (candidate.getUTCFullYear() === year && candidate.getUTCMonth() === month - 1 && candidate.getUTCDate() === day) {
+      return candidate.toISOString().slice(0, 10);
+    }
+    return null;
+  }
+  const isoDate = trimmed.match(/^(\\d{4}-\\d{2}-\\d{2})/);
+  if (isoDate) {
+    const candidate = new Date(`${isoDate[1]}T12:00:00Z`);
+    return Number.isNaN(candidate.getTime()) ? null : isoDate[1];
+  }
+  const parsed = new Date(trimmed);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString().slice(0, 10);
+}
+
+function lessonStartDate(lesson: MobileLesson): Date | null {
+  return dateFromTimestamp(lesson.Date?.Timestamp) ?? (() => {
+    const calendarDate = parseCalendarDate(lesson.Date?.Date);
+    return calendarDate ? new Date(`${calendarDate}T12:00:00Z`) : null;
+  })();
+}
+
+function lessonEndDate(lesson: MobileLesson, start: Date): string | undefined {
+  const rawTime = lesson.TimeSlot?.End?.trim();
+  if (!rawTime) return undefined;
+  const match = rawTime.match(/^(\\d{1,2}):(\\d{2})(?::(\\d{2}))?$/);
+  if (!match) return undefined;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  const seconds = Number(match[3] ?? 0);
+  if (hours > 23 || minutes > 59 || seconds > 59) return undefined;
+
+  const date = parseCalendarDate(lesson.Date?.Date) ?? start.toISOString().slice(0, 10);
+  const result = new Date(`${date}T${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}Z`);
+  return Number.isNaN(result.getTime()) ? undefined : result.toISOString();
+}
+
 async function step<T>(name: string, action: () => T | Promise<T>): Promise<T> {
   try {
     return await action();
@@ -412,7 +467,7 @@ export async function fetchMobileGrades(sessionId: string) {
       subject: grade.Column?.Subject?.Name ?? "Inne",
       subjectId: String(grade.Column?.Subject?.Id ?? grade.Column?.Subject?.Name ?? "Inne"),
       value,
-      date: new Date(grade.DateCreated?.Timestamp ?? Date.now()).toISOString(),
+      date: (dateFromTimestamp(grade.DateCreated?.Timestamp) ?? new Date()).toISOString(),
       weight: Number(grade.Column?.Weight ?? 1),
       teacher: grade.Creator?.DisplayName ?? "",
       title: grade.Column?.Name ?? "Ocena",
@@ -502,23 +557,26 @@ export async function fetchMobileSnapshot(sessionId: string) {
       gradeCount: subject.count,
     })),
     grades: normalizedGrades,
-    schedule: lessonRows.map((lesson: MobileLesson) => ({
-      id: String(lesson.Id),
-      subject: lesson.Subject?.Name ?? "Lekcja",
-      teacher: lesson.TeacherPrimary?.DisplayName,
-      room: lesson.Room?.Code,
-      startsAt: new Date(lesson.Date?.Timestamp ?? Date.now()).toISOString(),
-      endsAt: lesson.TimeSlot?.End
-        ? new Date(`${lesson.Date?.Date ?? ""}T${lesson.TimeSlot.End}`).toISOString()
-        : undefined,
-    })),
+    schedule: lessonRows.flatMap((lesson: MobileLesson) => {
+      const start = lessonStartDate(lesson);
+      if (!start) {
+        console.warn("[eduvulcan] skipped lesson with invalid date", { lessonId: String(lesson.Id) });
+        return [];
+      }
+      return [{
+        id: String(lesson.Id),
+        subject: lesson.Subject?.Name ?? "Lekcja",
+        teacher: lesson.TeacherPrimary?.DisplayName,
+        room: lesson.Room?.Code,
+        startsAt: start.toISOString(),
+        endsAt: lessonEndDate(lesson, start),
+      }];
+    }),
     assignments: homeworkRows.map((item: MobileHomework) => ({
       id: String(item.Id),
       title: item.Content ?? "Zadanie",
       subject: item.Subject?.Name,
-      dueDate: item.Deadline?.Timestamp
-        ? new Date(item.Deadline.Timestamp).toISOString()
-        : undefined,
+      dueDate: dateFromTimestamp(item.Deadline?.Timestamp)?.toISOString(),
       completed: false,
     })),
     attendance: attendanceRows.map((item: MobileAttendance) => {
@@ -531,9 +589,9 @@ export async function fetchMobileSnapshot(sessionId: string) {
 
       return {
         date:
-          item.Day?.Timestamp !== undefined
-            ? new Date(item.Day.Timestamp).toISOString().slice(0, 10)
-            : item.Day?.Date ?? "",
+          dateFromTimestamp(item.Day?.Timestamp)?.toISOString().slice(0, 10) ??
+          parseCalendarDate(item.Day?.Date) ??
+          "",
         lesson: Number(item.LessonNumber ?? 0),
         subject: item.Subject?.Name ?? "Lekcja",
         status,
