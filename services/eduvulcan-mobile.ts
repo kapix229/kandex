@@ -129,16 +129,26 @@ async function supabaseRequest<T>(
     );
   }
 
+  // New Supabase secret keys (sb_secret_...) are API keys, not JWTs.
+  // Sending one as a Bearer token causes HTTP 401; only legacy JWT keys
+  // (anon/service_role, typically starting with eyJ) belong in Authorization.
+  const headers = new Headers(init.headers);
+  headers.set("apikey", config.key);
+  headers.set("Content-Type", "application/json");
+  // Make it explicit that this request originates from our server backend.
+  // Supabase secret keys are rejected when the request looks browser-originated.
+  headers.set("User-Agent", "kandex-backend/1.0");
+  if (config.key.startsWith("eyJ")) {
+    headers.set("Authorization", `Bearer ${config.key}`);
+  } else {
+    headers.delete("Authorization");
+  }
+
   const response = await fetch(
     `${config.url}/rest/v1/${pathAndQuery}`,
     {
       ...init,
-      headers: {
-        apikey: config.key,
-        Authorization: `Bearer ${config.key}`,
-        "Content-Type": "application/json",
-        ...init.headers,
-      },
+      headers,
       cache: "no-store",
     },
   );
@@ -371,6 +381,12 @@ export async function connectWithMobileJwt(jwtToken: string) {
   return connectWithMobileApiAp(apHtml, { fullName: decoded.name });
 }
 
+function parseGradeValue(raw: string | number | null | undefined): number {
+  const normalized = String(raw ?? "").trim().replace(",", ".");
+  const match = normalized.match(/\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) : Number.NaN;
+}
+
 export async function fetchMobileGrades(sessionId: string) {
   const session = await getMobileSession(sessionId);
   if (!session) throw new Error("SESSION_EXPIRED");
@@ -382,16 +398,13 @@ export async function fetchMobileGrades(sessionId: string) {
   await api.connect();
   await api.selectStudent(session.student.PupilId);
 
-  // Fetch grades alone: an unrelated timetable/homework/attendance failure
-  // must not prevent the grades page from loading.
+  // Pobieramy oceny niezależnie, aby błąd kalendarza lub frekwencji
+  // nie blokował widoku ocen.
   const response = await api.getGrades();
   const rows = response.Envelope ?? [];
 
   return rows.flatMap((grade: MobileGrade) => {
-    // EduVULCAN may represent grades as strings such as "5+" or "4-".
-    const rawValue = String(grade.Value ?? "").trim().replace(",", ".");
-    const match = rawValue.match(/-?\d+(?:\.\d+)?/);
-    const value = match ? Number(match[0]) : Number.NaN;
+    const value = parseGradeValue(grade.Value);
     if (!Number.isFinite(value)) return [];
 
     return [{
@@ -439,7 +452,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const subjectMap = new Map<string, { id: string; name: string; values: number[]; count: number }>();
   const normalizedGrades = gradeRows.flatMap((grade: MobileGrade) => {
     const subject = grade.Column?.Subject?.Name ?? "Inne";
-    const value = Number(grade.Value);
+    const value = parseGradeValue(grade.Value);
     if (!Number.isFinite(value)) return [];
 
     const key = String(grade.Column?.Subject?.Id ?? subject);
