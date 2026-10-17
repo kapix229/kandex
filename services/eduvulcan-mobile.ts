@@ -132,20 +132,20 @@ async function supabaseRequest<T>(
   // New Supabase secret keys (sb_secret_...) are API keys, not JWTs.
   // Sending one as a Bearer token causes HTTP 401; only legacy JWT keys
   // (anon/service_role, typically starting with eyJ) belong in Authorization.
-  const authHeaders = config.key.startsWith("eyJ")
-    ? { Authorization: `Bearer ${config.key}` }
-    : {};
+  const headers = new Headers(init.headers);
+  headers.set("apikey", config.key);
+  headers.set("Content-Type", "application/json");
+  if (config.key.startsWith("eyJ")) {
+    headers.set("Authorization", `Bearer ${config.key}`);
+  } else {
+    headers.delete("Authorization");
+  }
 
   const response = await fetch(
     `${config.url}/rest/v1/${pathAndQuery}`,
     {
       ...init,
-      headers: {
-        apikey: config.key,
-        ...authHeaders,
-        "Content-Type": "application/json",
-        ...init.headers,
-      },
+      headers,
       cache: "no-store",
     },
   );
