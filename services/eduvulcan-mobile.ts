@@ -492,6 +492,16 @@ export async function fetchMobileSnapshot(sessionId: string) {
   const to = new Date(today);
   to.setDate(today.getDate() + 35);
 
+  // Frekwencja musi obejmować cały bieżący rok szkolny, a nie tylko
+  // ostatnie 7 dni. W przeciwnym razie sumy są znacznie niższe niż w dzienniku.
+  const schoolYearStart = new Date(
+    today.getFullYear() - (today.getMonth() < 8 ? 1 : 0),
+    8,
+    1,
+  );
+  const attendanceTo = new Date(today);
+  attendanceTo.setDate(today.getDate() + 1);
+
   // Każdy obszar pobieramy niezależnie. Awaria kalendarza, zadań lub
   // frekwencji nie może wyłączyć całego widoku danych dziennika.
   const [grades, lessons, homework, attendance] = await Promise.all([
@@ -507,7 +517,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
       console.error("[eduvulcan] snapshot homework failed", error instanceof Error ? error.message : "Unknown error");
       return null;
     }),
-    api.getAttendance(from, to).catch((error: unknown) => {
+    api.getAttendance(schoolYearStart, attendanceTo).catch((error: unknown) => {
       console.error("[eduvulcan] snapshot attendance failed", error instanceof Error ? error.message : "Unknown error");
       return null;
     }),
@@ -579,23 +589,40 @@ export async function fetchMobileSnapshot(sessionId: string) {
       dueDate: dateFromTimestamp(item.Deadline?.Timestamp)?.toISOString(),
       completed: false,
     })),
-    attendance: attendanceRows.map((item: MobileAttendance) => {
+    attendance: attendanceRows.flatMap((item: MobileAttendance) => {
       const presence = item.PresenceType;
+      // Wpis oznaczony jako usunięty nie powinien wpływać na liczniki.
+      if (presence?.Removed) return [];
+
       let status: "present" | "absent" | "late" | "excused" | "unknown" = "unknown";
       if (presence?.AbsenceJustified) status = "excused";
       else if (presence?.Late) status = "late";
       else if (presence?.Absence) status = "absent";
       else if (presence?.Presence) status = "present";
+      else {
+        // Niektóre odpowiedzi EduVULCAN zwracają nazwę typu obecności,
+        // nawet gdy flagi logiczne nie są wypełnione.
+        const name = (presence?.Name ?? "")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLocaleLowerCase("pl-PL");
+        if (/usprawiedliw|excused/.test(name)) status = "excused";
+        else if (/spoz|late/.test(name)) status = "late";
+        else if (/nieobecn|absen/.test(name)) status = "absent";
+        else if (/obecn|present/.test(name)) status = "present";
+      }
 
-      return {
+      return [{
+        // Preferuj datę kalendarzową z API; konwersja timestampu przez UTC
+        // może przesunąć lekcję na poprzedni dzień w polskiej strefie czasowej.
         date:
-          dateFromTimestamp(item.Day?.Timestamp)?.toISOString().slice(0, 10) ??
           parseCalendarDate(item.Day?.Date) ??
+          dateFromTimestamp(item.Day?.Timestamp)?.toISOString().slice(0, 10) ??
           "",
         lesson: Number(item.LessonNumber ?? 0),
         subject: item.Subject?.Name ?? "Lekcja",
         status,
-      };
+      }];
     }),
   };
 }
