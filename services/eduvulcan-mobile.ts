@@ -1,4 +1,4 @@
-import { createSign, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { decodeJwt } from "jose";
@@ -471,133 +471,56 @@ export async function connectWithMobileJwt(jwtToken: string) {
   return connectWithMobileApiAp(apHtml, { fullName: decoded.name });
 }
 
-type MobileApiEnvelope<T> = {
-  Envelope?: T[];
-  Status?: { Code?: number; Message?: string };
-  ErrorMessage?: string;
-};
-
-/** Format API date parameters in the school's timezone, not the server's UTC timezone. */
-function formatSchoolDate(date: Date): string {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Warsaw",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date);
-  const part = (type: string) => parts.find((item) => item.type === type)?.value;
-  const year = part("year"), month = part("month"), day = part("day");
-  if (!year || !month || !day) throw new Error("Nie udało się sformatować daty EduVULCAN.");
-  return `${year}-${month}-${day}`;
-}
-
 /**
- * hebece@0.2.4 hard-codes pageSize=100 for lessons, homework and attendance.
- * Request the same signed mobile endpoints with a larger page size so a normal
- * school-year attendance history or a multi-week timetable is not silently truncated.
+ * Use hebece's own signed API client for each request. Smaller date windows
+ * stay below the library's hard-coded pageSize=100 without reimplementing
+ * EduVULCAN request signing.
  */
-async function fetchMobileRows<T>(
-  session: MobileSession,
-  endpoint: "schedule/byPupil" | "homework/byPupil" | "lesson/byPupil",
+async function fetchRowsInDateChunks<T>(
   dateFrom: Date,
   dateTo: Date,
-): Promise<T[]> {
-  const pupil = session.student.Pupil;
-  const unit = pupil?.Unit;
-  const pupilId = pupil?.Pupil?.Id ?? session.student.PupilId;
-  if (!unit?.Id || !unit.Symbol || !pupilId) {
-    throw new Error("Sesja EduVULCAN nie zawiera wymaganych danych ucznia i jednostki.");
-  }
-
-  const params = new URLSearchParams({
-    unitId: String(unit.Id),
-    pupilId: String(pupilId),
-    dateFrom: formatSchoolDate(dateFrom),
-    dateTo: formatSchoolDate(dateTo),
-    pageSize: "500",
-  });
-  if (endpoint === "schedule/byPupil") {
-    const currentPeriod = pupil?.Periods?.find((period) => period.Current);
-    if (!currentPeriod) throw new Error("EduVULCAN nie zwrócił bieżącego okresu planu lekcji.");
-    params.set("periodId", String(currentPeriod.Id));
-  }
-
-  const url = `${session.restUrl.replace(/\/$/, "")}/${unit.Symbol}/api/mobile/${endpoint}?${params.toString()}`;
-  const dateHeader = new Date().toUTCString();
-  const canonicalMatch = url.match("(api/mobile/.+)");
-  if (!canonicalMatch) throw new Error("Nieprawidłowy adres mobilnego API EduVULCAN.");
-  const canonicalUrl = encodeURIComponent(canonicalMatch[0]).toLowerCase();
-  const privateKey = `-----BEGIN PRIVATE KEY-----\n${session.keypair.privateKey}\n-----END PRIVATE KEY-----`;
-  const signatureValue = createSign("RSA-SHA256")
-    .update(canonicalUrl + dateHeader)
-    .sign(privateKey, "base64");
-  const signature = `keyId="${session.keypair.fingerprint}",headers="vCanonicalUrl vDate",algorithm="sha256withrsa",signature=Base64(sha256withrsa(${signatureValue}))`;
-
-  const response = await fetch(url, {
-    method: "GET",
-    cache: "no-store",
-    headers: {
-      accept: "*/*",
-      "accept-charset": "UTF-8",
-      "accept-encoding": "gzip",
-      connection: "Keep-Alive",
-      "content-type": "application/json",
-      host: new URL(url).host,
-      "user-agent": "Dart/3.3 (dart:io)",
-      vapi: "1",
-      vdate: dateHeader,
-      vdevicemodel: "Xiaomi MI 9",
-      vos: "Android",
-      vversioncode: "621",
-      signature,
-      vcanonicalurl: canonicalUrl,
-    },
-  });
-
-  const data = await response.json().catch(() => null) as MobileApiEnvelope<T> | null;
-  if (!response.ok) {
-    throw new Error(`Mobilne API EduVULCAN zwróciło HTTP ${response.status} dla ${endpoint}.`);
-  }
-  if (!data) throw new Error(`Nieprawidłowa odpowiedź EduVULCAN dla ${endpoint}.`);
-  if (data.Status && data.Status.Code !== undefined && data.Status.Code !== 0) {
-    throw new Error(data.Status.Message || data.ErrorMessage || `EduVULCAN odrzucił żądanie ${endpoint}.`);
-  }
-  if (!Array.isArray(data.Envelope)) {
-    throw new Error(`EduVULCAN nie zwrócił listy danych dla ${endpoint}.`);
-  }
-  return data.Envelope;
-}
-
-/** Split long attendance history into month-sized requests to stay below API result caps. */
-async function fetchMobileRowsInDateChunks<T>(
-  session: MobileSession,
-  endpoint: "lesson/byPupil",
-  dateFrom: Date,
-  dateTo: Date,
-): Promise<T[]> {
-  const startTime = Date.UTC(dateFrom.getUTCFullYear(), dateFrom.getUTCMonth(), dateFrom.getUTCDate());
-  const endTime = Date.UTC(dateTo.getUTCFullYear(), dateTo.getUTCMonth(), dateTo.getUTCDate());
-  const chunkMilliseconds = 30 * 24 * 60 * 60 * 1000;
+  fetchChunk: (from: Date, to: Date) => Promise<unknown>,
+  chunkDays = 14,
+): Promise<{ Envelope: T[] }> {
+  const cursor = new Date(dateFrom);
+  cursor.setHours(0, 0, 0, 0);
+  const lastDay = new Date(dateTo);
+  lastDay.setHours(0, 0, 0, 0);
   const rows: T[] = [];
 
-  for (let chunkStart = startTime; chunkStart <= endTime; chunkStart += chunkMilliseconds) {
-    const chunkEnd = Math.min(chunkStart + chunkMilliseconds - 24 * 60 * 60 * 1000, endTime);
-    const chunkRows = await fetchMobileRows<T>(
-      session,
-      endpoint,
-      new Date(chunkStart),
-      new Date(chunkEnd),
-    );
-    rows.push(...chunkRows);
+  while (cursor.getTime() <= lastDay.getTime()) {
+    const chunkEnd = new Date(cursor);
+    chunkEnd.setDate(chunkEnd.getDate() + chunkDays - 1);
+    if (chunkEnd.getTime() > lastDay.getTime()) {
+      chunkEnd.setTime(lastDay.getTime());
+    }
+
+    const result = await fetchChunk(new Date(cursor), new Date(chunkEnd)) as {
+      Envelope?: unknown;
+    };
+    if (!Array.isArray(result?.Envelope)) {
+      throw new Error("EduVULCAN zwrócił nieprawidłowy format danych.");
+    }
+    rows.push(...result.Envelope as T[]);
+
+    cursor.setTime(chunkEnd.getTime());
+    cursor.setDate(cursor.getDate() + 1);
+    cursor.setHours(0, 0, 0, 0);
   }
 
-  return rows;
+  return { Envelope: rows };
 }
 
 function parseGradeValue(raw: string | number | null | undefined): number {
   const normalized = String(raw ?? "").trim().replace(",", ".");
-  const match = normalized.match(/\d+(?:\.\d+)?/);
-  return match ? Number(match[0]) : Number.NaN;
+  const match = normalized.match(/^(\d+(?:\.\d+)?)([+-])?$/);
+  if (!match) return Number.NaN;
+  const base = Number(match[1]);
+  return base + (match[2] === "+" ? 0.25 : match[2] === "-" ? -0.25 : 0);
+}
+
+function formatGradeValue(raw: string | number | null | undefined): string {
+  return String(raw ?? "").trim().replace(",", ".");
 }
 
 export async function fetchMobileGrades(sessionId: string) {
@@ -625,6 +548,7 @@ export async function fetchMobileGrades(sessionId: string) {
       subject: grade.Column?.Subject?.Name ?? "Inne",
       subjectId: String(grade.Column?.Subject?.Id ?? grade.Column?.Subject?.Name ?? "Inne"),
       value,
+      displayValue: formatGradeValue(grade.Value),
       date: (dateFromTimestamp(grade.DateCreated?.Timestamp) ?? new Date()).toISOString(),
       weight: Number(grade.Column?.Weight ?? 1),
       teacher: grade.Creator?.DisplayName ?? "",
@@ -667,20 +591,17 @@ export async function fetchMobileSnapshot(sessionId: string) {
       console.error("[eduvulcan] snapshot grades failed", error instanceof Error ? error.message : "Unknown error");
       return null;
     }),
-    fetchMobileRows<MobileLesson>(session, "schedule/byPupil", from, to)
-      .then((Envelope) => ({ Envelope }))
+    fetchRowsInDateChunks<MobileLesson>(from, to, (chunkFrom, chunkTo) => api.getLessons(chunkFrom, chunkTo), 7)
       .catch((error: unknown) => {
         console.error("[eduvulcan] snapshot timetable failed", error instanceof Error ? error.message : "Unknown error");
         return null;
       }),
-    fetchMobileRows<MobileHomework>(session, "homework/byPupil", from, to)
-      .then((Envelope) => ({ Envelope }))
+    fetchRowsInDateChunks<MobileHomework>(from, to, (chunkFrom, chunkTo) => api.getHomework(chunkFrom, chunkTo), 14)
       .catch((error: unknown) => {
         console.error("[eduvulcan] snapshot homework failed", error instanceof Error ? error.message : "Unknown error");
         return null;
       }),
-    fetchMobileRowsInDateChunks<MobileAttendance>(session, "lesson/byPupil", schoolYearStart, attendanceTo)
-      .then((Envelope) => ({ Envelope }))
+    fetchRowsInDateChunks<MobileAttendance>(schoolYearStart, attendanceTo, (chunkFrom, chunkTo) => api.getAttendance(chunkFrom, chunkTo), 14)
       .catch((error: unknown) => {
         console.error("[eduvulcan] snapshot attendance failed", error instanceof Error ? error.message : "Unknown error");
         return null;
@@ -708,6 +629,7 @@ export async function fetchMobileSnapshot(sessionId: string) {
       id: String(grade.Id),
       subject,
       value,
+      displayValue: formatGradeValue(grade.Value),
       date: (dateFromTimestamp(grade.DateCreated?.Timestamp) ?? new Date()).toISOString(),
       weight: Number(grade.Column?.Weight ?? 1),
       teacher: grade.Creator?.DisplayName,
