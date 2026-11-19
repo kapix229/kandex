@@ -30,7 +30,16 @@ export const eduvulcanAdapter: JournalAdapter = {
       importedAt: new Date().toISOString(),
       student,
       subjects: summaries.map((s) => ({ id: s.subject.toLowerCase().replace(/[^a-z0-9ąćęłńóśźż]+/gi, "-"), name: s.subject, average: s.average, gradeCount: s.count })),
-      grades: summaries.flatMap((s) => s.grades.map((g) => ({ id: String(g.id), subject: s.subject, value: g.value, date: new Date(g.date).toISOString(), weight: g.weight, teacher: g.teacher, title: g.title }))),
+      grades: summaries.flatMap((s) => s.grades.map((g) => ({
+        id: String(g.id),
+        subject: s.subject,
+        displayValue: String(g.value),
+        value: g.value,
+        date: new Date(g.date).toISOString(),
+        weight: g.weight,
+        teacher: g.teacher,
+        type: g.title,
+      }))),
       schedule: events.filter((e) => e.type === "event").map((e) => ({ id: String(e.id), subject: e.subject ?? e.title, startsAt: new Date(e.date).toISOString(), endsAt: e.dueDate ? new Date(e.dueDate).toISOString() : undefined })),
       assignments: events.filter((e) => e.type === "assignment" || e.type === "test" || e.type === "exam").map((e) => ({ id: String(e.id), title: e.title, subject: e.subject, dueDate: e.dueDate ? new Date(e.dueDate).toISOString() : new Date(e.date).toISOString(), completed: e.completed })),
     };

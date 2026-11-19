@@ -61,13 +61,20 @@ export interface Grade {
   id: string;
   subjectId: string;
   subjectName: string;
-  /** Display value from EduVULCAN, including +/- modifiers. */
-  value: string;
+  /** Display value from EduVULCAN, including +/- modifiers (np. "4+", "5-", "3.5"). */
+  displayValue: string;
   /** Numeric value used for averages; + adds 0.25 and - subtracts 0.25. */
-  numericValue?: number;
+  value: number;
+  /** Typ oceny: "praca", "sprawdzian", "kartkówka", "semestralny", "roczny" itp. */
   type: string;
+  /** Data oceny w formacie ISO (YYYY-MM-DD). */
   date: string;
+  /** Waga oceny: 1-3 (1=aktywność, 2=kartkówka, 3=sprawdzian). */
   weight: number;
+  /** Nazwa ucznia, jeśli ocena została przyznana na jego rzecz. */
+  teacher?: string;
+  /** Komentarz do oceny. */
+  comment?: string;
 }
 
 export interface VulcanGrade {

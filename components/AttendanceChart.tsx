@@ -238,44 +238,48 @@ export const AttendanceChart = ({ data }: AttendanceChartProps) => {
   const now = new Date();
   const monthlyCalendar = generateMonthlyCalendar(entries, now.getFullYear(), now.getMonth());
 
-  if (total === 0) return <div>Brak danych o frekwencji</div>;
+  if (total === 0) return (
+    <div className="p-4 minimal-card smooth-transition">
+      <p className="text-[var(--text-tertiary)] text-sm">Brak danych o frekwencji</p>
+    </div>
+  );
 
   return (
-    <div className="p-4 bg-white dark:bg-zinc-900 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-800">
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">Frekwencja</h2>
+    <div className="p-4 bg-[var(--surface)] rounded-xl border border-[var(--border)] smooth-transition">
+      <h2 className="text-lg font-semibold text-[var(--text)] mb-4">Frekwencja</h2>
 
       {/* Statistics Summary */}
-      <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <div>
-          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">Ogólny wynik</p>
-          <p className="text-2xl font-bold text-[var(--success)]">{Math.round(percentage)}%</p>
+      <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="minimal-card p-3 text-center smooth-transition">
+          <p className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">Ogólny wynik</p>
+          <p className="text-2xl font-bold text-[var(--success)] mt-1">{Math.round(percentage)}%</p>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">Obecne</p>
-          <p className="text-2xl font-bold text-[var(--success)]">{summary.present}</p>
+        <div className="minimal-card p-3 text-center smooth-transition">
+          <p className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">Obecne</p>
+          <p className="text-2xl font-bold text-[var(--success)] mt-1">{summary.present}</p>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">Spóźnienia</p>
-          <p className="text-2xl font-bold text-[var(--warning)]">{summary.late}</p>
+        <div className="minimal-card p-3 text-center smooth-transition">
+          <p className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">Spóźnienia</p>
+          <p className="text-2xl font-bold text-[var(--warning)] mt-1">{summary.late}</p>
         </div>
-        <div>
-          <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide">Nieobecne</p>
-          <p className="text-2xl font-bold text-[var(--danger)]">{summary.absent}</p>
+        <div className="minimal-card p-3 text-center smooth-transition">
+          <p className="text-xs font-semibold text-[var(--text-tertiary)] uppercase tracking-wider">Nieobecne</p>
+          <p className="text-2xl font-bold text-[var(--danger)] mt-1">{summary.absent}</p>
         </div>
       </div>
 
       {/* Subject-wise breakdown */}
       {subjectAttendance.length > 0 && (
         <div className="mb-4">
-          <p className="text-sm font-medium text-[var(--text-muted)]">Frekwencja po przedmiotach</p>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <p className="text-sm font-medium text-[var(--text-tertiary)]">Frekwencja po przedmiotach</p>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {subjectAttendance.slice(0, 6).map((sa) => (
-              <div key={sa.subject} className="p-2 rounded bg-white/[0.025] border border-[var(--border)] text-xs">
-                <span className="font-medium text-[var(--text)] truncate">{sa.subject}</span>
-                <div className={`w-full h-1 rounded-full bg-white/[0.1] overflow-hidden`}>
-                  <div style={{ width: `${sa.percentage}%` }} className={`h-full rounded-full ${sa.percentage >= 75 ? "bg-emerald-500" : sa.percentage >= 50 ? "bg-yellow-500" : "bg-red-500"} w-full`} />
+              <div key={sa.subject} className="p-2 rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] text-xs smooth-transition">
+                <span className="font-medium text-[var(--text)] block truncate">{sa.subject}</span>
+                <div className={`w-full h-1.5 rounded-full bg-white/[0.1] overflow-hidden`}>
+                  <div style={{ width: `${sa.percentage}%` }} className={`h-full rounded-full ${sa.percentage >= 75 ? "bg-[var(--success)]" : sa.percentage >= 50 ? "bg-[var(--warning)]" : "bg-[var(--danger)]"}`} />
                 </div>
-                <span className="text-[var(--text-tertiary)] ml-1 text-xs">{sa.percentage.toFixed(0)}%</span>
+                <span className="text-[var(--text-tertiary)] text-xs mt-1">{sa.percentage.toFixed(0)}%</span>
               </div>
             ))}
           </div>
@@ -290,17 +294,17 @@ export const AttendanceChart = ({ data }: AttendanceChartProps) => {
       {/* Weekly grid */}
       {entries.length > 0 && (
         <div className="mb-4">
-          <p className="text-sm font-medium text-[var(--text-muted)]">Tygodniowy widok</p>
+          <p className="text-sm font-medium text-[var(--text-tertiary)]">Tygodniowy widok</p>
           <div className="grid grid-cols-7 gap-1">
             {weeklyStats.map((ws) => (
-              <div key={ws.date} className="aspect-square rounded-xl bg-white/[0.025] border border-[var(--border)] flex flex-col items-center justify-between p-2">
+              <div key={ws.date} className="aspect-square rounded-lg bg-[var(--bg-tertiary)] border border-[var(--border)] flex flex-col items-center justify-between p-2 smooth-transition">
                 <p className="text-[var(--text-tertiary)] text-xs">{ws.day}</p>
                 <p className="text-sm font-semibold text-[var(--text)]">{ws.present}</p>
                 <p className="text-[var(--text-tertiary)] text-xs">
                   {ws.absent + ws.late}/{ws.total}
                 </p>
-                <div className="w-8 h-0.5 rounded-full mt-1 bg-white/[0.1] overflow-hidden">
-                  <div style={{ width: `${ws.percentage}%` }} className={`h-full rounded-full ${ws.percentage >= 75 ? "bg-emerald-500" : ws.percentage >= 50 ? "bg-yellow-500" : "bg-red-500"} w-full`} />
+                <div className="w-6 h-0.25 rounded-full mt-1 bg-white/[0.1] overflow-hidden">
+                  <div style={{ width: `${ws.percentage}%` }} className={`h-full rounded-full ${ws.percentage >= 75 ? "bg-[var(--success)]" : ws.percentage >= 50 ? "bg-[var(--warning)]" : "bg-[var(--danger)]"}`} />
                 </div>
               </div>
             ))}
@@ -311,7 +315,7 @@ export const AttendanceChart = ({ data }: AttendanceChartProps) => {
       {/* Monthly calendar view */}
       {entries.length > 0 && (
         <div>
-          <p className="text-sm font-medium text-[var(--text-muted)] mt-4">Miesięczny kalendarz</p>
+          <p className="text-sm font-medium text-[var(--text-tertiary)] mt-4">Miesięczny kalendarz</p>
           <div className="grid grid-cols-7 mt-2">
             <p className="text-[var(--text-tertiary)] text-sm font-medium py-1">N</p>
             <p className="text-[var(--text-tertiary)] text-sm font-medium py-1">Pn</p>
@@ -327,7 +331,7 @@ export const AttendanceChart = ({ data }: AttendanceChartProps) => {
                 {dayRow.map((day) => (
                   <div
                     key={day.date}
-                    className={`w-6 h-6 rounded-full ${day.isCurrentMonth ? "" : "opacity-50"} ${day.status === "present" ? "bg-emerald-500" : day.status === "absent" ? "bg-red-500" : day.status === "late" ? "bg-yellow-500" : "bg-gray-500"} text-[1] text-xs font-bold ${day.date.startsWith(now.toISOString().slice(0, 10)) ? "font-bold" : ""} ${day.isCurrentMonth ? "text-[var(--text)]" : "text-[var(--text-tertiary)]"}`}
+                    className={`w-6 h-6 rounded-full ${day.isCurrentMonth ? "" : "opacity-50"} ${day.status === "present" ? "bg-[var(--success)]" : day.status === "absent" ? "bg-[var(--danger)]" : day.status === "late" ? "bg-[var(--warning)]" : "bg-[var(--border-subtle)]"} text-[1] text-xs font-bold ${day.date.startsWith(now.toISOString().slice(0, 10)) ? "font-bold" : ""} ${day.isCurrentMonth ? "text-[var(--text)]" : "text-[var(--text-tertiary)]"}`}
                   >
                     {day.dayOfMonth}
                   </div>
@@ -341,15 +345,15 @@ export const AttendanceChart = ({ data }: AttendanceChartProps) => {
       {/* Visual chart - bar chart */}
       {entries.length > 0 && (
         <div className="mt-4">
-          <p className="text-sm font-medium text-[var(--text-muted)]">Wykres frekwencji</p>
+          <p className="text-sm font-medium text-[var(--text-tertiary)]">Wykres frekwencji</p>
           <div className="h-8 grid grid-cols-7 gap-1 pt-1">
             {weeklyStats.slice(0, 7).map((ws, i) => {
-              const barColor = ws.percentage >= 75 ? "bg-emerald-500" : ws.percentage >= 50 ? "bg-yellow-500" : "bg-red-500";
+              const barColor = ws.percentage >= 75 ? "bg-[var(--success)]" : ws.percentage >= 50 ? "bg-[var(--warning)]" : "bg-[var(--danger)]";
               return (
                 <div key={i} className="flex flex-col items-center gap-1">
                   <span className="text-[var(--text-tertiary)] text-xs">{ws.day}</span>
                   <div className="h-3 rounded-full bg-white/[0.1] overflow-hidden w-full">
-                    <div style={{ height: `${ws.percentage}%` }} className={`h-full rounded-full ${barColor} transition-all duration-500 ease-out`} />
+                    <div style={{ height: `${ws.percentage}%` }} className={`h-full rounded-full ${barColor} transition-all duration-300 ease-out`} />
                   </div>
                   <span className="text-[var(--text-tertiary)] text-xs">{ws.percentage.toFixed(0)}%</span>
                 </div>

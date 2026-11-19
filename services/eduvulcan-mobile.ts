@@ -140,7 +140,7 @@ type MobileGrade = {
     Weight?: string | number;
     Name?: string;
   };
-  DateCreated?: { Timestamp?: number };
+  DateCreated?: { Timestamp?: number; Date?: string };
   Creator?: { DisplayName?: string };
 };
 
@@ -542,17 +542,19 @@ function gradeDisplayValue(grade: Pick<MobileGrade, "ContentRaw" | "Content" | "
 }
 
 function getGradeDate(grade: MobileGrade): Date {
-  // Try DateCreated first (when the grade was entered)
-  // In some EduVULCAN versions, there might be additional date fields
-  const candidates = [
-    grade.DateCreated?.Timestamp,
-  ];
+  // Try DateCreated.Date first (ISO string, most reliable for display date)
+  const dateStr = grade.DateCreated?.Date;
+  if (dateStr && typeof dateStr === "string") {
+    const parsed = new Date(dateStr);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
 
-  for (const ts of candidates) {
-    if (typeof ts === "number" && ts > 0) {
-      const date = new Date(ts);
-      if (!Number.isNaN(date.getTime())) return date;
-    }
+  // Try Timestamp (Unix timestamp in milliseconds or seconds)
+  const ts = grade.DateCreated?.Timestamp;
+  if (ts !== undefined && typeof ts === "number" && ts > 0) {
+    const ms = Math.abs(ts) < 100_000_000_000 ? ts * 1000 : ts; // Convert seconds to ms if needed
+    const date = new Date(ms);
+    if (!Number.isNaN(date.getTime())) return date;
   }
 
   // Fallback to current date
@@ -689,10 +691,10 @@ export async function fetchMobileSnapshot(sessionId: string) {
       subject,
       value,
       displayValue,
-      date: (dateFromTimestamp(grade.DateCreated?.Timestamp) ?? new Date()).toISOString(),
+      date: dateFromTimestamp(grade.DateCreated?.Timestamp)?.toISOString() ?? new Date().toISOString(),
       weight: Number(grade.Column?.Weight ?? 1),
       teacher: grade.Creator?.DisplayName,
-      title: grade.Column?.Name,
+      type: grade.Column?.Name ?? "Ocena",
     }];
   });
 

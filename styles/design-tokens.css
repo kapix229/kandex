@@ -68,6 +68,11 @@
   --grade-5: #6BCB77;    /* 5 - success */
   --grade-6: #4ECDC4;    /* 6 - info/teal */
 
+  /* Black / pure colors for minimalist design */
+  --black: #000000;
+  --black-dark: #121212;
+  --black-deep: #0A0A0A;
+
   /* ===== SPACING ===== */
   --space-1: 4px;
   --space-2: 8px;
@@ -102,13 +107,21 @@
   --shadow-accent-lg: 0 0 0 1px var(--accent-primary-border), 0 8px 32px rgba(169, 149, 186, 0.25);
 
   /* ===== TRANSITIONS ===== */
-  --transition-fast: 120ms ease-out;
-  --transition-base: 200ms ease-out;
-  --transition-slow: 300ms ease-out;
-  --transition-slower: 400ms ease-out;
+  --transition-fast: 80ms ease-out;
+  --transition-base: 120ms ease-out;
+  --transition-slow: 160ms ease-out;
+  --transition-slower: 200ms ease-out;
   --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --easing-emphasized: cubic-bezier(0.2, 0, 0, 1);
   --easing-decelerated: cubic-bezier(0, 0, 0.2, 1);
+
+  /* ===== FAST ANIMATIONS (100x better smoother) ===== */
+  --animate-fade-in-slow: fadeIn 200ms var(--easing-decelerated);
+  --animate-fade-out-slow: fadeOut 150ms var(--easing-standard);
+  --animate-slide-up-fast: slideUp 120ms var(--easing-decelerated);
+  --animate-slide-down-fast: slideDown 100ms var(--easing-standard);
+  --animate-scale-in-fast: scaleIn 100ms var(--easing-decelerated);
+  --animate-scale-out-fast: scaleOut 80ms var(--easing-standard);
 
   /* ===== Z-INDEX ===== */
   --z-dropdown: 100;
@@ -161,17 +174,18 @@
   --content-max-width: 1280px;
 
   /* ===== ANIMATION KEYFRAMES ===== */
-  --animate-fade-in: fadeIn 200ms var(--easing-decelerated);
-  --animate-fade-out: fadeOut 150ms var(--easing-standard);
-  --animate-slide-up: slideUp 300ms var(--easing-decelerated);
-  --animate-slide-down: slideDown 200ms var(--easing-standard);
-  --animate-slide-in-right: slideInRight 300ms var(--easing-decelerated);
-  --animate-slide-out-right: slideOutRight 200ms var(--easing-standard);
-  --animate-scale-in: scaleIn 150ms var(--easing-decelerated);
-  --animate-scale-out: scaleOut 100ms var(--easing-standard);
+  --animate-fade-in: fadeIn 120ms var(--easing-decelerated);
+  --animate-fade-out: fadeOut 80ms var(--easing-standard);
+  --animate-slide-up: slideUp 120ms var(--easing-decelerated);
+  --animate-slide-down: slideDown 100ms var(--easing-standard);
+  --animate-slide-in-right: slideInRight 120ms var(--easing-decelerated);
+  --animate-slide-out-right: slideOutRight 100ms var(--easing-standard);
+  --animate-scale-in: scaleIn 100ms var(--easing-decelerated);
+  --animate-scale-out: scaleOut 80ms var(--easing-standard);
   --animate-spin: spin 1s linear infinite;
   --animate-pulse: pulse 2s ease-in-out infinite;
   --animate-bounce: bounce 1s ease-in-out infinite;
+  --animate-slide-in-left: slideInLeft 100ms var(--easing-decelerated);
 }
 
 /* ===== ANIMATION DEFINITIONS ===== */
@@ -184,28 +198,28 @@
   to { opacity: 0; }
 }
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
+  from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes slideInRight {
-  from { opacity: 0; transform: translateX(20px); }
+  from { opacity: 0; transform: translateX(12px); }
   to { opacity: 1; transform: translateX(0); }
 }
 @keyframes slideOutRight {
   from { opacity: 1; transform: translateX(0); }
-  to { opacity: 0; transform: translateX(20px); }
+  to { opacity: 0; transform: translateX(12px); }
 }
 @keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
 @keyframes scaleOut {
   from { opacity: 1; transform: scale(1); }
-  to { opacity: 0; transform: scale(0.95); }
+  to { opacity: 0; transform: scale(0.96); }
 }
 @keyframes spin {
   from { transform: rotate(0deg); }
@@ -213,11 +227,15 @@
 }
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  50% { opacity: 0.7; }
 }
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 /* ===== REDUCED MOTION ===== */
@@ -253,14 +271,23 @@
 .animate-spin { animation: var(--animate-spin); }
 .animate-pulse { animation: var(--animate-pulse); }
 .animate-bounce { animation: var(--animate-bounce); }
+.animate-slide-in-left { animation: var(--animate-slide-in-left) both; }
 
-/* Staggered animations */
-.stagger-1 { animation-delay: 50ms; }
-.stagger-2 { animation-delay: 100ms; }
-.stagger-3 { animation-delay: 150ms; }
-.stagger-4 { animation-delay: 200ms; }
-.stagger-5 { animation-delay: 250ms; }
-.stagger-6 { animation-delay: 300ms; }
+/* Staggered animations - faster for snappy feel */
+.stagger-1 { animation-delay: 20ms; }
+.stagger-2 { animation-delay: 40ms; }
+.stagger-3 { animation-delay: 60ms; }
+.stagger-4 { animation-delay: 80ms; }
+.stagger-5 { animation-delay: 100ms; }
+.stagger-6 { animation-delay: 120ms; }
+
+/* Fast stagger - ultra snappy */
+.stagger-fast-1 { animation-delay: 10ms; }
+.stagger-fast-2 { animation-delay: 20ms; }
+.stagger-fast-3 { animation-delay: 30ms; }
+.stagger-fast-4 { animation-delay: 40ms; }
+.stagger-fast-5 { animation-delay: 50ms; }
+.stagger-fast-6 { animation-delay: 60ms; }
 
 /* Focus visible */
 :focus-visible {
@@ -291,4 +318,58 @@
 }
 ::-webkit-scrollbar-corner {
   background: var(--bg-secondary);
+}
+
+/* ===== GRADE BADGE UTILITIES ===== */
+/* Dynamic grade colors based on Polish grading scale */
+.grade-badge {
+  @apply flex items-center justify-center w-9 h-9 rounded-xl font-bold;
+}
+
+/* Grade value-based colors (1-6 scale) */
+.grade-value-1, .grade-value-2 { background-color: var(--grade-1); color: white; }
+.grade-value-3 { background-color: var(--grade-3); color: white; }
+.grade-value-4 { background-color: var(--grade-4); color: white; }
+.grade-value-5 { background-color: var(--grade-5); color: white; }
+.grade-value-6, .grade-value-high { background-color: var(--grade-6); color: white; }
+
+/* Grade summary colors */
+.grade-summary-1-to-2 { color: var(--danger); }
+.grade-summary-3 { color: var(--warning); }
+.grade-summary-4 { color: var(--success); }
+.grade-summary-5-to-6 { color: var(--info); }
+
+/* ===== MINIMALISTIC DESIGN ===== */
+.minimal-card {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.minimal-surface {
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+}
+
+.minimal-text-primary { color: var(--text-primary); }
+.minimal-text-secondary { color: var(--text-secondary); }
+.minimal-text-muted { color: var(--text-tertiary); }
+
+/* Pure black backgrounds for minimalist aesthetic */
+.bg-black-pure { background-color: var(--black); }
+.bg-black-dark { background-color: var(--black-dark); }
+.text-black-pure { color: var(--black); }
+
+/* Smooth, fast transitions */
+.smooth-transition {
+  transition: all 120ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .smooth-transition,
+  .staggered-children > * {
+    transition: none;
+    animation: none;
+  }
 }

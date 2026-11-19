@@ -41,17 +41,20 @@ export async function getEduVulcanStudent(sessionId: string | undefined): Promis
 
 export async function getEduVulcanGrades(sessionId: string | undefined): Promise<Grade[]> {
   if (!sessionId) throw new Error("SESSION_EXPIRED");
-  const grades = await fetchMobileGrades(sessionId);
-  return grades.map((grade) => ({
-    id: grade.id,
-    subjectId: grade.subjectId,
-    subjectName: grade.subject,
-    value: grade.displayValue ?? String(grade.value),
-    numericValue: grade.value,
-    type: grade.title,
-    date: grade.date,
-    weight: Number(grade.weight || 1),
-  }));
+  const rawGrades = await fetchMobileGrades(sessionId);
+  return rawGrades.map((grade) => {
+    // Raw grade data already contains displayValue and value from fetchMobileGrades
+    return {
+      id: grade.id,
+      subjectId: grade.subjectId,
+      subjectName: grade.subject ?? "Inne",
+      displayValue: grade.displayValue ?? String(grade.value ?? ""),
+      value: Number.isFinite(grade.value) ? grade.value : NaN,
+      type: grade.title ?? "Ocena",
+      date: grade.date,
+      weight: Number(grade.weight ?? 1),
+    };
+  }).filter((grade) => Number.isFinite(grade.value)); // Filter out invalid grades
 }
 
 export async function getEduVulcanAttendance(sessionId: string | undefined): Promise<AttendanceData> {

@@ -311,17 +311,25 @@ export default function HomePage() {
               <p className="text-sm text-[var(--text-muted)] text-center py-4">Brak ostatnich ocen.</p>
             ) : (
               <div className="space-y-2">
-                {recentGrades.map((grade) => (
-                  <div key={grade.id} className="flex items-center justify-between p-3 rounded-xl bg-white/[0.025] border border-[var(--border)]">
-                    <div>
-                      <p className="font-medium text-[var(--text)]">{grade.subjectName}</p>
-                      <p className="text-xs text-[var(--text-muted)]">{formatPolishDate(grade.date)}</p>
-                    </div>
-                    <span className="px-3 py-1 rounded-xl text-lg font-bold bg-[var(--accent-primary)] text-[var(--text-inverse)]">
-                      {grade.value}
-                    </span>
-                  </div>
-                ))}
+                {recentGrades.map((grade) => {
+                    // Determine grade color based on numeric value
+                    const gradeColor = grade.value >= 5.5 ? "grade-value-6" :
+                                       grade.value >= 4.5 ? "grade-value-5" :
+                                       grade.value >= 3.5 ? "grade-value-4" :
+                                       grade.value >= 2.5 ? "grade-value-3" :
+                                       grade.value >= 1.5 ? "grade-value-2" : "grade-value-1";
+                    return (
+                      <div key={grade.id} className="flex items-center justify-between p-3 rounded-xl bg-[var(--surface)]/50 border border-[var(--border)] hover:bg-[var(--surface)]/70 smooth-transition">
+                        <div>
+                          <p className="font-medium text-[var(--text)]">{grade.subjectName}</p>
+                          <p className="text-xs text-[var(--text-muted)]">{formatPolishDate(grade.date)}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-xl text-lg font-bold shadow-sm ${gradeColor} text-white`}>
+                          {grade.displayValue}
+                        </span>
+                      </div>
+                    );
+                  })}
               </div>
             )}
           </div>

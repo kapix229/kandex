@@ -137,7 +137,7 @@ export function calculateAverage(grades: Grade[], options?: {
   let totalWeight = 0;
 
   for (const grade of grades) {
-    const numericValue = parseGradeValue(grade.numericValue ?? grade.value);
+    const numericValue = grade.value;
     if (!Number.isFinite(numericValue)) continue;
 
     const weight = options?.weighted !== false ? (grade.weight ?? 1) : 1;
@@ -169,7 +169,7 @@ export function calculateSubjectStats(grades: Grade[]): SubjectGradeStats[] {
     const existing = subjectMap.get(key);
 
     const subjectName = grade.subjectName;
-    const numericValue = parseGradeValue(grade.numericValue ?? grade.value);
+    const numericValue = grade.value;
     const weight = grade.weight ?? 1;
 
     if (!Number.isFinite(numericValue)) continue;
@@ -367,20 +367,20 @@ export function calculateAttendanceStats(attendance: AttendanceData): {
 export function getGradeDistribution(grades: Grade[]): Array<{ range: string; count: number; color: string }> {
   const distribution: Record<string, number> = {};
   const colors: Record<string, string> = {
-    "1.0-1.5": "#ff4444",   // red - very low
-    "1.5-2.0": "#ff8800",   // orange
-    "2.0-2.5": "#ffbb33",   // light orange
-    "2.5-3.0": "#ffff00",   // yellow
-    "3.0-3.5": "#b2ff44",   // light green
-    "3.5-4.0": "#88ff44",   // green
-    "4.0-4.5": "#44ff44",   // dark green
-    "4.5-5.0": "#44ccff",   // light blue
-    "5.0-5.5": "#4488ff",   // blue
-    "5.5-6.0": "#8844ff",   // purple
+    "1.0-1.5": "#FF6B6B",   // red - very low
+    "1.5-2.0": "#FF8E53",   // orange
+    "2.0-2.5": "#FFD93D",   // yellow
+    "2.5-3.0": "#FFD93D",   // warning
+    "3.0-3.5": "#FFD93D",   // yellow/warning
+    "3.5-4.0": "#A8D86E",   // lime
+    "4.0-4.5": "#6BCB77",   // green
+    "4.5-5.0": "#6BCB77",   // success
+    "5.0-5.5": "#6BCB77",   // success
+    "5.5-6.0": "#4ECDC4",   // teal/info
   };
 
   for (const grade of grades) {
-    const value = parseGradeValue(grade.numericValue ?? grade.value);
+    const value = grade.value;
     if (!Number.isFinite(value)) continue;
 
     const rangeEnd = Math.ceil(value * 2) / 2;

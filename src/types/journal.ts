@@ -10,12 +10,15 @@ export type Student = {
 export type Grade = {
   id: string;
   subject: string;
+  /** Display value including +/- modifiers (np. "4+", "5-", "3.5") */
+  displayValue: string;
+  /** Numeric grade value (4+ = 4.25, 5- = 4.75) */
   value: number;
   date: string;
   weight: number;
   teacher?: string;
+  /** Typ oceny: "praca", "sprawdzian", "kartkówka", "semestralny", "roczny" itp. */
   type?: string;
-  title?: string;
 };
 
 export type Subject = {

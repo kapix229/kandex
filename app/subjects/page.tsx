@@ -6,19 +6,21 @@ import { VulcanGrade, VulcanGradeSummary } from "@/types/vulcan";
 import SyncButton from "@/components/SyncButton";
 import { GradesSummary } from "@/components/GradesSummary";
 
+type GradeFromAPI = {
+  id: string;
+  subjectId: string;
+  subjectName: string;
+  displayValue: string;
+  value: number;
+  type: string;
+  date: string;
+  weight: number;
+};
+
 type GradesResponse = {
   success: boolean;
   data?: {
-    grades: Array<{
-      id: string;
-      subjectId: string;
-      subjectName: string;
-      value: string;
-      numericValue?: number;
-      type: string;
-      date: string;
-      weight: number;
-    }>;
+    grades: GradeFromAPI[];
   };
   error?: { message?: string };
 };
@@ -41,7 +43,7 @@ export default function SubjectsPage() {
   }
 
   const loadGrades = useCallback(async () => {
-    let cancelled = false;
+    const cancelled = false;
 
     setLoading(true);
     setError(null);
@@ -60,22 +62,16 @@ export default function SubjectsPage() {
 
       const grouped = new Map<string, VulcanGrade[]>();
       for (const grade of data.data?.grades ?? []) {
-        const rawValue = String(grade.value).trim().replace(",", ".");
-        const parsed = rawValue.match(/^(\d+(?:\.\d+)?)([+-])?$/);
-        const parsedValue = parsed
-          ? Number(parsed[1]) + (parsed[2] === "+" ? 0.25 : parsed[2] === "-" ? -0.25 : 0)
-          : Number.NaN;
-        const value = typeof grade.numericValue === "number" && Number.isFinite(grade.numericValue)
-          ? grade.numericValue
-          : parsedValue;
-        if (!Number.isFinite(value)) continue;
         const subject = grade.subjectName || "Inne";
+        const numericValue = grade.value;
+        if (!Number.isFinite(numericValue)) continue;
+
         const normalized: VulcanGrade = {
           id: grade.id,
           subject,
           title: grade.type || "Ocena",
-          value,
-          displayValue: rawValue,
+          value: numericValue,
+          displayValue: grade.displayValue,
           weight: Number(grade.weight) > 0 ? Number(grade.weight) : 1,
           teacher: "",
           date: new Date(grade.date),
