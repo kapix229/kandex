@@ -1,51 +1,62 @@
 @import "tailwindcss";
+@import "../styles/design-tokens.css";
 
 :root {
   color-scheme: dark;
-  --background: #0a0e1a;
-  --foreground: #f5f7ff;
-  --surface: #141a2e;
-  --surface-muted: #1e2540;
-  --surface-elevated: #1b2238;
-  --text: #f5f7ff;
-  --text-muted: #a5aecb;
-  --text-tertiary: #7f89a8;
-  --border: #242b45;
-  --border-strong: #333b5c;
-  --accent: #8b70ff;
-  --accent-secondary: #00e5ff;
-  --accent-soft: rgba(124, 92, 255, 0.14);
-  --success: #00e676;
-  --warning: #ffb74d;
-  --danger: #ff5c7c;
-  --info: #4fc3f7;
-  --ai-gradient: linear-gradient(135deg, #7c5cff 0%, #00e5ff 100%);
+  /* Override design tokens with Kandex-specific values */
+  --background: var(--bg-primary);
+  --foreground: var(--text-primary);
+  --surface: var(--surface);
+  --surface-muted: var(--surface-muted);
+  --surface-elevated: var(--bg-elevated);
+  --text: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --text-tertiary: var(--text-tertiary);
+  --border: var(--border-default);
+  --border-strong: var(--border-strong);
+  --accent: var(--accent-primary);
+  --accent-secondary: var(--accent-secondary);
+  --accent-soft: var(--accent-primary-muted);
+  --success: var(--success);
+  --warning: var(--warning);
+  --danger: var(--danger);
+  --info: var(--info);
+  --ai-gradient: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+  --radius-card: var(--radius-xl);
 }
 
 * { box-sizing: border-box; }
-html { min-height: 100%; background: var(--background); }
+html { min-height: 100%; background: var(--background); scroll-behavior: smooth; }
 body {
   min-height: 100%;
   margin: 0;
-  background:
-    radial-gradient(ellipse at 12% -10%, rgba(124, 92, 255, 0.12), transparent 36rem),
-    radial-gradient(ellipse at 100% 0%, rgba(0, 229, 255, 0.055), transparent 30rem),
-    var(--background);
+  background: var(--background);
   color: var(--foreground);
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  letter-spacing: -0.01em;
+  font-family: var(--font-sans);
+  letter-spacing: -0.012em;
+  -webkit-font-smoothing: antialiased;
 }
 button, a, textarea, input, select { -webkit-tap-highlight-color: transparent; }
-::selection { background: rgba(124, 92, 255, 0.34); color: #fff; }
-:focus-visible { outline: 2px solid var(--accent-secondary); outline-offset: 3px; }
+button, a { touch-action: manipulation; }
+::selection { background: var(--accent-primary-muted); color: var(--text-primary); }
+:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
 
-.app-shell { background: transparent; }
+.app-shell { background: var(--background); }
+.app-shell main { animation: var(--animate-fade-in); }
 .workspace-card, .glass-card {
-  background: linear-gradient(145deg, rgba(25, 32, 54, 0.96), rgba(18, 24, 42, 0.96));
+  background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--transition-base), background-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+  border-radius: var(--radius-xl);
 }
-.workspace-card:hover { border-color: rgba(124, 92, 255, 0.38); }
+.workspace-card:hover, .glass-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-lg); }
+.workspace-card a, .glass-card a, button, [role="button"] {
+  transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+  transition-duration: var(--transition-base);
+  transition-timing-function: var(--easing-standard);
+}
+.workspace-card a:active, button:active { transform: translateY(1px); }
 .ai-gradient { background: var(--ai-gradient); }
 .text-gradient {
   background: var(--ai-gradient);
@@ -54,34 +65,80 @@ button, a, textarea, input, select { -webkit-tap-highlight-color: transparent; }
   color: transparent;
 }
 .subtle-grid {
-  background-image: linear-gradient(rgba(141, 153, 190, 0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(141, 153, 190, 0.035) 1px, transparent 1px);
-  background-size: 32px 32px;
+  background-image: linear-gradient(rgba(190, 180, 198, 0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(190, 180, 198, 0.025) 1px, transparent 1px);
+  background-size: 36px 36px;
 }
+input, textarea, select {
+  color: var(--text);
+  background-color: var(--bg-tertiary);
+  border-color: var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+input::placeholder, textarea::placeholder { color: var(--text-tertiary); }
+input:focus, textarea:focus, select:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--accent-primary-muted);
+  outline: none;
+}
+button:disabled { cursor: not-allowed; opacity: 0.58; }
+a { text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { border-radius: var(--radius-sm); }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes slideInLeft {
-  from { opacity: 0; transform: translateX(-10px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInRight {
-  from { opacity: 0; transform: translateX(10px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-.animate-fade-in { animation: fadeIn 0.35s ease-out both; }
-.animate-slide-in-left { animation: slideInLeft 0.35s ease-out both; }
-.animate-slide-in-right { animation: slideInRight 0.35s ease-out both; }
+/* Keyframes are now in design-tokens.css */
 
 @media (max-width: 1023px) {
   .app-shell { display: block !important; }
+  .app-shell > main { padding-top: 1.25rem; }
 }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 0.01ms !important;
-  }
+@media (max-width: 640px) {
+  .workspace-card, .glass-card { border-radius: var(--radius-lg); }
+  h1 { letter-spacing: -0.035em; }
 }
+
+/* Reduced motion handled in design-tokens.css */
+
+/* Additional utilities */
+.animate-slide-up { animation: var(--animate-slide-up) both; }
+.animate-slide-down { animation: var(--animate-slide-down) both; }
+.animate-scale-in { animation: var(--animate-scale-in) both; }
+
+/* Glass morphism variant */
+.glass-card {
+  background: rgba(42, 42, 49, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Gradient borders */
+.gradient-border {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+}
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  opacity: 0;
+  transition: opacity var(--transition-base);
+  z-index: -1;
+}
+.gradient-border:hover::before {
+  opacity: 1;
+}
+
+/* Staggered children animation */
+.stagger-children > * {
+  animation: var(--animate-slide-up) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 50ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 150ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 250ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }

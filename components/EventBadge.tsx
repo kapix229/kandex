@@ -8,12 +8,12 @@ interface EventBadgeProps {
 }
 
 const eventTypeConfig = {
-  assignment: { bg: "bg-[#7c5cff]/15", text: "text-[#c7beff]", label: "Zadanie" },
-  test: { bg: "bg-[#ffb74d]/15", text: "text-[#ffd08a]", label: "Sprawdzian" },
-  exam: { bg: "bg-[#ff5c7c]/15", text: "text-[#ffb0bf]", label: "Egzamin" },
-  grade: { bg: "bg-[#00e676]/[0.12]", text: "text-[#8cf0b0]", label: "Ocena" },
-  note: { bg: "bg-[#4fc3f7]/[0.12]", text: "text-[#a8e4ff]", label: "Notatka" },
-  event: { bg: "bg-[#00e5ff]/[0.12]", text: "text-[#9df5ff]", label: "Wydarzenie" },
+  assignment: { bg: "bg-[var(--accent-soft)]", text: "text-[var(--accent)]", label: "Zadanie" },
+  test: { bg: "bg-[var(--warning)]/15", text: "text-[#ffd08a]", label: "Sprawdzian" },
+  exam: { bg: "bg-[var(--danger)]/15", text: "text-[#ffb0bf]", label: "Egzamin" },
+  grade: { bg: "bg-[var(--success)]/15", text: "text-[#8cf0b0]", label: "Ocena" },
+  note: { bg: "bg-[var(--info)]/15", text: "text-[#a8e4ff]", label: "Notatka" },
+  event: { bg: "bg-[var(--accent-secondary)]/15", text: "text-[var(--accent-secondary)]", label: "Wydarzenie" },
 };
 
 export default function EventBadge({ event, compact }: EventBadgeProps) {

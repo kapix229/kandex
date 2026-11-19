@@ -101,7 +101,7 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
           </button>
           <button
             onClick={() => setCurrentDate(new Date())}
-            className="px-3 py-1 rounded-2xl hover:bg-[#7c5cff]/15 text-sm font-medium text-[#b8aaff] transition-colors duration-200"
+            className="px-3 py-1 rounded-2xl hover:bg-[var(--accent-soft)] text-sm font-medium text-[var(--accent-secondary)] transition-colors duration-200"
           >
             Dziś
           </button>
@@ -142,9 +142,9 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
             className={`aspect-square p-2 rounded-2xl border transition-all duration-200 cursor-pointer ${
               day.isCurrentMonth
                 ? day.isToday
-                  ? "bg-[#7c5cff]/20 border-[#8b70ff] shadow-[0_0_18px_rgba(124,92,255,0.16)] font-bold"
+                  ? "bg-[var(--accent-soft)] border-[var(--accent)] shadow-sm font-bold"
                   : selectedDate?.toDateString() === day.date.toDateString()
-                    ? "bg-[#7c5cff]/12 border-[#7c5cff]/60 shadow-md ring-1 ring-[#7c5cff]/40"
+                    ? "bg-[var(--accent-soft)] border-[var(--accent)]/70 shadow-sm ring-1 ring-[var(--accent)]/30"
                     : "bg-white/[0.025] border-[var(--border)] hover:bg-white/[0.06] hover:border-[var(--border-strong)]"
                 : "bg-black/10 border-[var(--border)]"
             }`}
@@ -152,9 +152,9 @@ export default function Calendar({ events = [], onDateSelect }: CalendarProps) {
             <div
               className={`text-sm font-semibold mb-1 ${
                 day.isToday
-                  ? "text-[#d1c8ff]"
+                  ? "text-[var(--accent-secondary)]"
                   : selectedDate?.toDateString() === day.date.toDateString()
-                    ? "text-[#b8aaff]"
+                    ? "text-[var(--accent)]"
                     : day.isCurrentMonth
                       ? "text-[var(--text)]"
                       : "text-[var(--text-tertiary)]"

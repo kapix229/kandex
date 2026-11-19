@@ -33,7 +33,10 @@ export interface Grade {
   id: string;
   subjectId: string;
   subjectName: string;
+  /** Display value from EduVULCAN, including + / - modifiers. */
   value: string;
+  /** Numeric value used for averages; + adds 0.25 and - subtracts 0.25. */
+  numericValue?: number;
   type: string;
   date: string;
   weight: number;
@@ -44,6 +47,7 @@ export interface AttendanceSummary {
   absent: number;
   late: number;
   excused: number;
+  unknown: number;
 }
 
 export interface AttendanceEntry {
@@ -72,4 +76,21 @@ export interface Subject {
   id: string;
   name: string;
   teacher: string;
+}
+
+export interface EventType {
+  value: "assignment" | "test" | "exam" | "grade" | "note" | "event";
+}
+
+export interface VulcanEvent {
+  id: string;
+  title: string;
+  description?: string;
+  type: EventType["value"];
+  subject?: string;
+  date: Date;
+  dueDate?: Date;
+  completed: boolean;
+  priority: "low" | "normal" | "high";
+  color?: string;
 }

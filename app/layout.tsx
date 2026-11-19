@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import AIAssistant from "@/components/AIAssistant";
+import AIMobileLauncher from "@/components/AIMobileLauncher";
 import { VulcanSessionProvider } from "@/src/components/VulcanSessionProvider";
 import { resolveInitialSession } from "@/services/vulcan-session";
 import { getMobileSession } from "@/services/eduvulcan-mobile";
@@ -36,14 +37,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="min-h-full">
         <VulcanSessionProvider initialLoggedIn={initial.loggedIn} initialAccount={initial.account}>
           {initial.loggedIn ? (
-            <div className="app-shell flex min-h-screen">
+            <div className="app-shell flex min-h-screen flex-col lg:flex-row">
               <Sidebar />
-              <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+              <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
                 <div className="mx-auto max-w-[1280px]">{children}</div>
               </main>
-              <aside className="hidden w-[360px] shrink-0 border-l border-[var(--border)] bg-[#0c1120]/65 p-4 backdrop-blur-xl xl:flex xl:flex-col">
+              <aside className="hidden w-[360px] shrink-0 border-l border-[var(--border)] bg-[var(--surface)]/75 p-4 backdrop-blur-xl xl:flex xl:flex-col">
                 <AIAssistant />
               </aside>
+              <AIMobileLauncher />
             </div>
           ) : (
             children

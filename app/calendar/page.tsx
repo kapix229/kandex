@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Calendar from "@/components/Calendar";
 import EventDetails from "@/components/EventDetails";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 import { VulcanEvent } from "@/types/vulcan";
+import SyncButton from "@/components/SyncButton";
 
 type EventsResponse = {
   success: boolean;
@@ -33,46 +34,46 @@ export default function CalendarPage() {
     }
   }
 
-  useEffect(() => {
+  const loadEvents = useCallback(async () => {
     let cancelled = false;
 
-    async function load() {
-      try {
-        const res = await fetch("/api/eduvulcan/events", { cache: "no-store" });
-        const data: EventsResponse = await res.json();
+    setLoading(true);
+    setAuthError(null);
 
-        if (cancelled) return;
+    try {
+      const res = await fetch("/api/eduvulcan/events", { cache: "no-store" });
+      const data: EventsResponse = await res.json();
 
-        if (!res.ok || !data.success) {
-          setAuthError(data.error ?? "Nie udało się pobrać wydarzeń.");
-          setEvents([]);
-          return;
-        }
+      if (cancelled) return;
 
-        // API returns ISO strings - convert back to Date objects the calendar expects.
-        const parsed: VulcanEvent[] = (data.events ?? []).map((e) => ({
-          ...e,
-          date: new Date(e.date),
-          dueDate: e.dueDate ? new Date(e.dueDate) : undefined,
-        }));
-
-        setEvents(parsed);
-        setAuthError(null);
-      } catch (err) {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Nieznany błąd";
-        setAuthError(`Błąd sieci: ${message}`);
+      if (!res.ok || !data.success) {
+        setAuthError(data.error ?? "Nie udało się pobrać wydarzeń.");
         setEvents([]);
-      } finally {
-        if (!cancelled) setLoading(false);
+        return;
       }
-    }
 
-    load();
-    return () => {
-      cancelled = true;
-    };
+      // API returns ISO strings - convert back to Date objects the calendar expects.
+      const parsed: VulcanEvent[] = (data.events ?? []).map((e) => ({
+        ...e,
+        date: new Date(e.date),
+        dueDate: e.dueDate ? new Date(e.dueDate) : undefined,
+      }));
+
+      setEvents(parsed);
+      setAuthError(null);
+    } catch (err) {
+      if (cancelled) return;
+      const message = err instanceof Error ? err.message : "Nieznany błąd";
+      setAuthError(`Błąd sieci: ${message}`);
+      setEvents([]);
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadEvents();
+  }, [loadEvents]);
 
   const dayEvents = selectedDate
     ? events.filter(
@@ -89,26 +90,29 @@ export default function CalendarPage() {
 
   return (
     <div className="space-y-6">
-      <div className="animate-slide-in-down flex justify-between items-start">
+      <div className="animate-slide-in-down flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-[var(--text)] mb-2">Kalendarz</h1>
           <p className="text-[var(--text-muted)] text-sm">
             Śledzenie zadań, sprawdzianów i ocen z Vulcana
           </p>
         </div>
-        {account && (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-[var(--text-tertiary)]">
-              Zalogowano jako <span className="font-semibold">{account.fullName}</span>
-            </span>
-            <button
-              onClick={handleLogout}
-              className="bg-[var(--surface-muted)] border border-[var(--border)] text-[var(--text)] px-3 py-1.5 rounded-xl text-sm hover:bg-white/[0.08]"
-            >
-              Wyloguj
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          <SyncButton onSync={loadEvents} label="Synchronizuj" disabled={loading} />
+          {account && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-[var(--text-tertiary)]">
+                Zalogowano jako <span className="font-semibold">{account.fullName}</span>
+              </span>
+              <button
+                onClick={handleLogout}
+                className="bg-[var(--surface-muted)] border border-[var(--border-strong)] text-[var(--text)] px-3 py-1.5 rounded-xl text-sm hover:bg-white/[0.08]"
+              >
+                Wyloguj
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {authError && (

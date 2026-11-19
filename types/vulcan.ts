@@ -31,7 +31,8 @@ export interface VulcanGrade {
   id: string;
   subject: string;
   title: string;
-  value: number;   // 1-6 in Polish system
+  value: number;   // Numeric grade value used in averages
+  displayValue?: string; // Original grade label, including + / - modifiers
   weight: number;  // 1, 2, 3 - column weight from Vulcan
   teacher: string;
   date: Date;

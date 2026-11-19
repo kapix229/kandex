@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 import { VulcanGrade, VulcanGradeSummary } from "@/types/vulcan";
+import SyncButton from "@/components/SyncButton";
+import { GradesSummary } from "@/components/GradesSummary";
 
 type GradesResponse = {
   success: boolean;
@@ -12,6 +14,7 @@ type GradesResponse = {
       subjectId: string;
       subjectName: string;
       value: string;
+      numericValue?: number;
       type: string;
       date: string;
       weight: number;
@@ -19,34 +22,6 @@ type GradesResponse = {
   };
   error?: { message?: string };
 };
-
-const GRADE_COLORS: Record<number, string> = {
-  1: "bg-red-500",
-  2: "bg-orange-500",
-  3: "bg-yellow-500",
-  4: "bg-lime-500",
-  5: "bg-green-500",
-  6: "bg-emerald-600",
-};
-
-const GRADE_BG: Record<number, string> = {
-  1: "bg-red-50 border-red-200 text-red-700",
-  2: "bg-orange-50 border-orange-200 text-orange-700",
-  3: "bg-yellow-50 border-yellow-200 text-yellow-700",
-  4: "bg-lime-50 border-lime-200 text-lime-700",
-  5: "bg-green-50 border-green-200 text-green-700",
-  6: "bg-emerald-50 border-emerald-200 text-emerald-700",
-};
-
-function gradeChipClass(value: number): string {
-  const clamped = Math.min(6, Math.max(1, Math.round(value)));
-  return GRADE_BG[clamped] ?? "bg-[var(--surface-muted)] border-[var(--border)] text-[var(--text)]";
-}
-
-function gradeDotClass(value: number): string {
-  const clamped = Math.min(6, Math.max(1, value));
-  return GRADE_COLORS[clamped] ?? "bg-slate-500";
-}
 
 export default function SubjectsPage() {
   const { account, signOut } = useVulcanSession();
@@ -65,66 +40,77 @@ export default function SubjectsPage() {
     }
   }
 
-  useEffect(() => {
+  const loadGrades = useCallback(async () => {
     let cancelled = false;
 
-    async function load() {
-      try {
-        const res = await fetch("/api/eduvulcan/grades", { cache: "no-store" });
-        const data: GradesResponse = await res.json();
+    setLoading(true);
+    setError(null);
 
-        if (cancelled) return;
+    try {
+      const res = await fetch("/api/eduvulcan/grades", { cache: "no-store" });
+      const data: GradesResponse = await res.json();
 
-        if (!res.ok || !data.success) {
-          setError(data.error?.message ?? "Nie udało się pobrać ocen z EduVULCAN.");
-          setSummaries([]);
-          return;
-        }
+      if (cancelled) return;
 
-        const grouped = new Map<string, VulcanGrade[]>();
-        for (const grade of data.data?.grades ?? []) {
-          const value = Number.parseFloat(String(grade.value).replace(",", "."));
-          if (!Number.isFinite(value)) continue;
-          const subject = grade.subjectName || "Inne";
-          const normalized: VulcanGrade = {
-            id: grade.id,
-            subject,
-            title: grade.type || "Ocena",
-            value,
-            weight: Number(grade.weight) > 0 ? Number(grade.weight) : 1,
-            teacher: "",
-            date: new Date(grade.date),
-          };
-          grouped.set(subject, [...(grouped.get(subject) ?? []), normalized]);
-        }
-        const parsed: VulcanGradeSummary[] = Array.from(grouped.entries()).map(([subject, grades]) => ({
-          subject,
-          average: grades.reduce((sum, grade) => sum + grade.value, 0) / grades.length,
-          count: grades.length,
-          grades: grades.sort((a, b) => b.date.getTime() - a.date.getTime()),
-        }));
-
-        // Sort by average descending (best subjects first).
-        parsed.sort((a, b) => b.average - a.average);
-
-        setSummaries(parsed);
-        if (parsed.length > 0) setSelectedSubject(parsed[0].subject);
-        setError(null);
-      } catch (err) {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.message : "Nieznany błąd";
-        setError(`Błąd sieci: ${message}`);
+      if (!res.ok || !data.success) {
+        setError(data.error?.message ?? "Nie udało się pobrać ocen z EduVULCAN.");
         setSummaries([]);
-      } finally {
-        if (!cancelled) setLoading(false);
+        return;
       }
-    }
 
-    load();
-    return () => {
-      cancelled = true;
-    };
+      const grouped = new Map<string, VulcanGrade[]>();
+      for (const grade of data.data?.grades ?? []) {
+        const rawValue = String(grade.value).trim().replace(",", ".");
+        const parsed = rawValue.match(/^(\d+(?:\.\d+)?)([+-])?$/);
+        const parsedValue = parsed
+          ? Number(parsed[1]) + (parsed[2] === "+" ? 0.25 : parsed[2] === "-" ? -0.25 : 0)
+          : Number.NaN;
+        const value = typeof grade.numericValue === "number" && Number.isFinite(grade.numericValue)
+          ? grade.numericValue
+          : parsedValue;
+        if (!Number.isFinite(value)) continue;
+        const subject = grade.subjectName || "Inne";
+        const normalized: VulcanGrade = {
+          id: grade.id,
+          subject,
+          title: grade.type || "Ocena",
+          value,
+          displayValue: rawValue,
+          weight: Number(grade.weight) > 0 ? Number(grade.weight) : 1,
+          teacher: "",
+          date: new Date(grade.date),
+        };
+        grouped.set(subject, [...(grouped.get(subject) ?? []), normalized]);
+      }
+      const parsed: VulcanGradeSummary[] = Array.from(grouped.entries()).map(([subject, grades]) => ({
+        subject,
+        average: grades.reduce((sum, grade) => sum + grade.value, 0) / grades.length,
+        count: grades.length,
+        grades: grades.sort((a, b) => b.date.getTime() - a.date.getTime()),
+      }));
+
+      // Sort by average descending (best subjects first).
+      parsed.sort((a, b) => b.average - a.average);
+
+      setSummaries(parsed);
+      if (parsed.length > 0) setSelectedSubject(parsed[0].subject);
+      setError(null);
+    } catch (err) {
+      if (cancelled) return;
+      const message = err instanceof Error ? err.message : "Nieznany błąd";
+      setError(`Błąd sieci: ${message}`);
+      setSummaries([]);
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    loadGrades();
+    return () => {
+      // cancelled handled by loadGrades closure
+    };
+  }, [loadGrades]);
 
   // Overall average across all subjects (unweighted mean of subject averages).
   const overallAverage =
@@ -138,26 +124,29 @@ export default function SubjectsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-[var(--text)] mb-2">Oceny</h1>
           <p className="text-[var(--text-muted)] text-sm">
             Dziennik ocen zsynchronizowany z Twoim kontem Vulcan
           </p>
         </div>
-        {account && (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-[var(--text-tertiary)]">
-              Zalogowano jako <span className="font-semibold">{account.fullName}</span>
-            </span>
-            <button
-              onClick={handleLogout}
-              className="bg-[var(--surface-muted)] border border-[var(--border-strong)] text-[var(--text)] px-3 py-1.5 rounded-2xl text-sm hover:bg-white/[0.08]"
-            >
-              Wyloguj
-            </button>
-          </div>
-        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          <SyncButton onSync={loadGrades} label="Synchronizuj" disabled={loading} />
+          {account && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-[var(--text-tertiary)]">
+                Zalogowano jako <span className="font-semibold">{account.fullName}</span>
+              </span>
+              <button
+                onClick={handleLogout}
+                className="bg-[var(--surface-muted)] border border-[var(--border-strong)] text-[var(--text)] px-3 py-1.5 rounded-2xl text-sm hover:bg-white/[0.08]"
+              >
+                Wyloguj
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -225,9 +214,7 @@ export default function SubjectsPage() {
                         </p>
                       </div>
                       <div
-                        className={`px-3 py-1 rounded-2xl text-lg font-bold ${gradeChipClass(
-                          s.average
-                        )}`}
+                        className={`px-3 py-1 rounded-2xl text-lg font-bold ${s.average >= 5.5 ? "text-emerald-500" : s.average >= 4.5 ? "text-green-500" : s.average >= 3.5 ? "text-yellow-500" : s.average >= 2.5 ? "text-orange-500" : "text-red-500"}`}
                       >
                         {s.average.toFixed(2)}
                       </div>
@@ -246,9 +233,7 @@ export default function SubjectsPage() {
                       {activeSummary.subject}
                     </h2>
                     <div
-                      className={`px-4 py-2 rounded-2xl text-2xl font-bold ${gradeChipClass(
-                        activeSummary.average
-                      )}`}
+                      className={`px-4 py-2 rounded-2xl text-2xl font-bold ${activeSummary.average >= 5.5 ? "text-emerald-500" : activeSummary.average >= 4.5 ? "text-green-500" : activeSummary.average >= 3.5 ? "text-yellow-500" : activeSummary.average >= 2.5 ? "text-orange-500" : "text-red-500"}`}
                     >
                       {activeSummary.average.toFixed(2)}
                     </div>
@@ -274,15 +259,12 @@ export default function SubjectsPage() {
                         {activeSummary.grades.map((g) => (
                           <tr
                             key={g.id}
-                            className="border-b border-[var(--border)] last:border-0"
+                            className="border-b border-[var(--border)] last:border-0 hover:bg-white/[0.02] transition-colors"
                           >
                             <td className="py-2 pr-2">
                               <span
-                                className={`inline-flex items-center justify-center w-9 h-9 rounded-2xl text-white font-bold ${gradeDotClass(
-                                  g.value
-                                )}`}
-                              >
-                                {g.value}
+                                className={`inline-flex items-center justify-center w-9 h-9 rounded-2xl text-white font-bold ${g.value >= 5 ? "bg-[var(--success)] text-white" : g.value >= 4 ? "bg-[var(--accent-primary)] text-white" : "bg-[var(--danger)] text-white"}`}>
+                                {g.displayValue}
                               </span>
                             </td>
                             <td className="py-2 pr-2 text-[var(--text)]">
@@ -302,7 +284,7 @@ export default function SubjectsPage() {
                                 : " (aktywność)"}
                             </td>
                             <td className="py-2 pr-2 text-[var(--text-muted)]">
-                              {g.date.toLocaleDateString("pl-PL", {
+                              {new Date(g.date).toLocaleDateString("pl-PL", {
                                 day: "2-digit",
                                 month: "short",
                                 year: "numeric",

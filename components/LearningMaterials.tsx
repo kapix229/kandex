@@ -37,7 +37,7 @@ export default function LearningMaterials({
           {keywords.map((keyword) => (
             <span
               key={keyword}
-              className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full"
+              className="px-2 py-1 text-xs font-medium rounded-full bg-[var(--accent-soft)] text-[#c7beff] border border-[var(--accent)]/30"
             >
               #{keyword}
             </span>
@@ -51,7 +51,7 @@ export default function LearningMaterials({
           href={material.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="block p-4 rounded-lg border border-zinc-200 hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group"
+          className="block p-4 rounded-xl border border-[var(--border)] bg-white/[0.025] hover:bg-white/[0.06] hover:border-[var(--accent)]/50 transition-all duration-200 group"
         >
           <div className="flex items-start gap-3">
             <span className="text-2xl flex-shrink-0">
@@ -59,16 +59,16 @@ export default function LearningMaterials({
             </span>
 
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-zinc-800 group-hover:text-blue-600 transition-colors line-clamp-2">
+              <p className="font-semibold text-[var(--text)] group-hover:text-[var(--accent)] transition-colors line-clamp-2">
                 {material.title}
               </p>
 
-              <p className="text-sm text-zinc-600 mt-1 line-clamp-2">
+              <p className="text-sm text-[var(--text-muted)] mt-1 line-clamp-2">
                 {material.description}
               </p>
 
-              <div className="flex items-center gap-2 mt-2 text-xs text-zinc-600">
-                <span className="px-2 py-0.5 bg-zinc-100 rounded">
+              <div className="flex items-center gap-2 mt-2 text-xs text-[var(--text-muted)]">
+                <span className="px-2 py-0.5 bg-[var(--surface-muted)] rounded">
                   {material.source === "youtube"
                     ? "YouTube"
                     : material.source === "khan-academy"
@@ -81,10 +81,10 @@ export default function LearningMaterials({
                   <span
                     className={`px-2 py-0.5 rounded ${
                       material.difficulty === "beginner"
-                        ? "bg-green-100 text-green-700"
+                        ? "bg-[var(--success)]/15 text-[#8cf0b0]"
                         : material.difficulty === "intermediate"
-                          ? "bg-orange-100 text-orange-700"
-                          : "bg-red-100 text-red-700"
+                          ? "bg-[var(--warning)]/15 text-[#ffd08a]"
+                          : "bg-[var(--danger)]/15 text-[#ffb0bf]"
                     }`}
                   >
                     {material.difficulty === "beginner"

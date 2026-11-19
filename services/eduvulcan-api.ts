@@ -1,11 +1,11 @@
-import { getMobileSession, fetchMobileSnapshot } from "@/services/eduvulcan-mobile";
+import { getMobileSession, fetchMobileGrades, fetchMobileSnapshot } from "@/services/eduvulcan-mobile";
 import type {
   AttendanceData,
   Grade,
   Lesson,
   Student,
   Subject,
-} from "@/src/types/journals";
+} from "@/src/types/shared";
 
 export const EDUVULCAN_SESSION_COOKIE = "eduvulcan_mobile_session";
 
@@ -40,13 +40,15 @@ export async function getEduVulcanStudent(sessionId: string | undefined): Promis
 }
 
 export async function getEduVulcanGrades(sessionId: string | undefined): Promise<Grade[]> {
-  const snapshot = await getEduVulcanSnapshot(sessionId);
-  return snapshot.grades.map((grade) => ({
+  if (!sessionId) throw new Error("SESSION_EXPIRED");
+  const grades = await fetchMobileGrades(sessionId);
+  return grades.map((grade) => ({
     id: grade.id,
-    subjectId: snapshot.subjects.find((subject) => subject.name === grade.subject)?.id ?? grade.subject,
+    subjectId: grade.subjectId,
     subjectName: grade.subject,
-    value: String(grade.value),
-    type: grade.title ?? "ocena",
+    value: grade.displayValue ?? String(grade.value),
+    numericValue: grade.value,
+    type: grade.title,
     date: grade.date,
     weight: Number(grade.weight || 1),
   }));
@@ -54,6 +56,9 @@ export async function getEduVulcanGrades(sessionId: string | undefined): Promise
 
 export async function getEduVulcanAttendance(sessionId: string | undefined): Promise<AttendanceData> {
   const snapshot = await getEduVulcanSnapshot(sessionId);
+  if (!snapshot.syncStatus.attendance) {
+    throw new Error(snapshot.syncErrors?.attendance ?? "EduVULCAN nie zwrócił danych frekwencji.");
+  }
   const entries = snapshot.attendance ?? [];
   return {
     summary: {
@@ -61,6 +66,7 @@ export async function getEduVulcanAttendance(sessionId: string | undefined): Pro
       absent: entries.filter((entry) => entry.status === "absent").length,
       late: entries.filter((entry) => entry.status === "late").length,
       excused: entries.filter((entry) => entry.status === "excused").length,
+      unknown: entries.filter((entry) => entry.status === "unknown").length,
     },
     entries,
   };
@@ -68,11 +74,14 @@ export async function getEduVulcanAttendance(sessionId: string | undefined): Pro
 
 export async function getEduVulcanTimetable(sessionId: string | undefined): Promise<Lesson[]> {
   const snapshot = await getEduVulcanSnapshot(sessionId);
+  if (!snapshot.syncStatus.lessons) {
+    throw new Error(snapshot.syncErrors?.lessons ?? "EduVULCAN nie zwrócił planu lekcji.");
+  }
   return snapshot.schedule.map((lesson) => ({
-    date: lesson.startsAt.slice(0, 10),
-    lessonNumber: 0,
-    start: lesson.startsAt.slice(11, 16),
-    end: lesson.endsAt?.slice(11, 16) ?? "",
+    date: lesson.date,
+    lessonNumber: lesson.lessonNumber,
+    start: lesson.startTime,
+    end: lesson.endTime,
     subject: lesson.subject,
     teacher: lesson.teacher ?? "",
     room: lesson.room ?? "",

@@ -36,14 +36,14 @@ export default function EditModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-white rounded-2xl p-6 w-96 shadow-xl border border-zinc-200 animate-slide-in-down">
-        <h2 className="text-2xl font-bold text-zinc-800 mb-4">Edytuj zdarzenie</h2>
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-fade-in p-4">
+      <div className="workspace-card rounded-2xl p-6 w-full max-w-md shadow-2xl border border-[var(--border)] animate-slide-in-down">
+        <h2 className="text-2xl font-bold text-[var(--text)] mb-4">Edytuj zdarzenie</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 mb-2">
+            <label className="block text-sm font-semibold text-[var(--text-muted)] mb-2">
               Tytuł
             </label>
             <input
@@ -52,7 +52,7 @@ export default function EditModal({
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
-              className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[#0a0e1a] text-[var(--text)] placeholder:text-[var(--text-tertiary)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/40 transition"
               placeholder="Wpisz tytuł zdarzenia"
               required
             />
@@ -60,7 +60,7 @@ export default function EditModal({
 
           {/* Description */}
           <div>
-            <label className="block text-sm font-semibold text-zinc-700 mb-2">
+            <label className="block text-sm font-semibold text-[var(--text-muted)] mb-2">
               Opis
             </label>
             <textarea
@@ -68,23 +68,23 @@ export default function EditModal({
               onChange={(e) =>
                 setFormData({ ...formData, description: e.target.value })
               }
-              className="w-full px-4 py-2 border border-zinc-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none h-24"
+              className="w-full px-4 py-2.5 rounded-xl border border-[var(--border)] bg-[#0a0e1a] text-[var(--text)] placeholder:text-[var(--text-tertiary)] outline-none focus:border-[var(--accent)] focus:ring-1 focus:ring-[var(--accent)]/40 transition resize-none h-24"
               placeholder="Wpisz szczegółowy opis"
             />
           </div>
 
           {/* Buttons */}
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2 pt-2">
             <button
               type="submit"
-              className="flex-1 bg-blue-600 text-white rounded-lg py-2 font-semibold transition-all duration-200 hover:bg-blue-700 hover:shadow-md"
+              className="flex-1 rounded-xl bg-gradient-to-r from-[#7c5cff] to-[#00cfe8] text-white py-2.5 font-bold transition-all duration-200 hover:brightness-110 hover:shadow-[0_8px_24px_rgba(124,92,255,0.3)]"
             >
               Zapisz zmiany
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 bg-zinc-200 text-zinc-700 rounded-lg py-2 font-semibold transition-all duration-200 hover:bg-zinc-300"
+              className="flex-1 rounded-xl border border-[var(--border-strong)] bg-[var(--surface-muted)] text-[var(--text)] py-2.5 font-bold transition-all duration-200 hover:bg-white/[0.08]"
             >
               Anuluj
             </button>

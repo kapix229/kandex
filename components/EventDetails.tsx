@@ -150,24 +150,24 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
 
       {/* Description */}
       {localEvent.description && (
-        <div className="bg-[#4fc3f7]/[0.08] rounded-xl p-4 mb-4 border border-[#4fc3f7]/20">
+        <div className="bg-[var(--info)]/8 rounded-xl p-4 mb-4 border border-[var(--info)]/20">
           <p className="text-sm font-medium text-[#8bd9ff] mb-1">Opis</p>
-          <p className="text-sm text-[#c4eaff]">{localEvent.description}</p>
+          <p className="text-sm text-[var(--text)]">{localEvent.description}</p>
         </div>
       )}
 
       {/* AI Learning Materials Section */}
       {needsStudyMaterials && (
-        <div className="bg-gradient-to-br from-[#ffb74d]/[0.10] to-[#ff5cf0]/[0.06] rounded-xl p-4 border border-[#ffb74d]/20">
+        <div className="bg-gradient-to-br from-[var(--accent-soft)] to-[var(--info)]/10 rounded-xl p-4 border border-[var(--accent)]/30">
           <div className="flex items-center gap-2 mb-3">
             <span className="text-lg">🤖</span>
-            <h3 className="font-semibold text-[#ffd08a]">
+            <h3 className="font-semibold text-[var(--accent)]">
               Sugerowane materiały do nauki
             </h3>
           </div>
 
-          <p className="text-xs text-[#e6c99b] mb-3">
-            Analiza AI: Znaleziono temat <strong>{extractedTopic.mainTopic}</strong>
+          <p className="text-xs text-[var(--text-muted)] mb-3">
+            Analiza AI: Znaleziono temat <strong className="text-[var(--text)]">{extractedTopic.mainTopic}</strong>
           </p>
 
           <LearningMaterials
@@ -181,17 +181,17 @@ export default function EventDetails({ event, onEventUpdate }: EventDetailsProps
       <div className="flex gap-2 pt-2">
         <button
           onClick={handleToggleCompletion}
-          className={`flex-1 rounded-lg py-2 font-medium transition-all duration-200 ${
+          className={`flex-1 rounded-xl py-2.5 font-bold transition-all duration-200 ${
             localEvent.completed
-              ? "bg-yellow-500 text-white hover:bg-yellow-600 hover:shadow-md"
-              : "bg-green-600 text-white hover:bg-green-700 hover:shadow-md"
+              ? "bg-[var(--warning)] text-[#1a1200] hover:brightness-110"
+              : "bg-[var(--success)] text-[#06281a] hover:brightness-110"
           }`}
         >
           {localEvent.completed ? "↩️ Oznacz jako niezrobione" : "✅ Oznacz jako gotowe"}
         </button>
         <button
           onClick={() => setIsEditModalOpen(true)}
-          className="flex-1 bg-white/[0.06] border border-[var(--border)] text-[var(--text)] rounded-lg py-2 font-medium transition-all duration-200 hover:bg-white/[0.10] hover:shadow-md"
+          className="flex-1 bg-white/[0.06] border border-[var(--border)] text-[var(--text)] rounded-xl py-2.5 font-bold transition-all duration-200 hover:bg-white/[0.10] hover:shadow-md"
         >
           ✏️ Edytuj
         </button>

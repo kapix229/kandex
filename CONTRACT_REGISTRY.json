@@ -1,0 +1,242 @@
+{
+  "typeDefinitions": {
+    "file": "src/types/shared.ts",
+    "content": "export type ErrorCode = | \"INVALID_REQUEST\" | \"INVALID_CREDENTIALS\" | \"CAPTCHA_REQUIRED\" | \"CAPTCHA_FAILED\" | \"LOGIN_FAILED\" | \"SESSION_EXPIRED\" | \"EDUVULCAN_UNAVAILABLE\" | \"MOBILE_API_UNAVAILABLE\" | \"RATE_LIMITED\" | \"INTERNAL_ERROR\";\nexport interface APIError { code: ErrorCode; message: string; }\nexport interface APIResponse<T> { success: boolean; data?: T; error?: APIError; }\nexport interface Student { id: string; name: string; surname: string; class: string; school: string; }\nexport interface Grade { id: string; subjectId: string; subjectName: string; value: string; numericValue?: number; type: string; date: string; weight: number; }\nexport interface AttendanceSummary { present: number; absent: number; late: number; excused: number; unknown: number; }\nexport interface AttendanceEntry { date: string; lesson: number; subject: string; status: \"present\" | \"absent\" | \"late\" | \"excused\" | \"unknown\"; }\nexport interface AttendanceData { summary: AttendanceSummary; entries: AttendanceEntry[]; }\nexport interface Lesson { date: string; lessonNumber: number; start: string; end: string; subject: string; teacher: string; room: string; }\nexport interface Subject { id: string; name: string; teacher: string; }\nexport interface VulcanEvent { id: string; title: string; description?: string; type: \"assignment\" | \"test\" | \"exam\" | \"grade\" | \"note\" | \"event\"; subject?: string; date: Date; dueDate?: Date; completed: boolean; priority: \"low\" | \"normal\" | \"high\"; color?: string; }\nexport interface VulcanGrade { id: string; subject: string; title: string; value: number; displayValue?: string; weight: number; teacher: string; date: Date; comment?: string; }\nexport interface VulcanGradeSummary { subject: string; average: number; count: number; grades: VulcanGrade[]; }\nexport interface ApiApPayload { Success?: boolean; Tokens?: string[]; Alias?: string; GivenName?: string; Surname?: string; AccessToken?: string; IsConsentAccepted?: boolean; CanAcceptConsent?: boolean; }\nexport interface MobileStudent { PupilId: number; FirstName: string; LastName: string; Pupil?: { ClassDisplay?: string; ConstituentUnit?: { Name?: string }; Unit?: { Id?: number; Symbol?: string; Name?: string }; Pupil?: { Id?: number }; Periods?: Array<{ Id: number; Current?: boolean }>; }; }\nexport interface MobileGrade { Id: string | number; Value: string | number; ContentRaw?: string | number | null; Content?: string | number | null; Column?: { Subject?: { Id?: string | number; Name?: string }; Weight?: string | number; Name?: string; }; DateCreated?: { Timestamp?: number }; Creator?: { DisplayName?: string }; }\nexport interface MobileLesson { Id: string | number; Subject?: { Name?: string }; TeacherPrimary?: { DisplayName?: string }; Room?: { Code?: string } | null; Date?: { Timestamp?: number; Date?: string }; LessonNumber?: number; TimeSlot?: { Start?: string; End?: string }; }\nexport interface MobileHomework { Id: string | number; Content?: string; Subject?: { Name?: string }; Deadline?: { Timestamp?: number }; }\nexport interface MobileExam { Id: string | number; Content?: string; Type?: string; Subject?: { Name?: string }; Deadline?: { Timestamp?: number; Date?: string }; DateCreated?: { Timestamp?: number; Date?: string }; }\nexport interface MobileAttendance { Id: string | number; LessonId?: string | number; Day?: { Timestamp?: number; Date?: string }; LessonNumber?: number; Subject?: { Name?: string }; PresenceType?: { Name?: string; Presence?: boolean; Absence?: boolean; Late?: boolean; AbsenceJustified?: boolean; Removed?: boolean; }; }\nexport interface MobileSession { id: string; keypair: MobileKeypair; restUrl: string; student: MobileStudent; account: { fullName: string; studentId?: number }; createdAt: string; }\nexport interface MobileKeypair { fingerprint: string; privateKey: string; certificate: string; }\nexport interface GradeCalculationResult { weightedAverage: number; simpleAverage: number; gradeCount: number; categoryAverages: Record<string, number>; }\nexport interface AttendanceRateResult { presentRate: number; absenceRate: number; lateRate: number; excusedRate: number; warningThresholdMet: boolean; }"
+  },
+  "apiContracts": {
+    "endpoints": [
+      {
+        "endpoint": "login",
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "request": {
+          "action": "string (optional)",
+          "username": "string (optional)",
+          "password": "string (optional)",
+          "loginId": "string (optional)",
+          "captchaResponse": "string (optional)"
+        },
+        "response": {
+          "success": "boolean",
+          "data": "Student (optional)",
+          "error": "{ code: ErrorCode; message: string } (optional)"
+        },
+        "errors": [
+          { "code": "INVALID_REQUEST", "message": "Nieprawidłowy format żądania JSON.", "httpStatus": 400 },
+          { "code": "INVALID_REQUEST", "message": "Brak lub nieprawidłowe dane CAPTCHA.", "httpStatus": 400 },
+          { "code": "INVALID_REQUEST", "message": "Pole username jest wymagane i musi być prawidłowate.", "httpStatus": 400 },
+          { "code": "INVALID_REQUEST", "message": "Pole password jest wymagane.", "httpStatus": 400 },
+          { "code": "RATE_LIMITED", "message": "Zbyt wiele prób logowania. Odczekaj chwilę przed kolejną próbą.", "httpStatus": 429 },
+          { "code": "INVALID_CREDENTIALS", "message": "Nieprawidłowy login lub hasło EduVULCAN.", "httpStatus": 401 },
+          { "code": "CAPTCHA_FAILED", "message": "Weryfikacja CAPTCHA nie powiodła się. Spróbuj ponownie.", "httpStatus": 400 },
+          { "code": "EDUVULCAN_UNAVAILABLE", "message": "Serwer EduVULCAN jest niedostępny.", "httpStatus": 502 },
+          { "code": "LOGIN_FAILED", "message": "Logowanie EduVULCAN nie powiodło się.", "httpStatus": 500 }
+        ]
+      },
+      {
+        "endpoint": "logout",
+        "method": "DELETE",
+        "path": "/api/v1/auth/logout",
+        "request": {},
+        "response": { "success": "boolean" },
+        "errors": []
+      },
+      {
+        "endpoint": "grades",
+        "method": "GET",
+        "path": "/api/v1/grades",
+        "request": { "subject": "string (optional)", "subjectId": "string (optional)", "from": "string (optional)", "to": "string (optional)" },
+        "response": { "success": "boolean", "data": "{ grades: Grade[] } (optional)", "error": "{ code: ErrorCode; message: string } (optional)" },
+        "errors": [
+          { "code": "SESSION_EXPIRED", "message": "Sesja EduVULCAN wygasła. Połącz dziennik ponownie.", "httpStatus": 401 },
+          { "code": "IMPORT_FAILED", "message": "Nie udało się pobrać ocen. Spróbuj ponownie później.", "httpStatus": 502 }
+        ]
+      },
+      {
+        "endpoint": "attendance",
+        "method": "GET",
+        "path": "/api/v1/attendance",
+        "request": {},
+        "response": { "success": "boolean", "data": "{ entries: AttendanceEntry[]; summary: AttendanceSummary } (optional)", "error": "{ code: ErrorCode; message: string } (optional)" },
+        "errors": [
+          { "code": "SESSION_EXPIRED", "message": "Sesja EduVULCAN wygasła. Połącz dziennik ponownie.", "httpStatus": 401 },
+          { "code": "IMPORT_FAILED", "message": "Nie udało się pobrać frekwencji. Spróbuj ponownie później.", "httpStatus": 502 }
+        ]
+      },
+      {
+        "endpoint": "timetable",
+        "method": "GET",
+        "path": "/api/v1/timetable",
+        "request": {},
+        "response": { "success": "boolean", "data": "Lesson[] (optional)", "error": "{ code: ErrorCode; message: string } (optional)" },
+        "errors": [
+          { "code": "SESSION_EXPIRED", "message": "Sesja EduVULCAN wygasła. Połącz dziennik ponownie.", "httpStatus": 401 },
+          { "code": "EDUVULCAN_UNAVAILABLE", "message": "Serwer EduVULCAN jest niedostępny.", "httpStatus": 502 }
+        ]
+      },
+      {
+        "endpoint": "events",
+        "method": "GET",
+        "path": "/api/v1/events",
+        "request": {},
+        "response": { "success": "boolean", "data": "VulcanEvent[] (optional)", "error": "{ code: ErrorCode; message: string } (optional)" },
+        "errors": [
+          { "code": "SESSION_EXPIRED", "message": "Sesja EduVULCAN wygasła. Połącz dziennik ponownie.", "httpStatus": 401 },
+          { "code": "EDUVULCAN_UNAVAILABLE", "message": "Serwer EduVULCAN jest niedostępny.", "httpStatus": 502 }
+        ]
+      },
+      {
+        "endpoint": "subjects",
+        "method": "GET",
+        "path": "/api/v1/subjects",
+        "request": {},
+        "response": { "success": "boolean", "data": "Subject[] (optional)", "error": "{ code: ErrorCode; message: string } (optional)" },
+        "errors": [
+          { "code": "SESSION_EXPIRED", "message": "Sesja EduVULCAN wygasła. Połącz dziennik ponownie.", "httpStatus": 401 },
+          { "code": "EDUVULCAN_UNAVAILABLE", "message": "Serwer EduVULCAN jest niedostępny.", "httpStatus": 502 }
+        ]
+      },
+      {
+        "endpoint": "health/eduvulcan",
+        "method": "GET",
+        "path": "/api/v1/health/eduvulcan",
+        "request": {},
+        "response": { "success": "boolean", "data": "{ status: string; latency: number; available: boolean } (optional)", "error": "{ code: ErrorCode; message: string } (optional)" },
+        "errors": []
+      }
+    ]
+  },
+  "serviceInterfaces": {
+    "services": [
+      {
+        "serviceName": "eduvulcan-mobile",
+        "methods": [
+          { "name": "connectWithMobileApiAp", "parameters": ["apiApHtml: string", "account?: { fullName?: string; studentId?: number }"], "returns": "Promise<MobileSession>" },
+          { "name": "connectWithMobileJwt", "parameters": ["jwtToken: string"], "returns": "Promise<MobileSession>" },
+          { "name": "getMobileSession", "parameters": ["id: string"], "returns": "Promise<MobileSession | null>" },
+          { "name": "deleteMobileSession", "parameters": ["id: string"], "returns": "Promise<void>" },
+          { "name": "fetchMobileGrades", "parameters": ["sessionId: string"], "returns": "Promise<Grade[]>" },
+          { "name": "fetchMobileSnapshot", "parameters": ["sessionId: string"], "returns": "Promise<Snapshot>" }
+        ]
+      },
+      {
+        "serviceName": "eduvulcan-api",
+        "methods": [
+          { "name": "getEduVulcanSnapshot", "parameters": ["sessionId?: string"], "returns": "Promise<any>" },
+          { "name": "getEduVulcanStudent", "parameters": ["sessionId?: string"], "returns": "Promise<Student>" },
+          { "name": "getEduVulcanGrades", "parameters": ["sessionId?: string"], "returns": "Promise<Grade[]>" },
+          { "name": "getEduVulcanAttendance", "parameters": ["sessionId?: string"], "returns": "Promise<AttendanceData>" },
+          { "name": "getEduVulcanTimetable", "parameters": ["sessionId?: string"], "returns": "Promise<Lesson[]>" },
+          { "name": "getEduVulcanSubjects", "parameters": ["sessionId?: string"], "returns": "Promise<Subject[]>" }
+        ]
+      },
+      {
+        "serviceName": "grades",
+        "methods": [
+          { "name": "calculateWeightedAverage", "parameters": ["grades: Grade[]"], "returns": "Promise<GradeCalculationResult>" },
+          { "name": "calculateSimpleAverage", "parameters": ["grades: Grade[]"], "returns": "number" },
+          { "name": "getCategoryAverages", "parameters": ["grades: Grade[]"], "returns": "Promise<Record<string, number>>" }
+        ]
+      },
+      {
+        "serviceName": "attendance",
+        "methods": [
+          { "name": "calculateAttendanceRates", "parameters": ["entries: AttendanceEntry[]"], "returns": "Promise<AttendanceRateResult>" },
+          { "name": "getWarningThresholdStatus", "parameters": ["rate: number"], "returns": "boolean" }
+        ]
+      },
+      {
+        "serviceName": "auth",
+        "methods": [
+          { "name": "checkLoginRateLimit", "parameters": ["ip: string"], "returns": "boolean" },
+          { "name": "mapLoginError", "parameters": ["message: string"], "returns": "{ code: ErrorCode; message: string }" }
+        ]
+      }
+    ]
+  },
+  "eventTypes": {
+    "events": [
+      { "eventName": "session:login:success", "payload": { "sessionId": "string", "studentId": "number", "fullName": "string", "role": "\"student\" | \"teacher\"" } },
+      { "eventName": "session:login:failure", "payload": { "errorCode": "ErrorCode", "message": "string", "attempts": "number" } },
+      { "eventName": "session:logout", "payload": { "sessionId": "string" } },
+      { "eventName": "grades:import:complete", "payload": { "sessionId": "string", "gradesCount": "number", "subjects": "Subject[]" } },
+      { "eventName": "attendance:import:complete", "payload": { "sessionId": "string", "entriesCount": "number", "summary": "AttendanceSummary" } },
+      { "eventName": "api:error", "payload": { "endpoint": "string", "errorCode": "ErrorCode", "message": "string" } }
+    ]
+  },
+  "databaseSchema": {
+    "tables": [
+      {
+        "name": "eduvulcan_mobile_sessions",
+        "columns": [
+          { "name": "session_id", "type": "uuid", "primaryKey": true, "nullable": false },
+          { "name": "payload", "type": "jsonb", "nullable": true },
+          { "name": "expires_at", "type": "timestamptz", "nullable": false },
+          { "name": "created_at", "type": "timestamptz", "nullable": false }
+        ],
+        "rlsPolicy": "Enable RLS on eduvulcan_mobile_sessions. Policy: \"Users can only access their own sessions: session_id = auth.uid()\"",
+        "indexes": [{ "columns": ["expires_at"], "where": "expires_at > now()" }]
+      },
+      {
+        "name": "users",
+        "columns": [
+          { "name": "id", "type": "uuid", "primaryKey": true, "nullable": false },
+          { "name": "email", "type": "text", "nullable": false },
+          { "name": "name", "type": "text", "nullable": true },
+          { "name": "created_at", "type": "timestamptz", "default": "now()" }
+        ],
+        "rlsPolicy": "Enable RLS. Users can read own data only.",
+        "indexes": [{ "columns": ["email"] }]
+      }
+    ]
+  },
+  "errorCodes": {
+    "codes": [
+      { "code": "INVALID_REQUEST", "message": "Nieprawidłowy format żądania.", "httpStatus": 400 },
+      { "code": "INVALID_CREDENTIALS", "message": "Nieprawidłowy login lub hasło.", "httpStatus": 401 },
+      { "code": "CAPTCHA_REQUIRED", "message": "Wymagana weryfikacja CAPTCHA.", "httpStatus": 400 },
+      { "code": "CAPTCHA_FAILED", "message": "Weryfikacja CAPTCHA nie powiodła się.", "httpStatus": 400 },
+      { "code": "LOGIN_FAILED", "message": "Logowanie nie powiodło się.", "httpStatus": 500 },
+      { "code": "SESSION_EXPIRED", "message": "Sesja wygasła. Połącz ponownie.", "httpStatus": 401 },
+      { "code": "EDUVULCAN_UNAVAILABLE", "message": "Serwer EduVULCAN jest niedostępny.", "httpStatus": 502 },
+      { "code": "MOBILE_API_UNAVAILABLE", "message": "Mobilne API EduVULCAN jest niedostępne.", "httpStatus": 503 },
+      { "code": "RATE_LIMITED", "message": "Zbyt wiele prób. Spróbuj później.", "httpStatus": 429 },
+      { "code": "INTERNAL_ERROR", "message": "Wewnętrzny błąd serwera.", "httpStatus": 500 }
+    ]
+  },
+  "fileOwnership": {
+    "files": [
+      { "filePath": "src/types/shared.ts", "agentArea": "shared-types" },
+      { "filePath": "services/eduvulcan-mobile.ts", "agentArea": "edu-vulcan" },
+      { "filePath": "services/eduvulcan-api.ts", "agentArea": "edu-vulcan" },
+      { "filePath": "services/grade-calculation.ts", "agentArea": "grades-attendance" },
+      { "filePath": "services/attendance-analytics.ts", "agentArea": "grades-attendance" },
+      { "filePath": "app/api/eduvulcan/login/route.ts", "agentArea": "edu-vulcan" },
+      { "filePath": "app/api/eduvulcan/grades/route.ts", "agentArea": "grades-attendance" },
+      { "filePath": "app/api/eduvulcan/attendance/route.ts", "agentArea": "grades-attendance" },
+      { "filePath": "app/api/eduvulcan/timetable/route.ts", "agentArea": "edu-vulcan" },
+      { "filePath": "app/api/eduvulcan/events/route.ts", "agentArea": "edu-vulcan" },
+      { "filePath": "app/api/eduvulcan/subjects/route.ts", "agentArea": "edu-vulcan" },
+      { "filePath": "app/api/v1/", "agentArea": "backend" },
+      { "filePath": "middleware.ts", "agentArea": "backend" },
+      { "filePath": "lib/rate-limiter.ts", "agentArea": "security" },
+      { "filePath": "lib/security-headers.ts", "agentArea": "security" },
+      { "filePath": "lib/csrf.ts", "agentArea": "security" },
+      { "filePath": "lib/audit-log.ts", "agentArea": "security" },
+      { "filePath": "app/layout.tsx", "agentArea": "frontend" },
+      { "filePath": "app/page.tsx", "agentArea": "frontend" },
+      { "filePath": "app/subjects/page.tsx", "agentArea": "frontend" },
+      { "filePath": "app/attendance/page.tsx", "agentArea": "frontend" },
+      { "filePath": "app/dashboard/", "agentArea": "frontend" },
+      { "filePath": "src/components/", "agentArea": "frontend" }
+    ]
+  },
+  "integrationPoints": [
+    { "from": "edu-vulcan -> backend", "to": "api/v1/auth/login", "contract": "POST /api/v1/auth/login with username/password and CAPTCHA response, returns session cookie", "status": "agreed" },
+    { "from": "grades-attendance -> backend", "to": "api/v1/grades", "contract": "GET /api/v1/grades with session cookie, returns grade data with filters", "status": "agreed" },
+    { "from": "grades-attendance -> backend", "to": "api/v1/attendance", "contract": "GET /api/v1/attendance with session cookie, returns attendance data", "status": "agreed" },
+    { "from": "frontend -> backend", "to": "api/v1/events", "contract": "GET /api/v1/events with session cookie, returns vulcan events", "status": "agreed" },
+    { "from": "frontend -> backend", "to": "api/v1/subjects", "contract": "GET /api/v1/subjects with session cookie, returns subjects", "status": "agreed" },
+    { "from": "backend -> database", "to": "eduvulcan_mobile_sessions", "contract": "Supabase table with RLS for session persistence, expires_at indexing", "status": "agreed" }
+  ]
+}

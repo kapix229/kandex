@@ -1,0 +1,587 @@
+{
+  "agentTasks": {
+    "edu-vulcan": [
+      {
+        "id": "EDU-001",
+        "title": "Consolidate EduVULCAN login to single username+password flow with CAPTCHA",
+        "acceptanceCriteria": [
+          "Single POST /api/v1/auth/login endpoint with structured validation",
+          "CAPTCHA solved in Web Worker (non-blocking)",
+          "Rate limited to 5 attempts/minute/IP",
+          "Returns session cookie on success with proper security flags",
+          "All error scenarios return structured error codes per API contract"
+        ],
+        "files": [
+          "app/api/eduvulcan/login/route.ts",
+          "src/integrations/eduvulcan/credentials.ts",
+          "services/eduvulcan-mobile.ts"
+        ],
+        "dependencies": ["BACK-001"],
+        "contracts": [
+          "POST /api/v1/auth/login",
+          "ErrorCode enum",
+          "LoginRequest schema",
+          "LoginResponse schema"
+        ]
+      },
+      {
+        "id": "EDU-002",
+        "title": "Implement Supabase session persistence with RLS policies",
+        "acceptanceCriteria": [
+          "eduvulcan_mobile_sessions table created with proper schema",
+          "RLS policy: Users can only access their own sessions",
+          "Automatic cleanup of expired sessions",
+          "Session storage works in Vercel serverless environment"
+        ],
+        "files": [
+          "services/eduvulcan-mobile.ts",
+          "supabase/migrations/001_initial_schema.sql"
+        ],
+        "dependencies": ["BACK-001"],
+        "contracts": [
+          "DatabaseSchema: eduvulcan_mobile_sessions",
+          "RLS Policy specification"
+        ]
+      },
+      {
+        "id": "EDU-003",
+        "title": "Add health check endpoint and monitoring for EduVULCAN connectivity",
+        "acceptanceCriteria": [
+          "GET /api/v1/health/eduvulcan endpoint returns status and latency",
+          "Checks API connectivity without exposing sensitive data",
+          "Returns appropriate error codes when EduVULCAN is unavailable"
+        ],
+        "files": [
+          "app/api/v1/health/eduvulcan/route.ts",
+          "services/eduvulcan-mobile.ts"
+        ],
+        "dependencies": [],
+        "contracts": [
+          "GET /api/v1/health/eduvulcan",
+          "HealthResponse schema"
+        ]
+      },
+      {
+        "id": "EDU-004",
+        "title": "Implement complete sync functionality for grades, attendance, timetable",
+        "acceptanceCriteria": [
+          "Full snapshot fetch with all data types (grades, lessons, homework, exams, attendance)",
+          "Proper date range handling for school year",
+          "Error handling for partial failures with individual error messages",
+          "Data transformation from Mobile types to shared types"
+        ],
+        "files": [
+          "services/eduvulcan-mobile.ts",
+          "services/eduvulcan-api.ts",
+          "app/api/eduvulcan/sync/route.ts"
+        ],
+        "dependencies": ["EDU-001", "EDU-002"],
+        "contracts": [
+          "MobileSession type",
+          "Snapshot type",
+          "Grade, AttendanceData, Lesson schemas"
+        ]
+      },
+      {
+        "id": "EDU-005",
+        "title": "Token management and session lifecycle operations",
+        "acceptanceCriteria": [
+          "Session creation with proper expiration handling",
+          "Session validation before data access",
+          "Session deletion on logout",
+          "Session cleanup for expired entries"
+        ],
+        "files": [
+          "services/eduvulcan-mobile.ts",
+          "services/eduvulcan-api.ts",
+          "app/api/eduvulcan/session/route.ts"
+        ],
+        "dependencies": ["EDU-002"],
+        "contracts": [
+          "SessionCookieConfig",
+          "AuthSession type"
+        ]
+      }
+    ],
+    "backend": [
+      {
+        "id": "BACK-001",
+        "title": "Create unified API v1 with middleware stack",
+        "acceptanceCriteria": [
+          "All routes under /api/v1/* namespace",
+          "Auth middleware validates session cookies",
+          "Rate limiting middleware (100 req/min/IP, 20 req/min/user for auth)",
+          "Validation middleware using Zod schemas",
+          "Error handler middleware with structured responses",
+          "Request ID propagation for tracing",
+          "Security headers on all responses (CSP, HSTS, X-Frame-Options)"
+        ],
+        "files": [
+          "middleware.ts",
+          "app/api/v1/",
+          "lib/rate-limiter.ts",
+          "lib/validation.ts",
+          "lib/error-handler.ts"
+        ],
+        "dependencies": [],
+        "contracts": [
+          "APIResponse schema",
+          "ErrorCode enum",
+          "SessionCookieConfig"
+        ]
+      },
+      {
+        "id": "BACK-002",
+        "title": "Implement circuit breakers for external APIs (EduVULCAN, OpenAI)",
+        "acceptanceCriteria": [
+          "Circuit breaker for EduVULCAN API calls with configurable thresholds",
+          "Circuit breaker for OpenAI API calls",
+          "Metrics exported for circuit breaker state",
+          "Graceful fallback when circuit is open"
+        ],
+        "files": [
+          "lib/circuit-breaker.ts",
+          "services/eduvulcan-mobile.ts",
+          "services/eduvulcan-api.ts",
+          "app/api/ai/chat/route.ts"
+        ],
+        "dependencies": ["BACK-001"],
+        "contracts": [
+          "serviceInterfaces",
+          "MOBILE_API_UNAVAILABLE error code"
+        ]
+      },
+      {
+        "id": "BACK-003",
+        "title": "Implement rate limiting and security middleware",
+        "acceptanceCriteria": [
+          "Sliding window rate limiter (100 req/min/IP, 20 req/min/user for auth)",
+          "CSRF protection with double-submit cookie pattern",
+          "Security headers middleware (CSP, HSTS, X-Frame-Options, etc.)",
+          "Audit logging for auth events"
+        ],
+        "files": [
+          "lib/rate-limiter.ts",
+          "lib/csrf.ts",
+          "lib/security-headers.ts",
+          "lib/audit-log.ts"
+        ],
+        "dependencies": ["BACK-001"],
+        "contracts": [
+          "RateLimitConfig type",
+          "SecurityHeaders interface",
+          "AuditEvent interface"
+        ]
+      },
+      {
+        "id": "BACK-004",
+        "title": "Create API routes with consolidated data access",
+        "acceptanceCriteria": [
+          "GET /api/v1/grades with filtering (subject, date range)",
+          "GET /api/v1/attendance with summary statistics",
+          "GET /api/v1/timetable with lesson data",
+          "GET /api/v1/events with calendar events",
+          "GET /api/v1/subjects with subject list",
+          "All routes use session cookie for authentication",
+          "All routes use shared type schemas"
+        ],
+        "files": [
+          "app/api/v1/grades/route.ts",
+          "app/api/v1/attendance/route.ts",
+          "app/api/v1/timetable/route.ts",
+          "app/api/v1/events/route.ts",
+          "app/api/v1/subjects/route.ts",
+          "app/api/v1/auth/login/route.ts"
+        ],
+        "dependencies": ["BACK-001", "EDU-001"],
+        "contracts": [
+          "GET /api/v1/grades",
+          "GET /api/v1/attendance",
+          "GET /api/v1/timetable",
+          "GET /api/v1/events",
+          "GET /api/v1/subjects"
+        ]
+      },
+      {
+        "id": "BACK-005",
+        "title": "Implement health check and monitoring endpoints",
+        "acceptanceCriteria": [
+          "GET /api/v1/health/eduvulcan returns latency and availability status",
+          "Overall health check aggregates component status",
+          "Metrics endpoint for monitoring integration",
+          "Response time tracking for external API calls"
+        ],
+        "files": [
+          "app/api/v1/health/eduvulcan/route.ts",
+          "app/api/v1/health/route.ts",
+          "lib/health.ts"
+        ],
+        "dependencies": [],
+        "contracts": [
+          "HealthResponse schema",
+          "Event name: api:error"
+        ]
+      }
+    ],
+    "grades-attendance": [
+      {
+        "id": "GRADES-001",
+        "title": "Create unified GradeCalculationService with weighted averages",
+        "acceptanceCriteria": [
+          "Single source of truth for grade parsing (parseGradeValue function)",
+          "Weighted average calculation with proper weight handling (1=aktywność, 2=kartkówka, 3=sprawdzian)",
+          "Semester/term detection from dates",
+          "Grade categories support (sprawdzian, kartkówka, aktywność, projekt)",
+          "Trend analysis (comparing recent vs older grades)",
+          "Goal calculator (what grade needed for target average)"
+        ],
+        "files": [
+          "services/grade-calculator.ts",
+          "services/eduvulcan-api.ts",
+          "app/api/v1/grades/route.ts"
+        ],
+        "dependencies": ["BACK-001"],
+        "contracts": [
+          "Grade type",
+          "SubjectGradeSummary type",
+          "GradeCalculationResult type"
+        ]
+      },
+      {
+        "id": "GRADES-002",
+        "title": "Create AttendanceAnalytics service with comprehensive statistics",
+        "acceptanceCriteria": [
+          "Per-subject attendance rates",
+          "Per-period (month/semester) statistics",
+          "Warning thresholds (<50%, <70%)",
+          "Late/excused tracking with proper categorization",
+          "Trend analysis (improving/declining/stable)",
+          "Summary statistics (present, absent, late, excused, unknown)"
+        ],
+        "files": [
+          "services/attendance-analytics.ts",
+          "services/attendance-stats.ts",
+          "app/api/v1/attendance/route.ts"
+        ],
+        "dependencies": ["BACK-004"],
+        "contracts": [
+          "AttendanceData type",
+          "AttendanceSummary type",
+          "AttendanceEntry type",
+          "AttendanceRateResult type"
+        ]
+      },
+      {
+        "id": "GRADES-003",
+        "title": "Implement subject-level statistics and grade summaries",
+        "acceptanceCriteria": [
+          "Calculate average grade per subject with weighted averages",
+          "Grade count per subject",
+          "Grade type distribution per subject",
+          "Subject comparison (best/worst performing)",
+          "Export functionality for grade data"
+        ],
+        "files": [
+          "app/subjects/page.tsx",
+          "app/api/v1/grades/route.ts",
+          "services/grade-calculator.ts"
+        ],
+        "dependencies": ["GRADES-001", "BACK-004"],
+        "contracts": [
+          "SubjectGradeSummary type",
+          "SubjectGradeStats type"
+        ]
+      },
+      {
+        "id": "GRADES-004",
+        "title": "Add grade goals and target calculators",
+        "acceptanceCriteria": [
+          "Calculate required average for target overall grade",
+          "Calculate required grade for next assignment",
+          "Display needed improvement for promotion/demotion",
+          "Handle weight-based calculations correctly"
+        ],
+        "files": [
+          "services/grade-calculator.ts",
+          "app/dashboard/grades/page.tsx"
+        ],
+        "dependencies": ["GRADES-001"],
+        "contracts": [
+          "Grade type",
+          "SubjectGradeStats type"
+        ]
+      }
+    ],
+    "frontend": [
+      {
+        "id": "FRONT-001",
+        "title": "Fix all ESLint errors and consolidate components",
+        "acceptanceCriteria": [
+          "Zero ESLint errors (conditional hooks fixed, setState in effects handled)",
+          "components/ merged into src/components/",
+          "Consistent import patterns using shared types",
+          "Proper error handling in all pages"
+        ],
+        "files": [
+          "app/page.tsx",
+          "app/assignments/page.tsx",
+          "app/attendance/page.tsx",
+          "app/calendar/page.tsx",
+          "app/dashboard/schedule/page.tsx",
+          "components/",
+          "src/components/"
+        ],
+        "dependencies": [],
+        "contracts": [
+          "Shared type imports"
+        ]
+      },
+      {
+        "id": "FRONT-002",
+        "title": "Implement React Query for server state management",
+        "acceptanceCriteria": [
+          "React Query provider in layout",
+          "All data fetching uses useQuery/useMutation",
+          "Stale-while-revalidate caching strategy",
+          "Request deduplication",
+          "Optimistic updates for mutations"
+        ],
+        "files": [
+          "app/layout.tsx",
+          "lib/query-client.ts",
+          "app/page.tsx",
+          "app/subjects/page.tsx",
+          "app/calendar/page.tsx",
+          "app/attendance/page.tsx",
+          "app/assignments/page.tsx"
+        ],
+        "dependencies": ["BACK-001", "BACK-004"],
+        "contracts": [
+          "APIResponse type",
+          "All API contracts"
+        ]
+      },
+      {
+        "id": "FRONT-003",
+        "title": "Add form validation, toast notifications, and modal system",
+        "acceptanceCriteria": [
+          "react-hook-form + Zod for all forms",
+          "Toast notification system (sonner or custom)",
+          "Reusable Modal/Dialog components",
+          "Skeleton loaders for all data fetching states",
+          "Error boundaries at route level"
+        ],
+        "files": [
+          "lib/form-validation.ts",
+          "components/ui/Toast.tsx",
+          "components/ui/Modal.tsx",
+          "components/ui/Skeleton.tsx",
+          "components/ui/ErrorBoundary.tsx",
+          "app/login/page.tsx",
+          "components/EditModal.tsx",
+          "components/AssignmentModal.tsx"
+        ],
+        "dependencies": ["FRONT-001"],
+        "contracts": [
+          "LoginRequest schema",
+          "APIError type"
+        ]
+      },
+      {
+        "id": "FRONT-004",
+        "title": "Implement i18n, PWA, theme toggle, and accessibility",
+        "acceptanceCriteria": [
+          "next-intl configured with Polish/English support",
+          "PWA support with manifest and service worker",
+          "Theme toggle (dark/light/system)",
+          "WCAG 2.1 AA compliance",
+          "ARIA labels on all interactive elements",
+          "Focus management in modals"
+        ],
+        "files": [
+          "i18n/",
+          "public/manifest.json",
+          "next.config.ts",
+          "app/layout.tsx",
+          "styles/design-tokens.css"
+        ],
+        "dependencies": ["FRONT-001"],
+        "contracts": []
+      },
+      {
+        "id": "FRONT-005",
+        "title": "Build complete dashboard and main pages with integrated components",
+        "acceptanceCriteria": [
+          "Dashboard page shows grades summary, attendance stats, next lessons, events",
+          "Subjects page with grade distribution and statistics",
+          "Attendance page with daily and per-subject breakdown",
+          "Calendar page with events and deadlines",
+          "Assignments page with filterable tasks",
+          "All pages use React Query for data fetching"
+        ],
+        "files": [
+          "app/page.tsx",
+          "app/dashboard/page.tsx",
+          "app/subjects/page.tsx",
+          "app/attendance/page.tsx",
+          "app/calendar/page.tsx",
+          "app/assignments/page.tsx"
+        ],
+        "dependencies": ["FRONT-002", "GRADES-001", "GRADES-002"],
+        "contracts": [
+          "All API endpoints",
+          "GradeCalculationResult type",
+          "AttendanceRateResult type"
+        ]
+      }
+    ],
+    "qa": [
+      {
+        "id": "QA-001",
+        "title": "Write unit tests for grade and attendance calculation services",
+        "acceptanceCriteria": [
+          "Tests for parseGradeValue with various inputs including +/- modifiers",
+          "Tests for weighted average calculation",
+          "Tests for simple average calculation",
+          "Tests for attendance rate calculation",
+          "Tests for category averages",
+          "Edge cases: empty arrays, NaN values, boundary weights"
+        ],
+        "files": [
+          "services/grade-calculator.ts",
+          "services/attendance-stats.ts",
+          "services/__tests__/grade-calculation.test.ts",
+          "services/__tests__/attendance-analytics.test.ts"
+        ],
+        "dependencies": ["GRADES-001", "GRADES-002"],
+        "contracts": []
+      },
+      {
+        "id": "QA-002",
+        "title": "Write integration tests for all API endpoints",
+        "acceptanceCriteria": [
+          "Tests for /api/v1/auth/login with all error scenarios",
+          "Tests for /api/v1/grades with filtering",
+          "Tests for /api/v1/attendance endpoint",
+          "Tests for /api/v1/timetable endpoint",
+          "Tests for /api/v1/events endpoint",
+          "Tests for /api/v1/subjects endpoint",
+          "Tests for rate limiting behavior",
+          "Tests for session validation"
+        ],
+        "files": [
+          "app/api/v1/__tests__/auth.test.ts",
+          "app/api/v1/__tests__/grades.test.ts",
+          "app/api/v1/__tests__/attendance.test.ts",
+          "app/api/v1/__tests__/timetable.test.ts",
+          "app/api/v1/__tests__/events.test.ts",
+          "app/api/v1/__tests__/subjects.test.ts"
+        ],
+        "dependencies": ["BACK-001", "BACK-004", "EDU-001"],
+        "contracts": [
+          "All API contracts"
+        ]
+      },
+      {
+        "id": "QA-003",
+        "title": "Write e2e tests for critical user flows",
+        "acceptanceCriteria": [
+          "Login flow test (username+password, CAPTCHA)",
+          "Dashboard loading and display",
+          "Grades page with data display",
+          "Attendance page with statistics",
+          "Calendar event display",
+          "Logout flow with session cleanup"
+        ],
+        "files": [
+          "e2e/auth.spec.ts",
+          "e2e/dashboard.spec.ts",
+          "e2e/grades.spec.ts",
+          "e2e/attendance.spec.ts",
+          "e2e/calendar.spec.ts"
+        ],
+        "dependencies": ["FRONT-002", "BACK-001"],
+        "contracts": []
+      },
+      {
+        "id": "QA-004",
+        "title": "Add accessibility and visual regression tests",
+        "acceptanceCriteria": [
+          "axe-core accessibility tests for all pages",
+          "Playwright visual comparison for desktop/tablet/mobile",
+          "Color contrast checks",
+          "Focus management tests",
+          "ARIA attribute validation"
+        ],
+        "files": [
+          "e2e/a11y.spec.ts",
+          "e2e/visual.spec.ts",
+          ".github/workflows/accessibility.yml"
+        ],
+        "dependencies": ["FRONT-001"],
+        "contracts": []
+      },
+      {
+        "id": "QA-005",
+        "title": "Set up CI/CD pipeline with quality gates",
+        "acceptanceCriteria": [
+          "TypeScript strict mode checking",
+          "ESLint passing with no errors",
+          "Unit tests with 80% coverage minimum",
+          "Build succeeds for production",
+          "Type generation from Zod schemas verified"
+        ],
+        "files": [
+          ".github/workflows/verify.yml",
+          "package.json",
+          "tsconfig.json",
+          "vitest.config.ts",
+          "jest.config.ts (alternative)"
+        ],
+        "dependencies": [],
+        "contracts": []
+      }
+    ]
+  },
+  "executionOrder": [
+    "BACK-001",
+    "EDU-001",
+    "BACK-003",
+    "EDU-002",
+    "BACK-004",
+    "GRADES-001",
+    "GRADES-002",
+    "BACK-005",
+    "EDU-003",
+    "EDU-004",
+    "FRONT-001",
+    "QA-001",
+    "QA-002",
+    "BACK-002",
+    "EDU-005",
+    "GRADES-003",
+    "GRADES-004",
+    "FRONT-002",
+    "FRONT-003",
+    "FRONT-004",
+    "FRONT-005",
+    "QA-003",
+    "QA-004",
+    "QA-005"
+  ],
+  "parallelGroups": [
+    ["BACK-001", "BACK-003"],
+    ["EDU-001", "BACK-004"],
+    ["GRADES-001", "GRADES-002", "BACK-002"],
+    ["EDU-002", "EDU-003"],
+    ["FRONT-001"],
+    ["QA-001"],
+    ["QA-002"],
+    ["EDU-004", "EDU-005"],
+    ["GRADES-003", "GRADES-004"],
+    ["FRONT-002", "FRONT-003"],
+    ["FRONT-004", "FRONT-005"],
+    ["QA-003", "QA-004"],
+    ["QA-005"]
+  ]
+}
