@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useVulcanSession } from "@/src/components/VulcanSessionProvider";
 import SyncButton from "@/components/SyncButton";
 import Link from "next/link";
@@ -22,27 +22,50 @@ export default function DashboardSchedulePage() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoad, setInitialLoad] = useState(true);
 
-  const loadSchedule = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/eduvulcan/timetable", { cache: "no-store" });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error?.message ?? "Nie udało się pobrać planu lekcji.");
-      }
-      setLessons(data.data?.lessons ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Błąd sieci");
-    } finally {
-      setLoading(false);
+  const loadSchedule = async (signal?: AbortSignal): Promise<Lesson[]> => {
+    const res = await fetch("/api/eduvulcan/timetable", { cache: "no-store", signal });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error?.message ?? "Nie udało się pobrać planu lekcji.");
     }
+    return data.data?.lessons ?? [];
   };
 
+  const handleSync = useCallback(async () => {
+    await loadSchedule();
+  }, [loadSchedule]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
-    loadSchedule();
-  }, []);
+    if (!initialLoad) return;
+    const controller = new AbortController();
+    let cancelled = false;
+
+    loadSchedule(controller.signal)
+      .then((lessonsData) => {
+        if (!cancelled) {
+          setLessons(lessonsData);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled && !(err instanceof DOMException && err.name === "AbortError")) {
+          setError(err instanceof Error ? err.message : "Błąd sieci");
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+          setInitialLoad(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [initialLoad]);
 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
@@ -72,7 +95,7 @@ export default function DashboardSchedulePage() {
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-muted)]">Twój tydzień zajęć zsynchronizowany z dziennikiem.</p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <SyncButton onSync={loadSchedule} label="Synchronizuj" disabled={loading} />
+          <SyncButton onSync={handleSync} label="Synchronizuj" disabled={loading} />
           {account && (
             <button
               onClick={async () => {

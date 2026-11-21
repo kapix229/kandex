@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
+import TopBar from "@/components/TopBar";
 import AIAssistant from "@/components/AIAssistant";
 import AIMobileLauncher from "@/components/AIMobileLauncher";
 import { VulcanSessionProvider } from "@/src/components/VulcanSessionProvider";
@@ -10,7 +11,7 @@ import { getMobileSession } from "@/services/eduvulcan-mobile";
 
 export const metadata: Metadata = {
   title: "Kandex — Twój asystent nauki",
-  description: "Kandex — neutralna warstwa danych nad EduVULCAN i kolejnymi dziennikami.",
+  description: "Kandex — premium student learning workspace.",
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -37,12 +38,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       <body className="min-h-full">
         <VulcanSessionProvider initialLoggedIn={initial.loggedIn} initialAccount={initial.account}>
           {initial.loggedIn ? (
-            <div className="app-shell flex min-h-screen flex-col lg:flex-row">
+            <div className="app-shell flex min-h-screen">
               <Sidebar />
-              <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-                <div className="mx-auto max-w-[1280px]">{children}</div>
-              </main>
-              <aside className="hidden w-[360px] shrink-0 border-l border-[var(--border)] bg-[var(--surface)]/75 p-4 backdrop-blur-xl xl:flex xl:flex-col">
+              <div className="flex-1 min-w-0 flex flex-col">
+                <TopBar />
+                <main className="flex-1 min-w-0 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+                  <div className="mx-auto max-w-[1280px]">{children}</div>
+                </main>
+              </div>
+              <aside className="hidden w-[380px] shrink-0 border-l border-[var(--border)] bg-[var(--surface)]/75 p-4 backdrop-blur-xl xl:flex xl:flex-col">
                 <AIAssistant />
               </aside>
               <AIMobileLauncher />

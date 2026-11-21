@@ -23,6 +23,7 @@ export default function CalendarPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<VulcanEvent | null>(null);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   async function handleLogout() {
     try {
@@ -34,46 +35,58 @@ export default function CalendarPage() {
     }
   }
 
-  const loadEvents = useCallback(async () => {
-    let cancelled = false;
+  const loadEvents = useCallback(async (signal?: AbortSignal): Promise<VulcanEvent[]> => {
+    const res = await fetch("/api/eduvulcan/events", { cache: "no-store", signal });
+    const data: EventsResponse = await res.json();
 
-    setLoading(true);
-    setAuthError(null);
-
-    try {
-      const res = await fetch("/api/eduvulcan/events", { cache: "no-store" });
-      const data: EventsResponse = await res.json();
-
-      if (cancelled) return;
-
-      if (!res.ok || !data.success) {
-        setAuthError(data.error ?? "Nie udało się pobrać wydarzeń.");
-        setEvents([]);
-        return;
-      }
-
-      // API returns ISO strings - convert back to Date objects the calendar expects.
-      const parsed: VulcanEvent[] = (data.events ?? []).map((e) => ({
-        ...e,
-        date: new Date(e.date),
-        dueDate: e.dueDate ? new Date(e.dueDate) : undefined,
-      }));
-
-      setEvents(parsed);
-      setAuthError(null);
-    } catch (err) {
-      if (cancelled) return;
-      const message = err instanceof Error ? err.message : "Nieznany błąd";
-      setAuthError(`Błąd sieci: ${message}`);
-      setEvents([]);
-    } finally {
-      if (!cancelled) setLoading(false);
+    if (!res.ok || !data.success) {
+      throw new Error(data.error ?? "Nie udało się pobrać wydarzeń.");
     }
+
+    // API returns ISO strings - convert back to Date objects the calendar expects.
+    return (data.events ?? []).map((e) => ({
+      ...e,
+      date: new Date(e.date),
+      dueDate: e.dueDate ? new Date(e.dueDate) : undefined,
+    }));
   }, []);
 
-  useEffect(() => {
-    loadEvents();
+  const handleSync = useCallback(async () => {
+    await loadEvents();
   }, [loadEvents]);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!initialLoad) return;
+    const controller = new AbortController();
+    let cancelled = false;
+
+    loadEvents(controller.signal)
+      .then((parsed) => {
+        if (!cancelled) {
+          setEvents(parsed);
+          setAuthError(null);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled && !(err instanceof DOMException && err.name === "AbortError")) {
+          const message = err instanceof Error ? err.message : "Nieznany błąd";
+          setAuthError(`Błąd sieci: ${message}`);
+          setEvents([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+          setInitialLoad(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [loadEvents, initialLoad]);
 
   const dayEvents = selectedDate
     ? events.filter(
@@ -98,7 +111,7 @@ export default function CalendarPage() {
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <SyncButton onSync={loadEvents} label="Synchronizuj" disabled={loading} />
+          <SyncButton onSync={handleSync} label="Synchronizuj" disabled={loading} />
           {account && (
             <div className="flex items-center gap-3">
               <span className="text-sm text-[var(--text-tertiary)]">
