@@ -1,0 +1,958 @@
+{
+  "auditResults": {
+    "edu-vulcan": {
+      "files": [
+        "/c/kandex/services/eduvulcan-mobile.ts",
+        "/c/kandex/services/eduvulcan-api.ts",
+        "/c/kandex/src/integrations/eduvulcan/credentials.ts",
+        "/c/kandex/src/integrations/eduvulcan/adapter.ts",
+        "/c/kandex/app/api/eduvulcan/login/route.ts",
+        "/c/kandex/app/api/eduvulcan/grades/route.ts",
+        "/c/kandex/app/api/eduvulcan/attendance/route.ts",
+        "/c/kandex/app/api/eduvulcan/timetable/route.ts",
+        "/c/kandex/app/api/eduvulcan/events/route.ts",
+        "/c/kandex/app/api/eduvulcan/session/route.ts",
+        "/c/kandex/app/api/eduvulcan/student/route.ts",
+        "/c/kandex/app/api/eduvulcan/subjects/route.ts",
+        "/c/kandex/app/api/journal/mobile-connect/route.ts",
+        "/c/kandex/app/api/journal/mobile-import/route.ts",
+        "/c/kandex/app/api/journal/import/route.ts",
+        "/c/kandex/app/api/journal/login/route.ts"
+      ],
+      "issues": [
+        "Session storage uses local file (.data/eduvulcan-mobile-sessions.json) which won't work on Vercel; Supabase integration exists but needs proper configuration",
+        "No rate limiting on login endpoints",
+        "CAPTCHA solving is CPU-intensive and blocks the event loop (solveCaptchaProofOfWork uses synchronous hash loops up to 1B iterations)",
+        "Login flow uses manual redirect handling with fetch instead of leveraging Next.js built-in redirect handling",
+        "Error handling in eduvulcan-mobile.ts throws generic errors without structured error codes",
+        "No session refresh/rotation mechanism - sessions expire after 12 hours",
+        "Dual login systems exist: /api/vulcan/login (token+PIN) and /api/eduvulcan/login (username+password) causing confusion",
+        "No CSRF protection on login forms",
+        "Session cookies lack proper security flags in development (Secure flag only set in production)"
+      ],
+      "gaps": [
+        "Missing Supabase table schema for session persistence",
+        "No automated session cleanup for expired sessions in Supabase",
+        "No login attempt tracking / brute force protection",
+        "Missing integration tests for full login flow",
+        "No monitoring/alerting for EduVULCAN API failures",
+        "No fallback when EduVULCAN API is down"
+      ],
+      "plan": [
+        "Create Supabase schema migration for eduvulcan_mobile_sessions table with RLS",
+        "Implement rate limiting middleware for auth endpoints",
+        "Move CAPTCHA solving to a worker thread or external service",
+        "Consolidate to single login flow (prefer username+password with CAPTCHA)",
+        "Add session refresh endpoint and automatic token rotation",
+        "Add structured error codes with Zod validation",
+        "Write integration tests for login → session → data fetch flow",
+        "Add health check endpoint for EduVULCAN connectivity"
+      ]
+    },
+    "backend": {
+      "files": [
+        "/c/kandex/app/api/eduvulcan/grades/route.ts",
+        "/c/kandex/app/api/eduvulcan/attendance/route.ts",
+        "/c/kandex/app/api/eduvulcan/timetable/route.ts",
+        "/c/kandex/app/api/eduvulcan/events/route.ts",
+        "/c/kandex/app/api/eduvulcan/session/route.ts",
+        "/c/kandex/app/api/eduvulcan/student/route.ts",
+        "/c/kandex/app/api/eduvulcan/subjects/route.ts",
+        "/c/kandex/app/api/eduvulcan/login/route.ts",
+        "/c/kandex/app/api/vulcan/login/route.ts",
+        "/c/kandex/app/api/vulcan/grades/route.ts",
+        "/c/kandex/app/api/vulcan/events/route.ts",
+        "/c/kandex/app/api/vulcan/data/route.ts",
+        "/c/kandex/app/api/vulcan/import-html/route.ts",
+        "/c/kandex/app/api/journal/import/route.ts",
+        "/c/kandex/app/api/journal/login/route.ts",
+        "/c/kandex/app/api/journal/mobile-connect/route.ts",
+        "/c/kandex/app/api/journal/mobile-import/route.ts",
+        "/c/kandex/app/api/ai/chat/route.ts",
+        "/c/kandex/services/vulcan.ts",
+        "/c/kandex/services/vulcan-session.ts",
+        "/c/kandex/services/eduvulcan-api.ts",
+        "/c/kandex/services/eduvulcan-mobile.ts",
+        "/c/kandex/src/integrations/index.ts",
+        "/c/kandex/src/integrations/eduvulcan/adapter.ts"
+      ],
+      "issues": [
+        "Two parallel API systems: /api/vulcan/* (legacy token+PIN) and /api/eduvulcan/* (username+password) - causes confusion and code duplication",
+        "No unified API versioning strategy",
+        "No request validation middleware - each route validates manually",
+        "No centralized error handling - each route has try/catch",
+        "Supabase integration only in eduvulcan-mobile.ts, not centralized",
+        "No API rate limiting or quota enforcement",
+        "No request/response logging middleware",
+        "AI chat endpoint has no rate limiting or cost controls",
+        "HTML import endpoint (/api/vulcan/import-html) uses cheerio but no validation",
+        "No OpenAPI/Swagger documentation for API contracts",
+        "VulcanHebe instances created per-request instead of pooled",
+        "Session store in vulcan.ts uses in-memory Map with file persistence - not suitable for serverless"
+      ],
+      "gaps": [
+        "Missing Supabase schema and RLS policies",
+        "No middleware for auth, rate limiting, validation",
+        "No API versioning headers",
+        "No request ID propagation for tracing",
+        "No health check endpoints",
+        "No metrics collection (latency, errors, throughput)",
+        "No circuit breaker for external API calls (EduVULCAN, OpenAI)",
+        "No API key management for external services"
+      ],
+      "plan": [
+        "Consolidate to single API namespace (/api/v1/*)",
+        "Create middleware: auth, rateLimit, validation, errorHandler, logging",
+        "Design Supabase schema with RLS for sessions, users, grades, attendance",
+        "Implement API versioning with Accept header",
+        "Add Zod schemas for all request/response bodies",
+        "Create OpenAPI spec and generate client types",
+        "Implement circuit breaker for EduVULCAN and OpenAI",
+        "Add request ID middleware and structured logging",
+        "Create health check endpoints (/health, /ready)",
+        "Move session storage to Supabase with proper indexing",
+        "Pool VulcanHebe connections or use singleton pattern"
+      ]
+    },
+    "grades-attendance": {
+      "files": [
+        "/c/kandex/app/subjects/page.tsx",
+        "/c/kandex/app/attendance/page.tsx",
+        "/c/kandex/app/api/eduvulcan/grades/route.ts",
+        "/c/kandex/app/api/eduvulcan/attendance/route.ts",
+        "/c/kandex/services/eduvulcan-api.ts",
+        "/c/kandex/services/eduvulcan-mobile.ts",
+        "/c/kandex/src/types/journals.ts",
+        "/c/kandex/types/vulcan.ts",
+        "/c/kandex/services/vulcan.ts"
+      ],
+      "issues": [
+        "Grade calculation logic duplicated in: eduvulcan-api.ts (lines 525-542), eduvulcan-mobile.ts (lines 525-542), subjects/page.tsx (lines 91-98), vulcan.ts (lines 682-728)",
+        "Grade parsing handles +/- modifiers but inconsistent: eduvulcan-api uses parseGradeValue, subjects/page.tsx has own regex",
+        "Weight handling: eduvulcan-api uses grade.weight || 1, vulcan.ts uses column.weight with default 1",
+        "Attendance status mapping uses Polish string matching which is fragile (lines 775-782 in eduvulcan-mobile.ts)",
+        "No grade trends, semester averages, or weighted category averages",
+        "No attendance statistics per subject, per month, or per semester",
+        "Missing: grade predictions, required grades for target average, attendance warnings",
+        "Subject average in eduvulcan-api.ts (line 711) is simple mean, not weighted by grade weights",
+        "No caching of calculated aggregates - recalculated on every request"
+      ],
+      "gaps": [
+        "No weighted average calculation (weights 1, 2, 3 for different assessment types)",
+        "No semester/term separation",
+        "No grade categories (sprawdzian, kartkówka, aktywność, projekt)",
+        "No attendance rate per subject",
+        "No trend analysis (improving/declining)",
+        "No export functionality (PDF, CSV)",
+        "No grade goal calculator"
+      ],
+      "plan": [
+        "Create shared GradeCalculationService with single source of truth",
+        "Implement weighted average with proper weight handling (1=aktywność, 2=kartkówka, 3=sprawdzian)",
+        "Add semester/term detection from dates",
+        "Create AttendanceAnalytics service with per-subject, per-period stats",
+        "Implement grade trend detection (linear regression over time)",
+        "Add grade goal calculator (what grade needed for target average)",
+        "Add attendance warning thresholds (< 50%, < 70%)",
+        "Cache computed aggregates in Supabase with invalidation on new data",
+        "Create unified Grade and Attendance types shared between frontend/backend"
+      ]
+    },
+    "frontend": {
+      "files": [
+        "/c/kandex/app/page.tsx",
+        "/c/kandex/app/layout.tsx",
+        "/c/kandex/app/login/page.tsx",
+        "/c/kandex/app/calendar/page.tsx",
+        "/c/kandex/app/subjects/page.tsx",
+        "/c/kandex/app/attendance/page.tsx",
+        "/c/kandex/app/assignments/page.tsx",
+        "/c/kandex/app/dashboard/page.tsx",
+        "/c/kandex/app/dashboard/schedule/page.tsx",
+        "/c/kandex/app/dashboard/settings/page.tsx",
+        "/c/kandex/app/settings/page.tsx",
+        "/c/kandex/app/study/page.tsx",
+        "/c/kandex/components/Sidebar.tsx",
+        "/c/kandex/components/Calendar.tsx",
+        "/c/kandex/components/AIAssistant.tsx",
+        "/c/kandex/components/EventBadge.tsx",
+        "/c/kandex/components/EventDetails.tsx",
+        "/c/kandex/components/LearningMaterials.tsx",
+        "/c/kandex/components/EditModal.tsx",
+        "/c/kandex/components/AssignmentModal.tsx",
+        "/c/kandex/components/SyncButton.tsx",
+        "/c/kandex/components/AIMobileLauncher.tsx",
+        "/c/kandex/src/components/CalendarMini.tsx",
+        "/c/kandex/src/components/VulcanSessionProvider.tsx",
+        "/c/kandex/src/hooks/useJournalProvider.ts",
+        "/c/kandex/src/hooks/useWebSocket.ts",
+        "/c/kandex/app/globals.css",
+        "/c/kandex/styles/design-tokens.css"
+      ],
+      "issues": [
+        "ESLint errors in multiple pages: useState/useEffect called conditionally (app/page.tsx lines 103-107), setState in effect (assignments, attendance, calendar, dashboard/schedule)",
+        "Duplicated component locations: components/ and src/components/",
+        "Inconsistent data fetching patterns: some pages use useEffect+fetch, others use SWR-like patterns",
+        "No global state management - each page manages own loading/error states",
+        "CalendarMini imported but unused in app/page.tsx",
+        "Hardcoded Polish strings throughout - no i18n system",
+        "No skeleton loaders - uses text 'Loading...' instead",
+        "No virtualization for long lists (grades, attendance entries)",
+        "AIAssistant stores messages in localStorage without encryption",
+        "Mobile drawer for AI panel but no bottom sheet pattern",
+        "No error boundaries for graceful degradation",
+        "No PWA support (manifest, service worker)",
+        "Design tokens well-defined but not all components use them consistently",
+        "No storybook or component documentation"
+      ],
+      "gaps": [
+        "Missing: global loading/error state management (React Query / SWR)",
+        "No form validation library (react-hook-form + Zod)",
+        "No toast notification system",
+        "No modal/dialog system (uses custom EditModal/AssignmentModal)",
+        "No consistent empty states across pages",
+        "No keyboard shortcuts documentation",
+        "No accessibility audit (ARIA labels, focus management)",
+        "No dark/light theme toggle (only dark implemented)",
+        "No responsive breakpoint testing",
+        "No visual regression testing"
+      ],
+      "plan": [
+        "Fix all ESLint errors (conditional hooks, setState in effects)",
+        "Consolidate components/ into src/components/",
+        "Implement React Query for server state management",
+        "Add react-hook-form + Zod for form validation",
+        "Create toast notification system",
+        "Build reusable Modal/Dialog components",
+        "Implement skeleton loaders for all data fetching",
+        "Add error boundaries at route level",
+        "Create empty state component library",
+        "Implement i18n with next-intl or similar",
+        "Add PWA support with next-pwa",
+        "Run accessibility audit and fix issues",
+        "Add theme toggle (dark/light/system)",
+        "Document design system with Storybook",
+        "Add virtualization for long lists (react-window)"
+      ]
+    },
+    "qa": {
+      "files": [
+        "/c/kandex/eslint.config.mjs",
+        "/c/kandex/tsconfig.json",
+        "/c/kandex/.github/workflows/verify.yml",
+        "/c/kandex/package.json"
+      ],
+      "issues": [
+        "Zero test files in project (no unit, integration, or e2e tests)",
+        "ESLint config extends next/core-web-vitals and next/typescript but no custom rules",
+        "No pre-commit hooks (husky) for lint/typecheck",
+        "No CI test stage - only typecheck, lint, build",
+        "No code coverage configuration",
+        "No test utilities or fixtures",
+        "No contract testing for API endpoints",
+        "No visual regression testing",
+        "No performance budgets in CI"
+      ],
+      "gaps": [
+        "Missing: vitest/jest configuration",
+        "Missing: React Testing Library setup",
+        "Missing: MSW for API mocking",
+        "Missing: Playwright/Cypress for e2e",
+        "Missing: test data factories",
+        "Missing: API contract tests (Pact or similar)",
+        "Missing: load testing",
+        "Missing: accessibility testing in CI"
+      ],
+      "plan": [
+        "Set up vitest with React Testing Library",
+        "Add MSW for API mocking in tests",
+        "Create test utilities and data factories",
+        "Write unit tests for grade/attendance calculations",
+        "Write integration tests for API routes",
+        "Set up Playwright for e2e tests",
+        "Add visual regression testing with Playwright",
+        "Configure husky pre-commit hooks",
+        "Add code coverage thresholds",
+        "Add performance budgets to CI",
+        "Create test documentation and guidelines"
+      ]
+    },
+    "shared-types": {
+      "files": [
+        "/c/kandex/src/types/journals.ts",
+        "/c/kandex/src/types/journal.ts",
+        "/c/kandex/types/vulcan.ts",
+        "/c/kandex/services/vulcan.ts",
+        "/c/kandex/services/eduvulcan-api.ts",
+        "/c/kandex/src/integrations/types.ts"
+      ],
+      "issues": [
+        "Three different type definitions for similar concepts: journals.ts (API contracts), journal.ts (adapter contracts), vulcan.ts (legacy Vulcan types)",
+        "Grade type differs: journals.ts has subjectId, subjectName, value(string), numericValue; vulcan.ts has subject, value(number), displayValue",
+        "Attendance types differ: journals.ts uses status enum; vulcan.ts uses completed boolean",
+        "No Zod schemas for runtime validation",
+        "Event types in vulcan.ts vs journals.ts have different fields",
+        "Subject type in journals.ts has teacher field; vulcan.ts doesn't",
+        "No single source of truth for shared types between frontend/backend"
+      ],
+      "gaps": [
+        "No shared types package",
+        "No Zod schemas for API request/response validation",
+        "No TypeScript project references for shared types",
+        "No automated type generation from OpenAPI spec"
+      ],
+      "plan": [
+        "Create @kandex/types package with unified types",
+        "Define Zod schemas for all API contracts",
+        "Generate TypeScript types from Zod schemas",
+        "Consolidate Grade, Attendance, Event, Subject, Student types",
+        "Add TypeScript project references",
+        "Set up automated type generation from OpenAPI"
+      ]
+    },
+    "security": {
+      "files": [
+        "/c/kandex/services/eduvulcan-mobile.ts",
+        "/c/kandex/src/integrations/eduvulcan/credentials.ts",
+        "/c/kandex/app/api/eduvulcan/login/route.ts",
+        "/c/kandex/app/api/vulcan/login/route.ts",
+        "/c/kandex/app/api/ai/chat/route.ts",
+        "/c/kandex/.env.example"
+      ],
+      "issues": [
+        "No rate limiting on any auth endpoint - vulnerable to brute force",
+        "CAPTCHA solving runs on main thread with up to 1B hash iterations - DoS risk",
+        "Session tokens stored in local file (.data/) with no encryption at rest",
+        "Supabase credentials in env vars but no validation of key format",
+        "No CSRF protection on login forms",
+        "AI chat endpoint exposes OpenAI API key usage without rate limiting or cost controls",
+        "No input sanitization on user-controlled data (event titles, descriptions)",
+        "JWT tokens from EduVULCAN stored in session without validation",
+        "No security headers middleware (CSP, HSTS, X-Frame-Options)",
+        "Cookie settings: Secure flag only in production, SameSite=lax (should be strict for auth)",
+        "No audit logging for auth events",
+        "Error messages may leak internal details (stack traces in development)"
+      ],
+      "gaps": [
+        "No dependency vulnerability scanning (npm audit / Snyk)",
+        "No secrets scanning in CI",
+        "No penetration testing",
+        "No security training documentation",
+        "No incident response plan"
+      ],
+      "plan": [
+        "Implement rate limiting middleware (sliding window, per-IP and per-user)",
+        "Move CAPTCHA solving to Web Worker or external service",
+        "Encrypt session data at rest in Supabase",
+        "Add CSRF protection with double-submit cookie pattern",
+        "Implement rate limiting and cost controls on AI endpoint",
+        "Add input sanitization with DOMPurify for user content",
+        "Validate JWT structure and expiry before storage",
+        "Add security headers middleware",
+        "Upgrade cookie settings: Secure=true always, SameSite=strict for auth",
+        "Add audit logging for all auth events",
+        "Sanitize error messages in production",
+        "Add npm audit to CI pipeline",
+        "Add secrets scanning (trufflehog/git-secrets)",
+        "Schedule dependency updates with Dependabot"
+      ]
+    },
+    "performance": {
+      "files": [
+        "/c/kandex/app/page.tsx",
+        "/c/kandex/app/subjects/page.tsx",
+        "/c/kandex/app/calendar/page.tsx",
+        "/c/kandex/app/attendance/page.tsx",
+        "/c/kandex/services/eduvulcan-mobile.ts",
+        "/c/kandex/services/vulcan.ts",
+        "/c/kandex/next.config.ts"
+      ],
+      "issues": [
+        "Dashboard page (app/page.tsx) makes 4 parallel API calls on every render - no caching",
+        "Calendar page fetches all events then filters client-side",
+        "Subjects page recalculates averages on every render (lines 143-147)",
+        "No React Query / SWR for request deduplication and caching",
+        "VulcanHebe instance created per request in vulcan.ts (ensureHebe)",
+        "eduvulcan-mobile.ts fetchRowsInDateChunks makes sequential API calls (14-day chunks)",
+        "No database connection pooling for Supabase",
+        "No CDN caching strategy for static assets",
+        "Bundle size not monitored - no webpack-bundle-analyzer",
+        "Images not optimized (no next/image usage visible)",
+        "No code splitting beyond Next.js defaults",
+        "AIAssistant loads all messages into memory without pagination"
+      ],
+      "gaps": [
+        "No performance monitoring (web vitals, API latency)",
+        "No caching headers on API responses",
+        "No database query optimization",
+        "No lazy loading for heavy components",
+        "No service worker for offline support",
+        "No resource hints (preconnect, prefetch)"
+      ],
+      "plan": [
+        "Implement React Query for all data fetching with stale-while-revalidate",
+        "Add caching headers to API routes (Cache-Control, ETag)",
+        "Pool VulcanHebe connections or use singleton",
+        "Parallelize fetchRowsInDateChunks with Promise.all",
+        "Add database indexes on Supabase session queries",
+        "Implement virtualization for long lists",
+        "Add next/image for all images",
+        "Configure bundle analyzer and set size budgets",
+        "Add web vitals monitoring",
+        "Implement service worker with Workbox",
+        "Add resource hints for critical APIs",
+        "Paginate AI message history"
+      ]
+    }
+  },
+  "implementationPlan": {
+    "phase1-contracts": [
+      {
+        "contract": "API v1 Specification",
+        "owner": "backend",
+        "reviewers": ["frontend", "qa", "grades-attendance", "edu-vulcan"],
+        "files": [
+          "/c/kandex/docs/api/openapi.yaml",
+          "/c/kandex/src/types/api-contracts.ts"
+        ]
+      },
+      {
+        "contract": "Shared Type Definitions (@kandex/types)",
+        "owner": "shared-types",
+        "reviewers": ["backend", "frontend", "grades-attendance"],
+        "files": [
+          "/c/kandex/packages/types/src/index.ts",
+          "/c/kandex/packages/types/src/grade.ts",
+          "/c/kandex/packages/types/src/attendance.ts",
+          "/c/kandex/packages/types/src/event.ts",
+          "/c/kandex/packages/types/src/student.ts"
+        ]
+      },
+      {
+        "contract": "Zod Validation Schemas",
+        "owner": "shared-types",
+        "reviewers": ["backend", "frontend", "qa"],
+        "files": [
+          "/c/kandex/packages/types/src/schemas.ts"
+        ]
+      },
+      {
+        "contract": "Authentication Flow Specification",
+        "owner": "edu-vulcan",
+        "reviewers": ["backend", "security", "frontend"],
+        "files": [
+          "/c/kandex/docs/auth/flow.md",
+          "/c/kandex/src/types/auth.ts"
+        ]
+      },
+      {
+        "contract": "Database Schema (Supabase)",
+        "owner": "backend",
+        "reviewers": ["security", "edu-vulcan", "grades-attendance"],
+        "files": [
+          "/c/kandex/supabase/migrations/001_initial_schema.sql",
+          "/c/kandex/supabase/migrations/002_rls_policies.sql"
+        ]
+      }
+    ],
+    "phase2-tasks": [
+      {
+        "id": "EDU-001",
+        "title": "Consolidate EduVULCAN login to single username+password flow with CAPTCHA",
+        "area": "edu-vulcan",
+        "owner": "edu-vulcan",
+        "dependencies": ["contract-auth-flow"],
+        "acceptanceCriteria": [
+          "Single POST /api/v1/auth/login endpoint",
+          "CAPTCHA solved in Web Worker",
+          "Rate limited to 5 attempts/minute/IP",
+          "Returns session cookie on success",
+          "Structured error codes"
+        ],
+        "filesToModify": [
+          "/c/kandex/app/api/eduvulcan/login/route.ts",
+          "/c/kandex/src/integrations/eduvulcan/credentials.ts",
+          "/c/kandex/services/eduvulcan-mobile.ts"
+        ],
+        "estimatedHours": 8
+      },
+      {
+        "id": "EDU-002",
+        "title": "Implement Supabase session persistence with RLS",
+        "area": "edu-vulcan",
+        "owner": "backend",
+        "dependencies": ["contract-db-schema"],
+        "acceptanceCriteria": [
+          "eduvulcan_mobile_sessions table with RLS",
+          "Sessions survive server restart",
+          "Automatic cleanup of expired sessions",
+          "Encrypted payload at rest"
+        ],
+        "filesToModify": [
+          "/c/kandex/services/eduvulcan-mobile.ts",
+          "/c/kandex/supabase/migrations/001_initial_schema.sql"
+        ],
+        "estimatedHours": 6
+      },
+      {
+        "id": "EDU-003",
+        "title": "Add health check and monitoring for EduVULCAN connectivity",
+        "area": "edu-vulcan",
+        "owner": "edu-vulcan",
+        "dependencies": [],
+        "acceptanceCriteria": [
+          "GET /api/v1/health/eduvulcan endpoint",
+          "Checks routing table, API connectivity",
+          "Returns latency and status",
+          "Integrated with monitoring"
+        ],
+        "filesToModify": [
+          "/c/kandex/app/api/health/eduvulcan/route.ts",
+          "/c/kandex/services/eduvulcan-mobile.ts"
+        ],
+        "estimatedHours": 4
+      },
+      {
+        "id": "BACK-001",
+        "title": "Create unified API v1 with middleware",
+        "area": "backend",
+        "owner": "backend",
+        "dependencies": ["contract-api-v1", "contract-zod-schemas"],
+        "acceptanceCriteria": [
+          "All routes under /api/v1/*",
+          "Auth, rateLimit, validation, errorHandler, logging middleware",
+          "Request ID propagation",
+          "OpenAPI spec generated"
+        ],
+        "filesToModify": [
+          "/c/kandex/app/api/v1/",
+          "/c/kandex/middleware.ts",
+          "/c/kandex/lib/api/"
+        ],
+        "estimatedHours": 16
+      },
+      {
+        "id": "BACK-002",
+        "title": "Implement circuit breakers for external APIs",
+        "area": "backend",
+        "owner": "backend",
+        "dependencies": ["BACK-001"],
+        "acceptanceCriteria": [
+          "Circuit breaker for EduVULCAN API",
+          "Circuit breaker for OpenAI API",
+          "Configurable thresholds",
+          "Metrics exported"
+        ],
+        "filesToModify": [
+          "/c/kandex/lib/circuit-breaker.ts",
+          "/c/kandex/services/eduvulcan-mobile.ts",
+          "/c/kandex/app/api/ai/chat/route.ts"
+        ],
+        "estimatedHours": 6
+      },
+      {
+        "id": "BACK-003",
+        "title": "Migrate session storage to Supabase with pooling",
+        "area": "backend",
+        "owner": "backend",
+        "dependencies": ["EDU-002"],
+        "acceptanceCriteria": [
+          "VulcanHebe connection pooling",
+          "Session store uses Supabase",
+          "In-memory cache with TTL",
+          "Graceful degradation"
+        ],
+        "filesToModify": [
+          "/c/kandex/services/vulcan.ts",
+          "/c/kandex/services/vulcan-session.ts",
+          "/c/kandex/services/eduvulcan-mobile.ts"
+        ],
+        "estimatedHours": 8
+      },
+      {
+        "id": "GRADES-001",
+        "title": "Create unified GradeCalculationService",
+        "area": "grades-attendance",
+        "owner": "grades-attendance",
+        "dependencies": ["contract-shared-types", "contract-zod-schemas"],
+        "acceptanceCriteria": [
+          "Single source of truth for grade parsing",
+          "Weighted average (1, 2, 3 weights)",
+          "Semester/term detection",
+          "Grade categories support",
+          "Trend analysis (linear regression)",
+          "Goal calculator",
+          "Cached aggregates in Supabase"
+        ],
+        "filesToModify": [
+          "/c/kandex/services/grade-calculation.ts",
+          "/c/kandex/services/eduvulcan-api.ts",
+          "/c/kandex/app/subjects/page.tsx",
+          "/c/kandex/app/api/v1/grades/route.ts"
+        ],
+        "estimatedHours": 12
+      },
+      {
+        "id": "GRADES-002",
+        "title": "Create AttendanceAnalytics service",
+        "area": "grades-attendance",
+        "owner": "grades-attendance",
+        "dependencies": ["contract-shared-types"],
+        "acceptanceCriteria": [
+          "Per-subject attendance rates",
+          "Per-period (month/semester) stats",
+          "Warning thresholds (<50%, <70%)",
+          "Late/excused tracking",
+          "Trend analysis"
+        ],
+        "filesToModify": [
+          "/c/kandex/services/attendance-analytics.ts",
+          "/c/kandex/services/eduvulcan-api.ts",
+          "/c/kandex/app/attendance/page.tsx",
+          "/c/kandex/app/api/v1/attendance/route.ts"
+        ],
+        "estimatedHours": 8
+      },
+      {
+        "id": "FRONT-001",
+        "title": "Fix all ESLint errors and consolidate components",
+        "area": "frontend",
+        "owner": "frontend",
+        "dependencies": [],
+        "acceptanceCriteria": [
+          "Zero ESLint errors",
+          "components/ merged into src/components/",
+          "Conditional hooks fixed",
+          "setState in effects fixed"
+        ],
+        "filesToModify": [
+          "/c/kandex/app/page.tsx",
+          "/c/kandex/app/assignments/page.tsx",
+          "/c/kandex/app/attendance/page.tsx",
+          "/c/kandex/app/calendar/page.tsx",
+          "/c/kandex/app/dashboard/schedule/page.tsx",
+          "/c/kandex/components/",
+          "/c/kandex/src/components/"
+        ],
+        "estimatedHours": 6
+      },
+      {
+        "id": "FRONT-002",
+        "title": "Implement React Query for server state",
+        "area": "frontend",
+        "owner": "frontend",
+        "dependencies": ["BACK-001", "contract-api-v1"],
+        "acceptanceCriteria": [
+          "React Query provider in layout",
+          "All data fetching uses useQuery/useMutation",
+          "Stale-while-revalidate caching",
+          "Request deduplication",
+          "Optimistic updates for mutations"
+        ],
+        "filesToModify": [
+          "/c/kandex/app/layout.tsx",
+          "/c/kandex/lib/query-client.ts",
+          "/c/kandex/app/page.tsx",
+          "/c/kandex/app/subjects/page.tsx",
+          "/c/kandex/app/calendar/page.tsx",
+          "/c/kandex/app/attendance/page.tsx",
+          "/c/kandex/app/assignments/page.tsx"
+        ],
+        "estimatedHours": 10
+      },
+      {
+        "id": "FRONT-003",
+        "title": "Add form validation, toast notifications, and modal system",
+        "area": "frontend",
+        "owner": "frontend",
+        "dependencies": ["FRONT-001"],
+        "acceptanceCriteria": [
+          "react-hook-form + Zod for all forms",
+          "Toast notification system (sonner or custom)",
+          "Reusable Modal/Dialog components",
+          "Skeleton loaders for all pages",
+          "Error boundaries at route level"
+        ],
+        "filesToModify": [
+          "/c/kandex/lib/form-validation.ts",
+          "/c/kandex/components/ui/Toast.tsx",
+          "/c/kandex/components/ui/Modal.tsx",
+          "/c/kandex/components/ui/Skeleton.tsx",
+          "/c/kandex/components/ui/ErrorBoundary.tsx",
+          "/c/kandex/app/login/page.tsx",
+          "/c/kandex/components/EditModal.tsx",
+          "/c/kandex/components/AssignmentModal.tsx"
+        ],
+        "estimatedHours": 12
+      },
+      {
+        "id": "FRONT-004",
+        "title": "Implement i18n, PWA, theme toggle, and accessibility",
+        "area": "frontend",
+        "owner": "frontend",
+        "dependencies": ["FRONT-001"],
+        "acceptanceCriteria": [
+          "next-intl configured with Polish/English",
+          "PWA with next-pwa (manifest, service worker)",
+          "Theme toggle (dark/light/system)",
+          "WCAG 2.1 AA compliance",
+          "ARIA labels on all interactive elements",
+          "Focus management in modals"
+        ],
+        "filesToModify": [
+          "/c/kandex/i18n/",
+          "/c/kandex/public/manifest.json",
+          "/c/kandex/next.config.ts",
+          "/c/kandex/app/layout.tsx",
+          "/c/kandex/components/ThemeToggle.tsx",
+          "/c/kandex/styles/design-tokens.css"
+        ],
+        "estimatedHours": 14
+      },
+      {
+        "id": "SHARED-001",
+        "title": "Create @kandex/types package with unified types",
+        "area": "shared-types",
+        "owner": "shared-types",
+        "dependencies": [],
+        "acceptanceCriteria": [
+          "Single Grade, Attendance, Event, Subject, Student types",
+          "Zod schemas for all types",
+          "TypeScript types generated from Zod",
+          "Published as internal package",
+          "Used by frontend and backend"
+        ],
+        "filesToModify": [
+          "/c/kandex/packages/types/",
+          "/c/kandex/tsconfig.json",
+          "/c/kandex/package.json"
+        ],
+        "estimatedHours": 8
+      },
+      {
+        "id": "SEC-001",
+        "title": "Implement rate limiting and security middleware",
+        "area": "security",
+        "owner": "security",
+        "dependencies": ["BACK-001"],
+        "acceptanceCriteria": [
+          "Rate limiter: 100 req/min/IP, 20 req/min/user for auth",
+          "CSRF protection on all mutating endpoints",
+          "Security headers (CSP, HSTS, X-Frame-Options, etc.)",
+          "Input sanitization with DOMPurify",
+          "Audit logging for auth events"
+        ],
+        "filesToModify": [
+          "/c/kandex/middleware.ts",
+          "/c/kandex/lib/rate-limiter.ts",
+          "/c/kandex/lib/csrf.ts",
+          "/c/kandex/lib/security-headers.ts",
+          "/c/kandex/lib/audit-log.ts"
+        ],
+        "estimatedHours": 10
+      },
+      {
+        "id": "SEC-002",
+        "title": "Secure AI chat endpoint with rate limiting and cost controls",
+        "area": "security",
+        "owner": "security",
+        "dependencies": ["BACK-001"],
+        "acceptanceCriteria": [
+          "Rate limit: 20 req/min/user",
+          "Daily token budget per user",
+          "Request validation and sanitization",
+          "Cost monitoring alerts"
+        ],
+        "filesToModify": [
+          "/c/kandex/app/api/ai/chat/route.ts",
+          "/c/kandex/lib/ai-rate-limiter.ts"
+        ],
+        "estimatedHours": 4
+      },
+      {
+        "id": "SEC-003",
+        "title": "Move CAPTCHA solving to Web Worker",
+        "area": "security",
+        "owner": "security",
+        "dependencies": ["EDU-001"],
+        "acceptanceCriteria": [
+          "CAPTCHA solving in Web Worker",
+          "No main thread blocking",
+          "Progress reporting to UI",
+          "Timeout after 30 seconds"
+        ],
+        "filesToModify": [
+          "/c/kandex/src/integrations/eduvulcan/credentials.ts",
+          "/c/kandex/public/captcha-worker.js"
+        ],
+        "estimatedHours": 6
+      },
+      {
+        "id": "PERF-001",
+        "title": "Optimize data fetching with caching and parallelization",
+        "area": "performance",
+        "owner": "performance",
+        "dependencies": ["BACK-001", "FRONT-002"],
+        "acceptanceCriteria": [
+          "Dashboard loads in < 500ms (cached)",
+          "Parallel API calls where possible",
+          "Cache-Control headers on all GET endpoints",
+          "ETag support for conditional requests",
+          "React Query cache configured"
+        ],
+        "filesToModify": [
+          "/c/kandex/app/page.tsx",
+          "/c/kandex/app/api/v1/",
+          "/c/kandex/lib/query-client.ts",
+          "/c/kandex/services/eduvulcan-mobile.ts"
+        ],
+        "estimatedHours": 8
+      },
+      {
+        "id": "PERF-002",
+        "title": "Optimize VulcanHebe connection pooling and chunk fetching",
+        "area": "performance",
+        "owner": "performance",
+        "dependencies": ["BACK-003"],
+        "acceptanceCriteria": [
+          "VulcanHebe singleton/pool",
+          "fetchRowsInDateChunks parallelized",
+          "Connection reuse across requests",
+          "Latency < 2s for full sync"
+        ],
+        "filesToModify": [
+          "/c/kandex/services/vulcan.ts",
+          "/c/kandex/services/eduvulcan-mobile.ts"
+        ],
+        "estimatedHours": 6
+      },
+      {
+        "id": "PERF-003",
+        "title": "Add performance monitoring and bundle optimization",
+        "area": "performance",
+        "owner": "performance",
+        "dependencies": [],
+        "acceptanceCriteria": [
+          "Web vitals monitoring (LCP, FID, CLS)",
+          "API latency metrics",
+          "Bundle analyzer configured",
+          "Bundle size budget: < 200KB JS gzipped",
+          "next/image for all images",
+          "Service worker with Workbox"
+        ],
+        "filesToModify": [
+          "/c/kandex/next.config.ts",
+          "/c/kandex/lib/web-vitals.ts",
+          "/c/kandex/public/sw.js",
+          "/c/kandex/package.json"
+        ],
+        "estimatedHours": 6
+      }
+    ],
+    "phase3-qa": [
+      {
+        "area": "unit-tests",
+        "testStrategy": "Vitest + React Testing Library for all calculation services, utilities, and pure components",
+        "testFiles": [
+          "/c/kandex/packages/types/src/__tests__/",
+          "/c/kandex/services/__tests__/grade-calculation.test.ts",
+          "/c/kandex/services/__tests__/attendance-analytics.test.ts",
+          "/c/kandex/services/__tests__/eduvulcan-mobile.test.ts",
+          "/c/kandex/src/components/__tests__/"
+        ]
+      },
+      {
+        "area": "integration-tests",
+        "testStrategy": "Vitest + MSW for API route testing with mocked external dependencies",
+        "testFiles": [
+          "/c/kandex/app/api/v1/__tests__/",
+          "/c/kandex/app/api/ai/__tests__/"
+        ]
+      },
+      {
+        "area": "e2e-tests",
+        "testStrategy": "Playwright for critical user flows: login, dashboard, grades, attendance, calendar, AI chat",
+        "testFiles": [
+          "/c/kandex/e2e/auth.spec.ts",
+          "/c/kandex/e2e/dashboard.spec.ts",
+          "/c/kandex/e2e/grades.spec.ts",
+          "/c/kandex/e2e/attendance.spec.ts",
+          "/c/kandex/e2e/calendar.spec.ts",
+          "/c/kandex/e2e/ai-chat.spec.ts"
+        ]
+      },
+      {
+        "area": "visual-regression",
+        "testStrategy": "Playwright visual comparison for all pages in desktop/tablet/mobile viewports",
+        "testFiles": [
+          "/c/kandex/e2e/visual.spec.ts"
+        ]
+      },
+      {
+        "area": "performance-tests",
+        "testStrategy": "Lighthouse CI in PR pipeline, k6 load testing for API endpoints",
+        "testFiles": [
+          "/c/kandex/lighthouse-ci.config.js",
+          "/c/kandex/k6/api-load-test.js"
+        ]
+      },
+      {
+        "area": "security-tests",
+        "testStrategy": "npm audit in CI, trufflehog secrets scanning, OWASP ZAP baseline scan",
+        "testFiles": [
+          "/c/kandex/.github/workflows/security.yml"
+        ]
+      },
+      {
+        "area": "accessibility-tests",
+        "testStrategy": "axe-core in Playwright tests, manual audit checklist",
+        "testFiles": [
+          "/c/kandex/e2e/a11y.spec.ts"
+        ]
+      }
+    ]
+  },
+  "fileOwnershipMap": {
+    "/c/kandex/services/eduvulcan-mobile.ts": "edu-vulcan",
+    "/c/kandex/services/eduvulcan-api.ts": "edu-vulcan",
+    "/c/kandex/src/integrations/eduvulcan/": "edu-vulcan",
+    "/c/kandex/app/api/eduvulcan/": "edu-vulcan",
+    "/c/kandex/app/api/journal/mobile-*.ts": "edu-vulcan",
+    "/c/kandex/app/api/v1/": "backend",
+    "/c/kandex/middleware.ts": "backend",
+    "/c/kandex/lib/api/": "backend",
+    "/c/kandex/services/vulcan.ts": "backend",
+    "/c/kandex/services/vulcan-session.ts": "backend",
+    "/c/kandex/services/grade-calculation.ts": "grades-attendance",
+    "/c/kandex/services/attendance-analytics.ts": "grades-attendance",
+    "/c/kandex/app/api/v1/grades/": "grades-attendance",
+    "/c/kandex/app/api/v1/attendance/": "grades-attendance",
+    "/c/kandex/app/subjects/page.tsx": "grades-attendance",
+    "/c/kandex/app/attendance/page.tsx": "grades-attendance",
+    "/c/kandex/app/page.tsx": "frontend",
+    "/c/kandex/app/layout.tsx": "frontend",
+    "/c/kandex/app/login/page.tsx": "frontend",
+    "/c/kandex/app/calendar/page.tsx": "frontend",
+    "/c/kandex/app/assignments/page.tsx": "frontend",
+    "/c/kandex/app/dashboard/": "frontend",
+    "/c/kandex/app/settings/page.tsx": "frontend",
+    "/c/kandex/app/study/page.tsx": "frontend",
+    "/c/kandex/src/components/": "frontend",
+    "/c/kandex/components/": "frontend",
+    "/c/kandex/styles/": "frontend",
+    "/c/kandex/packages/types/": "shared-types",
+    "/c/kandex/src/types/api-contracts.ts": "shared-types",
+    "/c/kandex/lib/rate-limiter.ts": "security",
+    "/c/kandex/lib/csrf.ts": "security",
+    "/c/kandex/lib/security-headers.ts": "security",
+    "/c/kandex/lib/audit-log.ts": "security",
+    "/c/kandex/lib/ai-rate-limiter.ts": "security",
+    "/c/kandex/lib/query-client.ts": "performance",
+    "/c/kandex/lib/web-vitals.ts": "performance",
+    "/c/kandex/next.config.ts": "performance",
+    "/c/kandex/e2e/": "qa",
+    "/c/kandex/.github/workflows/": "qa",
+    "/c/kandex/lighthouse-ci.config.js": "qa",
+    "/c/kandex/k6/": "qa"
+  }
+}
